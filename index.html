@@ -214,6 +214,7 @@
           <th data-key="posNr">Pos.-Nr.</th>
           <th data-key="productName">Produktname</th>
           <th data-key="description">Beschreibung</th>
+          <th data-key="notes">Notiz</th>
           <th data-key="quantity">Menge</th>
           <th data-key="unitPrice">Einzelpreis</th>
           <th data-key="lineNet">Zeilen-Netto</th>
@@ -258,6 +259,7 @@
           posNr: "Pos.-Nr.",
           productName: "Produktname",
           description: "Beschreibung",
+          notes: "Notiz",
           quantity: "Menge",
           unitPrice: "Einzelpreis",
           lineNet: "Zeilen-Netto",
@@ -281,6 +283,7 @@
           posNr: "No.",
           productName: "Product Name",
           description: "Description",
+          notes: "Notes",
           quantity: "Quantity",
           unitPrice: "Unit Price",
           lineNet: "Line Net",
@@ -622,6 +625,7 @@
 
         lineItems.forEach((item, index) => {
           const lineID = selectNode(item, "./ram:AssociatedDocumentLineDocument/ram:LineID")?.textContent.trim() || (index + 1).toString();
+          const productNote = selectNode(item, "./ram:AssociatedDocumentLineDocument/ram:IncludedNote/ram:Content")?.textContent.trim() || "";
           const productName = selectNode(item, "./ram:SpecifiedTradeProduct/ram:Name")?.textContent.trim() || "";
           const productDesc = selectNode(item, "./ram:SpecifiedTradeProduct/ram:Description")?.textContent.trim() || "";
           const qtyText = selectNode(item, "./ram:SpecifiedLineTradeDelivery/ram:BilledQuantity")?.textContent.trim() || "0";
@@ -641,6 +645,7 @@
             <td>${escapeHtml(lineID)}</td>
             <td>${escapeHtml(productName)}</td>
             <td>${escapeHtml(productDesc)}</td>
+            <td>${escapeHtml(productNote)}</td>
             <td>${escapeHtml(quantity.toFixed(2))}</td>
             <td>${formatCurrency(netPricePerUnit.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
             <td>${formatCurrency(lineNet.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
