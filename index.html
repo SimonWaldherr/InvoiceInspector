@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZUGFeRD / XRechnung / EN16931 E-Rechnungs-Reader inkl. PDF-Extraktion</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   
   <style>
     body {
@@ -316,6 +317,64 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* EPC QR Code Styles */
+    .qr-section {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .qr-section h3 {
+      margin: 0 0 15px 0;
+      color: #495057;
+      font-size: 1.2em;
+    }
+
+    .qr-code-container {
+      display: inline-block;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-bottom: 15px;
+    }
+
+    .qr-info {
+      font-size: 0.9em;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .qr-info strong {
+      color: #333;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .qr-section {
+        background: #343a40;
+        border-color: #495057;
+      }
+
+      .qr-section h3 {
+        color: #adb5bd;
+      }
+
+      .qr-code-container {
+        background: #fff;
+      }
+
+      .qr-info {
+        color: #adb5bd;
+      }
+
+      .qr-info strong {
+        color: #fff;
+      }
+    }
   </style>
 </head>
 <body>
@@ -440,6 +499,18 @@
         <tr><th id="grossAmountLabel">Gesamt brutto</th><td id="grossAmount"></td></tr>
         <tr><th id="dueAmountLabel">Fälliger Betrag</th><td id="dueAmount"></td></tr>
       </table>
+    </div>
+    
+    <!-- EPC QR Code Section -->
+    <div id="qrCodeSection" class="qr-section hidden">
+      <h3 id="qrCodeTitle">📱 QR-Code für Überweisung</h3>
+      <div class="qr-code-container"></div>
+      <div class="qr-info">
+        <div id="qrCodeInfo">
+          <strong id="qrCodeInfoTitle">Zum Bezahlen einfach QR-Code mit Banking-App scannen</strong><br>
+          <span id="qrCodeDetails">EPC-QR-Code (Girocode) nach europäischem Standard</span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -582,6 +653,11 @@
           pdfNotAvailable: "Original-PDF ist nicht verfügbar.",
           processingError: "Fehler beim Verarbeiten der Datei: ",
           noPositionsToExport: "Keine Positionen zum Exportieren verfügbar.",
+          
+          // QR-Code
+          qrCodeTitle: "📱 QR-Code für Überweisung",
+          qrCodeInfoTitle: "Zum Bezahlen einfach QR-Code mit Banking-App scannen",
+          qrCodeDetails: "EPC-QR-Code (Girocode) nach europäischem Standard",
         },
         en: {
           // UI Texte
@@ -663,6 +739,11 @@
           pdfNotAvailable: "Original PDF is not available.",
           processingError: "Error processing the file: ",
           noPositionsToExport: "No line items available for export.",
+          
+          // QR-Code
+          qrCodeTitle: "📱 QR Code for Payment",
+          qrCodeInfoTitle: "Simply scan QR code with your banking app to pay",
+          qrCodeDetails: "EPC QR Code (Girocode) according to European standard",
         }
       };
 
@@ -728,6 +809,15 @@
         if (xmlViewerSummary) {
           xmlViewerSummary.textContent = currentLabels.xmlViewerSummary;
         }
+
+        // QR-Code Labels
+        const qrCodeTitle = document.getElementById('qrCodeTitle');
+        const qrCodeInfoTitle = document.getElementById('qrCodeInfoTitle');
+        const qrCodeDetails = document.getElementById('qrCodeDetails');
+        
+        if (qrCodeTitle) qrCodeTitle.textContent = currentLabels.qrCodeTitle;
+        if (qrCodeInfoTitle) qrCodeInfoTitle.textContent = currentLabels.qrCodeInfoTitle;
+        if (qrCodeDetails) qrCodeDetails.textContent = currentLabels.qrCodeDetails;
 
         // Tabellenkopf für Line Items
         document.getElementById('posNrHeader').textContent = currentLabels.posNr;
@@ -1240,6 +1330,113 @@
         }
 
         paymentSection.classList.remove('hidden');
+        
+        // EPC QR-Code generieren wenn IBAN vorhanden
+        generateEPCQRCode(invoiceData.payment);
+      }
+
+      function generateEPCQRCode(paymentData) {
+        const qrCodeSection = document.getElementById('qrCodeSection');
+        const qrCodeContainer = document.querySelector('.qr-code-container');
+        
+        // Prüfen ob notwendige Daten vorhanden sind
+        if (!paymentData || !paymentData.iban || !paymentData.grossAmount) {
+          qrCodeSection.classList.add('hidden');
+          return;
+        }
+
+        try {
+          // Vorherigen QR-Code löschen
+          qrCodeContainer.innerHTML = '';
+          
+          // EPC QR Code Daten nach SEPA Credit Transfer Standard
+          const epcData = generateEPCData(paymentData);
+          
+          // Canvas Element erstellen
+          const canvas = document.createElement('canvas');
+          qrCodeContainer.appendChild(canvas);
+          
+          // QR Code generieren mit qrcode Bibliothek
+          QRCode.toCanvas(canvas, epcData, {
+            width: 200,
+            height: 200,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            },
+            errorCorrectionLevel: 'M'
+          }, function (error) {
+            if (error) {
+              console.error('EPC QR Code generation failed:', error);
+              qrCodeSection.classList.add('hidden');
+            } else {
+              qrCodeSection.classList.remove('hidden');
+            }
+          });
+          
+        } catch (error) {
+          console.error('EPC QR Code generation failed:', error);
+          qrCodeSection.classList.add('hidden');
+        }
+      }
+
+      function generateEPCData(paymentData) {
+        // EPC QR Code Format nach EPC069-12 Standard
+        const serviceTag = "BCD";  // Service Tag
+        const version = "002";     // Version
+        const characterSet = "1";  // UTF-8
+        const identification = "SCT"; // SEPA Credit Transfer
+        
+        // BIC (optional, kann leer sein bei IBAN)
+        const bic = paymentData.bic || "";
+        
+        // Empfänger Name (max 70 Zeichen)
+        const beneficiaryName = truncateString(invoiceData.seller?.name || "", 70);
+        
+        // IBAN (ohne Leerzeichen)
+        const beneficiaryIban = paymentData.iban.replace(/\s/g, '');
+        
+        // Betrag in EUR mit 2 Dezimalstellen (max EUR 999999999.99)
+        let amount = paymentData.grossAmount || paymentData.dueAmount || 0;
+        if (amount > 999999999.99) amount = 999999999.99;
+        const amountStr = `EUR${amount.toFixed(2)}`;
+        
+        // Verwendungszweck (max 140 Zeichen)
+        const purpose = ""; // Leer lassen
+        
+        // Strukturierte Referenz / Rechnungsnummer (max 35 Zeichen)
+        const structuredReference = truncateString(invoiceData.header?.number || "", 35);
+        
+        // Unstrukturierte Remittance Information (max 140 Zeichen)
+        const unstructuredReference = truncateString(
+          `Rechnung ${invoiceData.header?.number || ""}`.trim(), 140
+        );
+        
+        // Information for Beneficiary (max 70 Zeichen) - optional
+        const beneficiaryInfo = "";
+        
+        // EPC String zusammenbauen (Felder durch \n getrennt)
+        const epcLines = [
+          serviceTag,
+          version,
+          characterSet,
+          identification,
+          bic,
+          beneficiaryName,
+          beneficiaryIban,
+          amountStr,
+          purpose,
+          structuredReference,
+          unstructuredReference,
+          beneficiaryInfo
+        ];
+        
+        return epcLines.join('\n');
+      }
+
+      function truncateString(str, maxLength) {
+        if (str.length <= maxLength) return str;
+        return str.substring(0, maxLength);
       }
 
       function displayLineItems(selectNode, selectNodes) {
@@ -1408,6 +1605,16 @@
         successSection.classList.add("hidden");
 
         [headerSection, sellerSection, buyerSection, paymentSection, lineItemsSection, xmlViewer, downloadButtons, statsSection].forEach(section => section.classList.add('hidden'));
+
+        // QR-Code Sektion zurücksetzen
+        const qrCodeSection = document.getElementById('qrCodeSection');
+        if (qrCodeSection) {
+          qrCodeSection.classList.add('hidden');
+          const qrCodeContainer = document.querySelector('.qr-code-container');
+          if (qrCodeContainer) {
+            qrCodeContainer.innerHTML = '';
+          }
+        }
 
         // Inhalt der Tabellen und Bereiche zurücksetzen
         document.querySelectorAll("#headerSection td, #sellerSection td, #buyerSection td, #paymentSection td").forEach(td => td.textContent = "");
