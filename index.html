@@ -22,6 +22,35 @@
       font-size: 2em;
       margin-top: 0;
       color: #333;
+      flex: 1;
+    }
+
+    /* Language Switcher */
+    .language-switcher {
+      display: flex;
+      gap: 5px;
+    }
+
+    .lang-btn {
+      padding: 8px 15px;
+      border: 2px solid #007BFF;
+      background: #fff;
+      color: #007BFF;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .lang-btn:hover {
+      background: #f0f8ff;
+      transform: scale(1.05);
+    }
+
+    .lang-btn.active {
+      background: #007BFF;
+      color: #fff;
     }
 
     .description, section, details {
@@ -123,11 +152,29 @@
       border: 1px solid #ccc;
     }
 
-    /* Dark Mode Support */
     @media (prefers-color-scheme: dark) {
       body {
         background: #1a1a1a;
         color: #e0e0e0;
+      }
+
+      h1 {
+        color: #e0e0e0;
+      }
+
+      .lang-btn {
+        border-color: #0099ff;
+        background: #2d2d2d;
+        color: #0099ff;
+      }
+
+      .lang-btn:hover {
+        background: #1a3a5a;
+      }
+
+      .lang-btn.active {
+        background: #0099ff;
+        color: #fff;
       }
 
       .description, section, details {
@@ -272,46 +319,52 @@
   </style>
 </head>
 <body>
-  <h1>E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion</h1>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1 id="mainTitle">E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion</h1>
+    <div class="language-switcher">
+      <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
+      <button id="langEn" class="lang-btn">🇺🇸 EN</button>
+    </div>
+  </div>
 
   <section class="description">
-    <h2>Beschreibung</h2>
-    <p>Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.</p>
-    <p><strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.</p>
+    <h2 id="descriptionTitle">Beschreibung</h2>
+    <p id="descriptionText">Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.</p>
+    <p id="disclaimerText"><strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.</p>
   </section>
 
   <div class="drop-zone" id="dropZone">
-    <p>📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
-    <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
+    <p id="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
+    <p id="supportedFormatsText" style="font-size: 0.9em; color: #666; margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
     <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display:none;" />
   </div>
 
   <div id="loadingSection" class="hidden" style="text-align: center; padding: 20px;">
     <div class="loading"></div>
-    <span>Verarbeitung läuft...</span>
+    <span id="loadingText">Verarbeitung läuft...</span>
   </div>
 
   <div id="successSection" class="success hidden">
-    ✅ Rechnung erfolgreich verarbeitet!
+    <span id="successText">✅ Rechnung erfolgreich verarbeitet!</span>
   </div>
 
   <section id="statsSection" class="hidden">
-    <h2>📊 Statistiken</h2>
+    <h2 id="statsTitle">📊 Statistiken</h2>
     <div class="stats-grid">
       <div class="stat-card">
-        <h3>Positionen</h3>
+        <h3 id="statPositionsLabel">Positionen</h3>
         <div class="value" id="statLineItems">0</div>
       </div>
       <div class="stat-card">
-        <h3>Nettosumme</h3>
+        <h3 id="statNetLabel">Nettosumme</h3>
         <div class="value" id="statNetAmount">0 €</div>
       </div>
       <div class="stat-card">
-        <h3>Steuern</h3>
+        <h3 id="statTaxLabel">Steuern</h3>
         <div class="value" id="statTaxAmount">0 €</div>
       </div>
       <div class="stat-card">
-        <h3>Bruttosumme</h3>
+        <h3 id="statGrossLabel">Bruttosumme</h3>
         <div class="value" id="statGrossAmount">0 €</div>
       </div>
     </div>
@@ -332,80 +385,80 @@
   <section id="errorSection" class="error hidden"></section>
 
   <section id="headerSection" class="hidden">
-    <h2>📋 Rechnungsinformationen</h2>
+    <h2 id="invoiceInfoTitle">📋 Rechnungsinformationen</h2>
     <div class="table-container">
       <table>
-        <tr><th>Rechnungsnummer</th><td id="invNumber"></td></tr>
-        <tr><th>Rechnungstyp</th><td id="invType"></td></tr>
-        <tr><th>Rechnungsdatum</th><td id="invDate"></td></tr>
-        <tr><th>Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
-        <tr><th>Bestellnummer</th><td id="invOrderNumber"></td></tr>
-        <tr><th>Notiz</th><td id="invNote"></td></tr>
+        <tr><th id="invNumberLabel">Rechnungsnummer</th><td id="invNumber"></td></tr>
+        <tr><th id="invTypeLabel">Rechnungstyp</th><td id="invType"></td></tr>
+        <tr><th id="invDateLabel">Rechnungsdatum</th><td id="invDate"></td></tr>
+        <tr><th id="invDueDateLabel">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
+        <tr><th id="invOrderNumberLabel">Bestellnummer</th><td id="invOrderNumber"></td></tr>
+        <tr><th id="invNoteLabel">Notiz</th><td id="invNote"></td></tr>
       </table>
     </div>
   </section>
 
   <section id="sellerSection" class="hidden">
-    <h2>🏢 Verkäufer / Rechnungssteller</h2>
+    <h2 id="sellerInfoTitle">🏢 Verkäufer / Rechnungssteller</h2>
     <div class="table-container">
       <table>
-        <tr><th>Name</th><td id="sellerName"></td></tr>
-        <tr><th>Adresse</th><td id="sellerAddress"></td></tr>
-        <tr><th>E-Mail</th><td id="sellerEmail"></td></tr>
-        <tr><th>Telefon</th><td id="sellerPhone"></td></tr>
-        <tr><th>Steuer-ID</th><td id="sellerTaxID"></td></tr>
-        <tr><th>Handelsregister</th><td id="sellerRegister"></td></tr>
+        <tr><th id="sellerNameLabel">Name</th><td id="sellerName"></td></tr>
+        <tr><th id="sellerAddressLabel">Adresse</th><td id="sellerAddress"></td></tr>
+        <tr><th id="sellerEmailLabel">E-Mail</th><td id="sellerEmail"></td></tr>
+        <tr><th id="sellerPhoneLabel">Telefon</th><td id="sellerPhone"></td></tr>
+        <tr><th id="sellerTaxIDLabel">Steuer-ID</th><td id="sellerTaxID"></td></tr>
+        <tr><th id="sellerRegisterLabel">Handelsregister</th><td id="sellerRegister"></td></tr>
       </table>
     </div>
   </section>
 
   <section id="buyerSection" class="hidden">
-    <h2>👤 Käufer / Rechnungsempfänger</h2>
+    <h2 id="buyerInfoTitle">👤 Käufer / Rechnungsempfänger</h2>
     <div class="table-container">
       <table>
-        <tr><th>Name</th><td id="buyerName"></td></tr>
-        <tr><th>Adresse</th><td id="buyerAddress"></td></tr>
-        <tr><th>E-Mail</th><td id="buyerEmail"></td></tr>
-        <tr><th>Telefon</th><td id="buyerPhone"></td></tr>
-        <tr><th>Steuer-ID</th><td id="buyerTaxID"></td></tr>
+        <tr><th id="buyerNameLabel">Name</th><td id="buyerName"></td></tr>
+        <tr><th id="buyerAddressLabel">Adresse</th><td id="buyerAddress"></td></tr>
+        <tr><th id="buyerEmailLabel">E-Mail</th><td id="buyerEmail"></td></tr>
+        <tr><th id="buyerPhoneLabel">Telefon</th><td id="buyerPhone"></td></tr>
+        <tr><th id="buyerTaxIDLabel">Steuer-ID</th><td id="buyerTaxID"></td></tr>
       </table>
     </div>
   </section>
 
   <section id="paymentSection" class="hidden">
-    <h2>💳 Zahlungsinformationen</h2>
+    <h2 id="paymentInfoTitle">💳 Zahlungsinformationen</h2>
     <div class="table-container">
       <table>
-        <tr><th>Währung</th><td id="currency"></td></tr>
-        <tr><th>Zahlungsart</th><td id="paymentType"></td></tr>
-        <tr><th>Zahlungsziel</th><td id="paymentTerms"></td></tr>
-        <tr><th>IBAN</th><td id="iban"></td></tr>
-        <tr><th>BIC</th><td id="bic"></td></tr>
-        <tr><th>Kontoinhaber</th><td id="accountHolder"></td></tr>
-        <tr><th>Gesamt netto</th><td id="netAmount"></td></tr>
-        <tr><th>Steuerbetrag</th><td id="taxAmount"></td></tr>
-        <tr><th>Gesamt brutto</th><td id="grossAmount"></td></tr>
-        <tr><th>Fälliger Betrag</th><td id="dueAmount"></td></tr>
+        <tr><th id="currencyLabel">Währung</th><td id="currency"></td></tr>
+        <tr><th id="paymentTypeLabel">Zahlungsart</th><td id="paymentType"></td></tr>
+        <tr><th id="paymentTermsLabel">Zahlungsziel</th><td id="paymentTerms"></td></tr>
+        <tr><th id="ibanLabel">IBAN</th><td id="iban"></td></tr>
+        <tr><th id="bicLabel">BIC</th><td id="bic"></td></tr>
+        <tr><th id="accountHolderLabel">Kontoinhaber</th><td id="accountHolder"></td></tr>
+        <tr><th id="netAmountLabel">Gesamt netto</th><td id="netAmount"></td></tr>
+        <tr><th id="taxAmountLabel">Steuerbetrag</th><td id="taxAmount"></td></tr>
+        <tr><th id="grossAmountLabel">Gesamt brutto</th><td id="grossAmount"></td></tr>
+        <tr><th id="dueAmountLabel">Fälliger Betrag</th><td id="dueAmount"></td></tr>
       </table>
     </div>
   </section>
 
   <section id="lineItemsSection" class="hidden">
-    <h2>📦 Positionen</h2>
+    <h2 id="lineItemsTitle">📦 Positionen</h2>
     <div class="table-container">
       <table id="lineItemsTable">
         <thead>
           <tr>
-            <th data-key="posNr">Pos.-Nr.</th>
-            <th data-key="productName">Produktname</th>
-            <th data-key="description">Beschreibung</th>
-            <th data-key="notes">Notiz</th>
-            <th data-key="quantity">Menge</th>
-            <th data-key="unit">Einheit</th>
-            <th data-key="unitPrice">Einzelpreis</th>
-            <th data-key="lineNet">Zeilen-Netto</th>
-            <th data-key="taxRate">Steuersatz</th>
-            <th data-key="lineGross">Zeilenbrutto</th>
+            <th data-key="posNr" id="posNrHeader">Pos.-Nr.</th>
+            <th data-key="productName" id="productNameHeader">Produktname</th>
+            <th data-key="description" id="descriptionHeader">Beschreibung</th>
+            <th data-key="notes" id="notesHeader">Notiz</th>
+            <th data-key="quantity" id="quantityHeader">Menge</th>
+            <th data-key="unit" id="unitHeader">Einheit</th>
+            <th data-key="unitPrice" id="unitPriceHeader">Einzelpreis</th>
+            <th data-key="lineNet" id="lineNetHeader">Zeilen-Netto</th>
+            <th data-key="taxRate" id="taxRateHeader">Steuersatz</th>
+            <th data-key="lineGross" id="lineGrossHeader">Zeilenbrutto</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -443,12 +496,24 @@
       let xmlDoc = null;
       let originalPdfBlob = null;
       let originalXmlBlob = null;
-      let currentLabels = {};
+      // Initiale Sprachvariable
+      let currentLanguage = 'de'; // Standard: Deutsch
       let invoiceData = {}; // Für JSON/CSV Export
 
       // Mehrsprachige Labels
       const labels = {
         de: {
+          // UI Texte
+          mainTitle: "E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion",
+          descriptionTitle: "Beschreibung",
+          descriptionText: "Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.",
+          disclaimerText: "<strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.",
+          dropZoneText: "📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.",
+          supportedFormatsText: "Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
+          loadingText: "Verarbeitung läuft...",
+          successText: "✅ Rechnung erfolgreich verarbeitet!",
+          
+          // Tabellen-Header
           posNr: "Pos.-Nr.",
           productName: "Produktname",
           description: "Beschreibung",
@@ -459,6 +524,8 @@
           lineNet: "Zeilen-Netto",
           taxRate: "Steuersatz",
           lineGross: "Zeilenbrutto",
+          
+          // Sektionen
           xmlViewerSummary: "XML anzeigen",
           invoiceInfo: "📋 Rechnungsinformationen",
           sellerInfo: "🏢 Verkäufer / Rechnungssteller",
@@ -466,17 +533,68 @@
           paymentInfo: "💳 Zahlungsinformationen",
           lineItems: "📦 Positionen",
           statistics: "📊 Statistiken",
+          
+          // Buttons
           downloadXml: "📄 XML speichern",
           downloadPdf: "📋 PDF speichern",
           downloadJson: "📊 JSON Export",
           downloadCsv: "📈 CSV Export",
+          
+          // Felder
+          invNumber: "Rechnungsnummer",
+          invType: "Rechnungstyp",
+          invDate: "Rechnungsdatum",
+          invDueDate: "Fälligkeitsdatum",
+          invOrderNumber: "Bestellnummer",
+          invNote: "Notiz",
+          sellerName: "Name",
+          sellerAddress: "Adresse",
+          sellerEmail: "E-Mail",
+          sellerPhone: "Telefon",
+          sellerTaxID: "Steuer-ID",
+          sellerRegister: "Handelsregister",
+          buyerName: "Name",
+          buyerAddress: "Adresse",
+          buyerEmail: "E-Mail",
+          buyerPhone: "Telefon",
+          buyerTaxID: "Steuer-ID",
+          currency: "Währung",
+          paymentType: "Zahlungsart",
+          paymentTerms: "Zahlungsziel",
+          iban: "IBAN",
+          bic: "BIC",
+          accountHolder: "Kontoinhaber",
+          netAmount: "Gesamt netto",
+          taxAmount: "Steuerbetrag",
+          grossAmount: "Gesamt brutto",
+          dueAmount: "Fälliger Betrag",
+          
+          // Statistiken
+          statPositions: "Positionen",
+          statNet: "Nettosumme",
+          statTax: "Steuern",
+          statGross: "Bruttosumme",
+          
+          // Fehlermeldungen
           noFileFound: "Keine XML-Datei im PDF gefunden.",
           unsupportedFormat: "Dateiformat nicht unterstützt. Bitte eine PDF (ZUGFeRD) oder XML-Datei hochladen.",
           invalidXml: "Die extrahierte Datei ist keine gültige XML-Rechnung.",
           pdfNotAvailable: "Original-PDF ist nicht verfügbar.",
           processingError: "Fehler beim Verarbeiten der Datei: ",
+          noPositionsToExport: "Keine Positionen zum Exportieren verfügbar.",
         },
         en: {
+          // UI Texte
+          mainTitle: "Electronic Invoice Reader (ZUGFeRD, XRechnung, EN16931) with PDF Extraction",
+          descriptionTitle: "Description",
+          descriptionText: "This tool allows viewing electronic invoices in XML format as well as ZUGFeRD PDF/A-3 files. The embedded XML file in ZUGFeRD PDFs is automatically extracted and the invoice data is displayed in a structured format.",
+          disclaimerText: "<strong>Note:</strong> This tool processes electronic invoices (e.g. ZUGFeRD, XRechnung) completely client-side in the browser. Files are not uploaded or stored.<br/>No warranty is given for the accuracy, completeness or legal compliance of the displayed data. Any liability for damage or loss resulting from use is excluded. The responsibility for correct processing and verification of data lies with the user.",
+          dropZoneText: "📄 Drag and drop a file here or click to select a file.",
+          supportedFormatsText: "Supported formats: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
+          loadingText: "Processing...",
+          successText: "✅ Invoice processed successfully!",
+          
+          // Tabellen-Header
           posNr: "No.",
           productName: "Product Name",
           description: "Description",
@@ -487,6 +605,8 @@
           lineNet: "Line Net",
           taxRate: "Tax Rate",
           lineGross: "Line Gross",
+          
+          // Sektionen
           xmlViewerSummary: "Show XML",
           invoiceInfo: "📋 Invoice Information",
           sellerInfo: "🏢 Seller / Issuer",
@@ -494,67 +614,221 @@
           paymentInfo: "💳 Payment Information",
           lineItems: "📦 Line Items",
           statistics: "📊 Statistics",
+          
+          // Buttons
           downloadXml: "📄 Save XML",
           downloadPdf: "📋 Save PDF",
           downloadJson: "📊 JSON Export",
           downloadCsv: "📈 CSV Export",
+          
+          // Felder
+          invNumber: "Invoice Number",
+          invType: "Invoice Type",
+          invDate: "Invoice Date",
+          invDueDate: "Due Date",
+          invOrderNumber: "Order Number",
+          invNote: "Note",
+          sellerName: "Name",
+          sellerAddress: "Address",
+          sellerEmail: "Email",
+          sellerPhone: "Phone",
+          sellerTaxID: "Tax ID",
+          sellerRegister: "Commercial Register",
+          buyerName: "Name",
+          buyerAddress: "Address",
+          buyerEmail: "Email",
+          buyerPhone: "Phone",
+          buyerTaxID: "Tax ID",
+          currency: "Currency",
+          paymentType: "Payment Type",
+          paymentTerms: "Payment Terms",
+          iban: "IBAN",
+          bic: "BIC",
+          accountHolder: "Account Holder",
+          netAmount: "Total Net",
+          taxAmount: "Tax Amount",
+          grossAmount: "Total Gross",
+          dueAmount: "Amount Due",
+          
+          // Statistiken
+          statPositions: "Line Items",
+          statNet: "Net Total",
+          statTax: "Taxes",
+          statGross: "Gross Total",
+          
+          // Fehlermeldungen
           noFileFound: "No XML file found in the PDF.",
           unsupportedFormat: "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.",
           invalidXml: "The extracted file is not a valid XML invoice.",
           pdfNotAvailable: "Original PDF is not available.",
           processingError: "Error processing the file: ",
+          noPositionsToExport: "No line items available for export.",
         }
       };
 
       // Sprachenerkennung und Labels setzen
-      function setLanguageLabels() {
-        const userLang = navigator.language || navigator.userLanguage;
-        if (userLang.startsWith('de')) {
-          currentLabels = labels.de;
-        } else {
-          currentLabels = labels.en;
-        }
+      function setLanguage(lang) {
+        currentLanguage = lang;
+        const currentLabels = labels[lang];
+        
+        // UI Elemente aktualisieren
+        document.getElementById('mainTitle').textContent = currentLabels.mainTitle;
+        document.getElementById('descriptionTitle').textContent = currentLabels.descriptionTitle;
+        document.getElementById('descriptionText').textContent = currentLabels.descriptionText;
+        document.getElementById('disclaimerText').innerHTML = currentLabels.disclaimerText;
+        document.getElementById('dropZoneText').textContent = currentLabels.dropZoneText;
+        document.getElementById('supportedFormatsText').textContent = currentLabels.supportedFormatsText;
+        document.getElementById('loadingText').textContent = currentLabels.loadingText;
+        document.getElementById('successText').textContent = currentLabels.successText;
 
-        // Aktualisiere alle relevanten Texte basierend auf der Sprache
-        // Update Table Headers
-        tableHeaders.forEach(th => {
-          const key = th.getAttribute('data-key');
-          if (currentLabels[key]) {
-            th.textContent = currentLabels[key];
-          }
-        });
+        // Sprachbuttons aktualisieren
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(lang === 'de' ? 'langDe' : 'langEn').classList.add('active');
 
-        // Update Download Buttons
-        downloadXmlButton.textContent = currentLabels.downloadXml || "Save XML";
-        downloadPdfButton.textContent = currentLabels.downloadPdf || "Save PDF";
-        downloadJsonButton.textContent = currentLabels.downloadJson || "JSON Export";
-        downloadCsvButton.textContent = currentLabels.downloadCsv || "CSV Export";
+        // Titel setzen
+        document.title = currentLabels.mainTitle;
 
-        // Update XML Viewer Summary
+        // Sektionen-Titel
+        const statsTitle = document.getElementById('statsTitle');
+        const invoiceInfoTitle = document.getElementById('invoiceInfoTitle');
+        const sellerInfoTitle = document.getElementById('sellerInfoTitle');
+        const buyerInfoTitle = document.getElementById('buyerInfoTitle');
+        const paymentInfoTitle = document.getElementById('paymentInfoTitle');
+        const lineItemsTitle = document.getElementById('lineItemsTitle');
+
+        if (statsTitle) statsTitle.textContent = currentLabels.statistics;
+        if (invoiceInfoTitle) invoiceInfoTitle.textContent = currentLabels.invoiceInfo;
+        if (sellerInfoTitle) sellerInfoTitle.textContent = currentLabels.sellerInfo;
+        if (buyerInfoTitle) buyerInfoTitle.textContent = currentLabels.buyerInfo;
+        if (paymentInfoTitle) paymentInfoTitle.textContent = currentLabels.paymentInfo;
+        if (lineItemsTitle) lineItemsTitle.textContent = currentLabels.lineItems;
+
+        // Statistiken Labels
+        const statPositionsLabel = document.getElementById('statPositionsLabel');
+        const statNetLabel = document.getElementById('statNetLabel');
+        const statTaxLabel = document.getElementById('statTaxLabel');
+        const statGrossLabel = document.getElementById('statGrossLabel');
+
+        if (statPositionsLabel) statPositionsLabel.textContent = currentLabels.statPositions;
+        if (statNetLabel) statNetLabel.textContent = currentLabels.statNet;
+        if (statTaxLabel) statTaxLabel.textContent = currentLabels.statTax;
+        if (statGrossLabel) statGrossLabel.textContent = currentLabels.statGross;
+
+        // Tabellen-Labels
+        updateTableLabels(currentLabels);
+
+        // Download-Buttons
+        downloadXmlButton.textContent = currentLabels.downloadXml;
+        downloadPdfButton.textContent = currentLabels.downloadPdf;
+        downloadJsonButton.textContent = currentLabels.downloadJson;
+        downloadCsvButton.textContent = currentLabels.downloadCsv;
+
+        // XML Viewer Summary
         const xmlViewerSummary = document.querySelector('#xmlViewer summary');
         if (xmlViewerSummary) {
-          xmlViewerSummary.textContent = currentLabels.xmlViewerSummary || "Show XML";
+          xmlViewerSummary.textContent = currentLabels.xmlViewerSummary;
         }
 
-        // Update Section Titles
-        const sectionTitles = {
-          headerSection: currentLabels.invoiceInfo || "Invoice Information",
-          sellerSection: currentLabels.sellerInfo || "Seller / Issuer",
-          buyerSection: currentLabels.buyerInfo || "Buyer / Recipient",
-          paymentSection: currentLabels.paymentInfo || "Payment Information",
-          lineItemsSection: currentLabels.lineItems || "Line Items",
-          statsSection: currentLabels.statistics || "Statistics"
-        };
-
-        for (const [sectionId, title] of Object.entries(sectionTitles)) {
-          const section = document.getElementById(sectionId);
-          if (section && section.querySelector('h2')) {
-            section.querySelector('h2').textContent = title;
-          }
-        }
+        // Tabellenkopf für Line Items
+        document.getElementById('posNrHeader').textContent = currentLabels.posNr;
+        document.getElementById('productNameHeader').textContent = currentLabels.productName;
+        document.getElementById('descriptionHeader').textContent = currentLabels.description;
+        document.getElementById('notesHeader').textContent = currentLabels.notes;
+        document.getElementById('quantityHeader').textContent = currentLabels.quantity;
+        document.getElementById('unitHeader').textContent = currentLabels.unit;
+        document.getElementById('unitPriceHeader').textContent = currentLabels.unitPrice;
+        document.getElementById('lineNetHeader').textContent = currentLabels.lineNet;
+        document.getElementById('taxRateHeader').textContent = currentLabels.taxRate;
+        document.getElementById('lineGrossHeader').textContent = currentLabels.lineGross;
       }
 
-      setLanguageLabels(); // Initiales Setzen der Labels
+      function updateTableLabels(currentLabels) {
+        // Rechnungsinformationen
+        const invNumberLabel = document.getElementById('invNumberLabel');
+        const invTypeLabel = document.getElementById('invTypeLabel');
+        const invDateLabel = document.getElementById('invDateLabel');
+        const invDueDateLabel = document.getElementById('invDueDateLabel');
+        const invOrderNumberLabel = document.getElementById('invOrderNumberLabel');
+        const invNoteLabel = document.getElementById('invNoteLabel');
+
+        if (invNumberLabel) invNumberLabel.textContent = currentLabels.invNumber;
+        if (invTypeLabel) invTypeLabel.textContent = currentLabels.invType;
+        if (invDateLabel) invDateLabel.textContent = currentLabels.invDate;
+        if (invDueDateLabel) invDueDateLabel.textContent = currentLabels.invDueDate;
+        if (invOrderNumberLabel) invOrderNumberLabel.textContent = currentLabels.invOrderNumber;
+        if (invNoteLabel) invNoteLabel.textContent = currentLabels.invNote;
+
+        // Verkäufer
+        const sellerNameLabel = document.getElementById('sellerNameLabel');
+        const sellerAddressLabel = document.getElementById('sellerAddressLabel');
+        const sellerEmailLabel = document.getElementById('sellerEmailLabel');
+        const sellerPhoneLabel = document.getElementById('sellerPhoneLabel');
+        const sellerTaxIDLabel = document.getElementById('sellerTaxIDLabel');
+        const sellerRegisterLabel = document.getElementById('sellerRegisterLabel');
+
+        if (sellerNameLabel) sellerNameLabel.textContent = currentLabels.sellerName;
+        if (sellerAddressLabel) sellerAddressLabel.textContent = currentLabels.sellerAddress;
+        if (sellerEmailLabel) sellerEmailLabel.textContent = currentLabels.sellerEmail;
+        if (sellerPhoneLabel) sellerPhoneLabel.textContent = currentLabels.sellerPhone;
+        if (sellerTaxIDLabel) sellerTaxIDLabel.textContent = currentLabels.sellerTaxID;
+        if (sellerRegisterLabel) sellerRegisterLabel.textContent = currentLabels.sellerRegister;
+
+        // Käufer
+        const buyerNameLabel = document.getElementById('buyerNameLabel');
+        const buyerAddressLabel = document.getElementById('buyerAddressLabel');
+        const buyerEmailLabel = document.getElementById('buyerEmailLabel');
+        const buyerPhoneLabel = document.getElementById('buyerPhoneLabel');
+        const buyerTaxIDLabel = document.getElementById('buyerTaxIDLabel');
+
+        if (buyerNameLabel) buyerNameLabel.textContent = currentLabels.buyerName;
+        if (buyerAddressLabel) buyerAddressLabel.textContent = currentLabels.buyerAddress;
+        if (buyerEmailLabel) buyerEmailLabel.textContent = currentLabels.buyerEmail;
+        if (buyerPhoneLabel) buyerPhoneLabel.textContent = currentLabels.buyerPhone;
+        if (buyerTaxIDLabel) buyerTaxIDLabel.textContent = currentLabels.buyerTaxID;
+
+        // Zahlungsinformationen
+        const currencyLabel = document.getElementById('currencyLabel');
+        const paymentTypeLabel = document.getElementById('paymentTypeLabel');
+        const paymentTermsLabel = document.getElementById('paymentTermsLabel');
+        const ibanLabel = document.getElementById('ibanLabel');
+        const bicLabel = document.getElementById('bicLabel');
+        const accountHolderLabel = document.getElementById('accountHolderLabel');
+        const netAmountLabel = document.getElementById('netAmountLabel');
+        const taxAmountLabel = document.getElementById('taxAmountLabel');
+        const grossAmountLabel = document.getElementById('grossAmountLabel');
+        const dueAmountLabel = document.getElementById('dueAmountLabel');
+
+        if (currencyLabel) currencyLabel.textContent = currentLabels.currency;
+        if (paymentTypeLabel) paymentTypeLabel.textContent = currentLabels.paymentType;
+        if (paymentTermsLabel) paymentTermsLabel.textContent = currentLabels.paymentTerms;
+        if (ibanLabel) ibanLabel.textContent = currentLabels.iban;
+        if (bicLabel) bicLabel.textContent = currentLabels.bic;
+        if (accountHolderLabel) accountHolderLabel.textContent = currentLabels.accountHolder;
+        if (netAmountLabel) netAmountLabel.textContent = currentLabels.netAmount;
+        if (taxAmountLabel) taxAmountLabel.textContent = currentLabels.taxAmount;
+        if (grossAmountLabel) grossAmountLabel.textContent = currentLabels.grossAmount;
+        if (dueAmountLabel) dueAmountLabel.textContent = currentLabels.dueAmount;
+      }
+
+      function initializeLanguage() {
+        // Automatische Spracherkennung basierend auf Browser-Einstellungen
+        const userLang = navigator.language || navigator.userLanguage;
+        const initialLang = userLang.startsWith('de') ? 'de' : 'en';
+        setLanguage(initialLang);
+      }
+
+      // Variables
+      let xmlData = null;
+      let lineItems = [];
+      let pdfJs = null;
+      // currentLanguage = 'de';
+
+      // Event Listeners für Sprachumschaltung
+      document.getElementById('langDe').addEventListener('click', () => setLanguage('de'));
+      document.getElementById('langEn').addEventListener('click', () => setLanguage('en'));
+
+      // Initialisierung der Sprache
+      initializeLanguage();
 
       // Event-Listener für Drag-and-Drop und Klick
       dropZone.addEventListener('click', () => fileInput.click());
