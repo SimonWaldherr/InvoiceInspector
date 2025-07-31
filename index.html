@@ -123,6 +123,134 @@
       border: 1px solid #ccc;
     }
 
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #1a1a1a;
+        color: #e0e0e0;
+      }
+
+      .description, section, details {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+      }
+
+      .drop-zone {
+        background: #2d2d2d;
+        border-color: #555;
+        color: #e0e0e0;
+      }
+
+      .drop-zone.dragover {
+        border-color: #0099ff;
+        background-color: #1a3a5a;
+      }
+
+      table th {
+        background: #383838;
+        color: #e0e0e0;
+      }
+
+      table th, table td {
+        border-color: #555;
+      }
+
+      pre {
+        background-color: #1e1e1e;
+        border-color: #555;
+        color: #e0e0e0;
+      }
+
+      .error {
+        background-color: #4a1a1a;
+        color: #ff9999;
+      }
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007BFF;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Improved table responsiveness */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    /* Success message */
+    .success {
+      color: #155724;
+      background-color: #d4edda;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #c3e6cb;
+      margin-bottom: 20px;
+    }
+
+    /* Statistics section */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      border: 1px solid #dee2e6;
+      text-align: center;
+    }
+
+    .stat-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.2em;
+      color: #495057;
+    }
+
+    .stat-card .value {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #007BFF;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .stat-card {
+        background: #343a40;
+        border-color: #495057;
+      }
+
+      .stat-card h3 {
+        color: #adb5bd;
+      }
+
+      .success {
+        color: #b8e6b8;
+        background-color: #155724;
+        border-color: #28a745;
+      }
+
+      .table-container {
+        border-color: #555;
+      }
+    }
+
     @media (max-width: 768px) {
       table th, table td {
         font-size: 0.9em;
@@ -135,6 +263,10 @@
       .download-buttons button {
         width: 100%;
         margin: 10px 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -149,13 +281,47 @@
   </section>
 
   <div class="drop-zone" id="dropZone">
-    <p>Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
-    <input type="file" id="invoiceFile" accept=".xml,application/pdf" style="display:none;" />
+    <p>📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
+    <p style="font-size: 0.9em; color: #666; margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
+    <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display:none;" />
   </div>
 
+  <div id="loadingSection" class="hidden" style="text-align: center; padding: 20px;">
+    <div class="loading"></div>
+    <span>Verarbeitung läuft...</span>
+  </div>
+
+  <div id="successSection" class="success hidden">
+    ✅ Rechnung erfolgreich verarbeitet!
+  </div>
+
+  <section id="statsSection" class="hidden">
+    <h2>📊 Statistiken</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Positionen</h3>
+        <div class="value" id="statLineItems">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Nettosumme</h3>
+        <div class="value" id="statNetAmount">0 €</div>
+      </div>
+      <div class="stat-card">
+        <h3>Steuern</h3>
+        <div class="value" id="statTaxAmount">0 €</div>
+      </div>
+      <div class="stat-card">
+        <h3>Bruttosumme</h3>
+        <div class="value" id="statGrossAmount">0 €</div>
+      </div>
+    </div>
+  </section>
+
   <div class="download-buttons hidden" id="downloadButtons">
-    <button id="downloadXml">XML speichern</button>
-    <button id="downloadPdf">PDF speichern</button>
+    <button id="downloadXml">📄 XML speichern</button>
+    <button id="downloadPdf">📋 PDF speichern</button>
+    <button id="downloadJson">📊 JSON Export</button>
+    <button id="downloadCsv">📈 CSV Export</button>
   </div>
 
   <details id="xmlViewer" class="hidden">
@@ -166,64 +332,85 @@
   <section id="errorSection" class="error hidden"></section>
 
   <section id="headerSection" class="hidden">
-    <h2>Rechnungsinformationen</h2>
-    <table>
-      <tr><th>Rechnungsnummer</th><td id="invNumber"></td></tr>
-      <tr><th>Rechnungstyp</th><td id="invType"></td></tr>
-      <tr><th>Rechnungsdatum</th><td id="invDate"></td></tr>
-      <tr><th>Notiz</th><td id="invNote"></td></tr>
-    </table>
+    <h2>📋 Rechnungsinformationen</h2>
+    <div class="table-container">
+      <table>
+        <tr><th>Rechnungsnummer</th><td id="invNumber"></td></tr>
+        <tr><th>Rechnungstyp</th><td id="invType"></td></tr>
+        <tr><th>Rechnungsdatum</th><td id="invDate"></td></tr>
+        <tr><th>Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
+        <tr><th>Bestellnummer</th><td id="invOrderNumber"></td></tr>
+        <tr><th>Notiz</th><td id="invNote"></td></tr>
+      </table>
+    </div>
   </section>
 
   <section id="sellerSection" class="hidden">
-    <h2>Verkäufer / Rechnungssteller</h2>
-    <table>
-      <tr><th>Name</th><td id="sellerName"></td></tr>
-      <tr><th>Adresse</th><td id="sellerAddress"></td></tr>
-      <tr><th>Steuer-ID</th><td id="sellerTaxID"></td></tr>
-    </table>
+    <h2>🏢 Verkäufer / Rechnungssteller</h2>
+    <div class="table-container">
+      <table>
+        <tr><th>Name</th><td id="sellerName"></td></tr>
+        <tr><th>Adresse</th><td id="sellerAddress"></td></tr>
+        <tr><th>E-Mail</th><td id="sellerEmail"></td></tr>
+        <tr><th>Telefon</th><td id="sellerPhone"></td></tr>
+        <tr><th>Steuer-ID</th><td id="sellerTaxID"></td></tr>
+        <tr><th>Handelsregister</th><td id="sellerRegister"></td></tr>
+      </table>
+    </div>
   </section>
 
   <section id="buyerSection" class="hidden">
-    <h2>Käufer / Rechnungsempfänger</h2>
-    <table>
-      <tr><th>Name</th><td id="buyerName"></td></tr>
-      <tr><th>Adresse</th><td id="buyerAddress"></td></tr>
-      <tr><th>Steuer-ID</th><td id="buyerTaxID"></td></tr>
-    </table>
+    <h2>👤 Käufer / Rechnungsempfänger</h2>
+    <div class="table-container">
+      <table>
+        <tr><th>Name</th><td id="buyerName"></td></tr>
+        <tr><th>Adresse</th><td id="buyerAddress"></td></tr>
+        <tr><th>E-Mail</th><td id="buyerEmail"></td></tr>
+        <tr><th>Telefon</th><td id="buyerPhone"></td></tr>
+        <tr><th>Steuer-ID</th><td id="buyerTaxID"></td></tr>
+      </table>
+    </div>
   </section>
 
   <section id="paymentSection" class="hidden">
-    <h2>Zahlungsinformationen</h2>
-    <table>
-      <tr><th>Währung</th><td id="currency"></td></tr>
-      <tr><th>IBAN</th><td id="iban"></td></tr>
-      <tr><th>BIC</th><td id="bic"></td></tr>
-      <tr><th>Gesamt netto</th><td id="netAmount"></td></tr>
-      <tr><th>Steuerbetrag</th><td id="taxAmount"></td></tr>
-      <tr><th>Gesamt brutto</th><td id="grossAmount"></td></tr>
-      <tr><th>Fälliger Betrag</th><td id="dueAmount"></td></tr>
-    </table>
+    <h2>💳 Zahlungsinformationen</h2>
+    <div class="table-container">
+      <table>
+        <tr><th>Währung</th><td id="currency"></td></tr>
+        <tr><th>Zahlungsart</th><td id="paymentType"></td></tr>
+        <tr><th>Zahlungsziel</th><td id="paymentTerms"></td></tr>
+        <tr><th>IBAN</th><td id="iban"></td></tr>
+        <tr><th>BIC</th><td id="bic"></td></tr>
+        <tr><th>Kontoinhaber</th><td id="accountHolder"></td></tr>
+        <tr><th>Gesamt netto</th><td id="netAmount"></td></tr>
+        <tr><th>Steuerbetrag</th><td id="taxAmount"></td></tr>
+        <tr><th>Gesamt brutto</th><td id="grossAmount"></td></tr>
+        <tr><th>Fälliger Betrag</th><td id="dueAmount"></td></tr>
+      </table>
+    </div>
   </section>
 
   <section id="lineItemsSection" class="hidden">
-    <h2>Positionen</h2>
-    <table id="lineItemsTable">
-      <thead>
-        <tr>
-          <th data-key="posNr">Pos.-Nr.</th>
-          <th data-key="productName">Produktname</th>
-          <th data-key="description">Beschreibung</th>
-          <th data-key="notes">Notiz</th>
-          <th data-key="quantity">Menge</th>
-          <th data-key="unitPrice">Einzelpreis</th>
-          <th data-key="lineNet">Zeilen-Netto</th>
-          <th data-key="taxRate">Steuersatz</th>
-          <th data-key="lineGross">Zeilenbrutto</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <h2>📦 Positionen</h2>
+    <div class="table-container">
+      <table id="lineItemsTable">
+        <thead>
+          <tr>
+            <th data-key="posNr">Pos.-Nr.</th>
+            <th data-key="productName">Produktname</th>
+            <th data-key="description">Beschreibung</th>
+            <th data-key="notes">Notiz</th>
+            <th data-key="quantity">Menge</th>
+            <th data-key="unit">Einheit</th>
+            <th data-key="unitPrice">Einzelpreis</th>
+            <th data-key="lineNet">Zeilen-Netto</th>
+            <th data-key="taxRate">Steuersatz</th>
+            <th data-key="lineGross">Zeilenbrutto</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
   <script>
@@ -233,7 +420,10 @@
       // DOM-Elemente
       const dropZone = document.getElementById('dropZone');
       const fileInput = document.getElementById('invoiceFile');
+      const loadingSection = document.getElementById('loadingSection');
+      const successSection = document.getElementById('successSection');
       const errorSection = document.getElementById('errorSection');
+      const statsSection = document.getElementById('statsSection');
       const headerSection = document.getElementById('headerSection');
       const sellerSection = document.getElementById('sellerSection');
       const buyerSection = document.getElementById('buyerSection');
@@ -244,6 +434,8 @@
       const downloadButtons = document.getElementById('downloadButtons');
       const downloadXmlButton = document.getElementById('downloadXml');
       const downloadPdfButton = document.getElementById('downloadPdf');
+      const downloadJsonButton = document.getElementById('downloadJson');
+      const downloadCsvButton = document.getElementById('downloadCsv');
       const lineItemsTable = document.getElementById('lineItemsTable');
       const tableHeaders = lineItemsTable.querySelectorAll('th');
 
@@ -252,6 +444,7 @@
       let originalPdfBlob = null;
       let originalXmlBlob = null;
       let currentLabels = {};
+      let invoiceData = {}; // Für JSON/CSV Export
 
       // Mehrsprachige Labels
       const labels = {
@@ -261,18 +454,22 @@
           description: "Beschreibung",
           notes: "Notiz",
           quantity: "Menge",
+          unit: "Einheit",
           unitPrice: "Einzelpreis",
           lineNet: "Zeilen-Netto",
           taxRate: "Steuersatz",
           lineGross: "Zeilenbrutto",
           xmlViewerSummary: "XML anzeigen",
-          invoiceInfo: "Rechnungsinformationen",
-          sellerInfo: "Verkäufer / Rechnungssteller",
-          buyerInfo: "Käufer / Rechnungsempfänger",
-          paymentInfo: "Zahlungsinformationen",
-          lineItems: "Positionen",
-          downloadXml: "XML speichern",
-          downloadPdf: "PDF speichern",
+          invoiceInfo: "📋 Rechnungsinformationen",
+          sellerInfo: "🏢 Verkäufer / Rechnungssteller",
+          buyerInfo: "👤 Käufer / Rechnungsempfänger",
+          paymentInfo: "💳 Zahlungsinformationen",
+          lineItems: "📦 Positionen",
+          statistics: "📊 Statistiken",
+          downloadXml: "📄 XML speichern",
+          downloadPdf: "📋 PDF speichern",
+          downloadJson: "📊 JSON Export",
+          downloadCsv: "📈 CSV Export",
           noFileFound: "Keine XML-Datei im PDF gefunden.",
           unsupportedFormat: "Dateiformat nicht unterstützt. Bitte eine PDF (ZUGFeRD) oder XML-Datei hochladen.",
           invalidXml: "Die extrahierte Datei ist keine gültige XML-Rechnung.",
@@ -285,18 +482,22 @@
           description: "Description",
           notes: "Notes",
           quantity: "Quantity",
+          unit: "Unit",
           unitPrice: "Unit Price",
           lineNet: "Line Net",
           taxRate: "Tax Rate",
           lineGross: "Line Gross",
           xmlViewerSummary: "Show XML",
-          invoiceInfo: "Invoice Information",
-          sellerInfo: "Seller / Issuer",
-          buyerInfo: "Buyer / Recipient",
-          paymentInfo: "Payment Information",
-          lineItems: "Line Items",
-          downloadXml: "Save XML",
-          downloadPdf: "Save PDF",
+          invoiceInfo: "📋 Invoice Information",
+          sellerInfo: "🏢 Seller / Issuer",
+          buyerInfo: "👤 Buyer / Recipient",
+          paymentInfo: "💳 Payment Information",
+          lineItems: "📦 Line Items",
+          statistics: "📊 Statistics",
+          downloadXml: "📄 Save XML",
+          downloadPdf: "📋 Save PDF",
+          downloadJson: "📊 JSON Export",
+          downloadCsv: "📈 CSV Export",
           noFileFound: "No XML file found in the PDF.",
           unsupportedFormat: "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.",
           invalidXml: "The extracted file is not a valid XML invoice.",
@@ -326,6 +527,8 @@
         // Update Download Buttons
         downloadXmlButton.textContent = currentLabels.downloadXml || "Save XML";
         downloadPdfButton.textContent = currentLabels.downloadPdf || "Save PDF";
+        downloadJsonButton.textContent = currentLabels.downloadJson || "JSON Export";
+        downloadCsvButton.textContent = currentLabels.downloadCsv || "CSV Export";
 
         // Update XML Viewer Summary
         const xmlViewerSummary = document.querySelector('#xmlViewer summary');
@@ -339,7 +542,8 @@
           sellerSection: currentLabels.sellerInfo || "Seller / Issuer",
           buyerSection: currentLabels.buyerInfo || "Buyer / Recipient",
           paymentSection: currentLabels.paymentInfo || "Payment Information",
-          lineItemsSection: currentLabels.lineItems || "Line Items"
+          lineItemsSection: currentLabels.lineItems || "Line Items",
+          statsSection: currentLabels.statistics || "Statistics"
         };
 
         for (const [sectionId, title] of Object.entries(sectionTitles)) {
@@ -379,26 +583,30 @@
 
       async function handleFile(file) {
         resetUI();
+        showLoading();
+        
         try {
           if(file.type === "application/pdf") {
             originalPdfBlob = file;
             const xmlContent = await extractXmlFromPdf(file);
             if(xmlContent) {
               originalXmlBlob = new Blob([xmlContent], { type: "application/xml" });
-              parseXML(xmlContent);
+              await parseXML(xmlContent);
             } else {
               showError(currentLabels.noFileFound || "No XML file found in the PDF.");
             }
           } else if(file.name.toLowerCase().endsWith(".xml")) {
             originalXmlBlob = file;
             const text = await file.text();
-            parseXML(text);
+            await parseXML(text);
           } else {
             showError(currentLabels.unsupportedFormat || "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.");
           }
         } catch (err) {
           showError(`${currentLabels.processingError || "Error processing the file: "} ${err.message}`);
           console.error(err);
+        } finally {
+          hideLoading();
         }
       }
 
@@ -437,7 +645,7 @@
         originalXml.textContent = beautifyXml(xmlString);
         xmlViewer.classList.remove('hidden');
 
-        // Download-Buttons anzeigen
+        // Download-Buttons konfigurieren
         if(originalXmlBlob || originalPdfBlob) {
           downloadButtons.classList.remove('hidden');
           downloadXmlButton.onclick = () => downloadBlob(originalXmlBlob, 'invoice.xml');
@@ -448,6 +656,8 @@
               showError(currentLabels.pdfNotAvailable || "Original PDF is not available.");
             }
           };
+          downloadJsonButton.onclick = () => downloadInvoiceAsJson();
+          downloadCsvButton.onclick = () => downloadInvoiceAsCsv();
         }
 
         // Namespace-Resolver
@@ -487,29 +697,63 @@
         displaySellerInfo(selectNode);
         displayBuyerInfo(selectNode);
         displayPaymentInfo(selectNode, selectNodes);
-        displayLineItems(selectNode, selectNodes);
+        const lineItemsCount = displayLineItems(selectNode, selectNodes);
+        
+        // Statistiken anzeigen
+        displayStatistics(lineItemsCount);
+        
+        // Erfolg anzeigen
+        showSuccess();
       }
 
       function displayInvoiceInfo(selectNode, selectNodes) {
         const invNumber = selectNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:ID");
         const invType = selectNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:TypeCode");
         const invDateNode = selectNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString");
+        const invDueDateNode = selectNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:DueDateDateTime/udt:DateTimeString");
+        const invOrderNumber = selectNode(xmlDoc, "//ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID");
         const invNoteNodes = selectNodes(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:Content");
 
-        if(invNumber) document.getElementById("invNumber").textContent = invNumber.textContent.trim();
-        if(invType) document.getElementById("invType").textContent = invType.textContent.trim();
+        invoiceData.header = {};
+        
+        if(invNumber) {
+          const number = invNumber.textContent.trim();
+          document.getElementById("invNumber").textContent = number;
+          invoiceData.header.number = number;
+        }
+        
+        if(invType) {
+          const type = invType.textContent.trim();
+          document.getElementById("invType").textContent = type;
+          invoiceData.header.type = type;
+        }
+        
         if(invDateNode) {
           let dtStr = invDateNode.textContent.trim();
-          let formattedDate = dtStr;
-          if (/^\d{8}$/.test(dtStr)) {
-            formattedDate = `${dtStr.slice(6,8)}.${dtStr.slice(4,6)}.${dtStr.slice(0,4)}`;
-          }
+          let formattedDate = formatDate(dtStr);
           document.getElementById("invDate").textContent = formattedDate;
+          invoiceData.header.date = formattedDate;
         }
+        
+        if(invDueDateNode) {
+          let dtStr = invDueDateNode.textContent.trim();
+          let formattedDate = formatDate(dtStr);
+          document.getElementById("invDueDate").textContent = formattedDate;
+          invoiceData.header.dueDate = formattedDate;
+        }
+        
+        if(invOrderNumber) {
+          const orderNumber = invOrderNumber.textContent.trim();
+          document.getElementById("invOrderNumber").textContent = orderNumber;
+          invoiceData.header.orderNumber = orderNumber;
+        }
+        
         if(invNoteNodes.length > 0) {
           const notes = invNoteNodes.map(note => note.textContent.trim()).join("\n");
           document.getElementById("invNote").textContent = notes;
+          invoiceData.header.notes = notes;
         }
+        
         headerSection.classList.remove('hidden');
       }
 
@@ -519,23 +763,56 @@
         const sellerCity = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CityName");
         const sellerZip = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
         const sellerCountry = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID");
+        const sellerEmail = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
+        const sellerPhone = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
         const sellerTaxVA = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
         const sellerTaxFC = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
+        const sellerRegister = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID");
 
-        if(sellerName) document.getElementById("sellerName").textContent = sellerName.textContent.trim();
+        invoiceData.seller = {};
+        
+        if(sellerName) {
+          const name = sellerName.textContent.trim();
+          document.getElementById("sellerName").textContent = name;
+          invoiceData.seller.name = name;
+        }
 
         const sellerAddressParts = [
           sellerStreet?.textContent.trim(),
           (sellerZip && sellerCity) ? `${sellerZip.textContent.trim()} ${sellerCity.textContent.trim()}` : null,
           sellerCountry?.textContent.trim()
         ].filter(Boolean).join(", ");
-        if(sellerAddressParts) document.getElementById("sellerAddress").textContent = sellerAddressParts;
+        if(sellerAddressParts) {
+          document.getElementById("sellerAddress").textContent = sellerAddressParts;
+          invoiceData.seller.address = sellerAddressParts;
+        }
+
+        if(sellerEmail) {
+          const email = sellerEmail.textContent.trim();
+          document.getElementById("sellerEmail").textContent = email;
+          invoiceData.seller.email = email;
+        }
+
+        if(sellerPhone) {
+          const phone = sellerPhone.textContent.trim();
+          document.getElementById("sellerPhone").textContent = phone;
+          invoiceData.seller.phone = phone;
+        }
 
         const taxInfo = [
           sellerTaxVA ? `VA: ${sellerTaxVA.textContent.trim()}` : null,
           sellerTaxFC ? `FC: ${sellerTaxFC.textContent.trim()}` : null
         ].filter(Boolean).join("\n");
-        if(taxInfo) document.getElementById("sellerTaxID").textContent = taxInfo;
+        if(taxInfo) {
+          document.getElementById("sellerTaxID").textContent = taxInfo;
+          invoiceData.seller.taxId = taxInfo;
+        }
+
+        if(sellerRegister) {
+          const register = sellerRegister.textContent.trim();
+          document.getElementById("sellerRegister").textContent = register;
+          invoiceData.seller.register = register;
+        }
 
         sellerSection.classList.remove('hidden');
       }
@@ -546,30 +823,59 @@
         const buyerCity = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CityName");
         const buyerZip = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
         const buyerCountry = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID");
+        const buyerEmail = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
+        const buyerPhone = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
         const buyerTaxVA = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
         const buyerTaxFC = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
 
-        if(buyerName) document.getElementById("buyerName").textContent = buyerName.textContent.trim();
+        invoiceData.buyer = {};
+        
+        if(buyerName) {
+          const name = buyerName.textContent.trim();
+          document.getElementById("buyerName").textContent = name;
+          invoiceData.buyer.name = name;
+        }
 
         const buyerAddressParts = [
           buyerStreet?.textContent.trim(),
           (buyerZip && buyerCity) ? `${buyerZip.textContent.trim()} ${buyerCity.textContent.trim()}` : null,
           buyerCountry?.textContent.trim()
         ].filter(Boolean).join(", ");
-        if(buyerAddressParts) document.getElementById("buyerAddress").textContent = buyerAddressParts;
+        if(buyerAddressParts) {
+          document.getElementById("buyerAddress").textContent = buyerAddressParts;
+          invoiceData.buyer.address = buyerAddressParts;
+        }
+
+        if(buyerEmail) {
+          const email = buyerEmail.textContent.trim();
+          document.getElementById("buyerEmail").textContent = email;
+          invoiceData.buyer.email = email;
+        }
+
+        if(buyerPhone) {
+          const phone = buyerPhone.textContent.trim();
+          document.getElementById("buyerPhone").textContent = phone;
+          invoiceData.buyer.phone = phone;
+        }
 
         const taxInfo = [
           buyerTaxVA ? `VA: ${buyerTaxVA.textContent.trim()}` : null,
           buyerTaxFC ? `FC: ${buyerTaxFC.textContent.trim()}` : null
         ].filter(Boolean).join("\n");
-        if(taxInfo) document.getElementById("buyerTaxID").textContent = taxInfo;
+        if(taxInfo) {
+          document.getElementById("buyerTaxID").textContent = taxInfo;
+          invoiceData.buyer.taxId = taxInfo;
+        }
 
         buyerSection.classList.remove('hidden');
       }
 
       function displayPaymentInfo(selectNode, selectNodes) {
         const paymentMeans = selectNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementPaymentMeans");
+        const paymentTerms = selectNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:Description");
         let currencySymbol = "€"; // Standard-Währung
+
+        invoiceData.payment = {};
 
         if(paymentMeans) {
           // Währung
@@ -579,15 +885,47 @@
             currencyCode = currencyNode.textContent.trim();
             document.getElementById("currency").textContent = currencyCode;
             currencySymbol = getCurrencySymbol(currencyCode);
+            invoiceData.payment.currency = currencyCode;
+          }
+
+          // Zahlungsart
+          const paymentTypeCode = selectNode(paymentMeans, ".//ram:TypeCode");
+          if(paymentTypeCode) {
+            const paymentType = getPaymentTypeName(paymentTypeCode.textContent.trim());
+            document.getElementById("paymentType").textContent = paymentType;
+            invoiceData.payment.type = paymentType;
           }
 
           // IBAN
           const iban = selectNode(paymentMeans, ".//ram:PayerPartyCreditorFinancialAccount/ram:IBANID | .//ram:PayeePartyCreditorFinancialAccount/ram:IBANID");
-          if(iban) document.getElementById("iban").textContent = iban.textContent.trim();
+          if(iban) {
+            const ibanValue = iban.textContent.trim();
+            document.getElementById("iban").textContent = ibanValue;
+            invoiceData.payment.iban = ibanValue;
+          }
 
           // BIC
           const bic = selectNode(paymentMeans, ".//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID | .//ram:PayeePartyCreditorFinancialInstitution/ram:BICID");
-          if(bic) document.getElementById("bic").textContent = bic.textContent.trim();
+          if(bic) {
+            const bicValue = bic.textContent.trim();
+            document.getElementById("bic").textContent = bicValue;
+            invoiceData.payment.bic = bicValue;
+          }
+
+          // Kontoinhaber
+          const accountHolder = selectNode(paymentMeans, ".//ram:PayeePartyCreditorFinancialAccount/ram:AccountName");
+          if(accountHolder) {
+            const holder = accountHolder.textContent.trim();
+            document.getElementById("accountHolder").textContent = holder;
+            invoiceData.payment.accountHolder = holder;
+          }
+        }
+
+        // Zahlungsziel
+        if(paymentTerms) {
+          const terms = paymentTerms.textContent.trim();
+          document.getElementById("paymentTerms").textContent = terms;
+          invoiceData.payment.terms = terms;
         }
 
         // Monetäre Summen
@@ -599,19 +937,31 @@
           const dueAmountNode = selectNode(monetarySummation, ".//ram:DuePayableAmount");
 
           if(netAmountNode) {
-            document.getElementById("netAmount").textContent = formatCurrency(netAmountNode.textContent.trim(), currencySymbol);
+            const netAmount = netAmountNode.textContent.trim();
+            const formattedNet = formatCurrency(netAmount, currencySymbol);
+            document.getElementById("netAmount").textContent = formattedNet;
+            invoiceData.payment.netAmount = parseFloat(netAmount);
           }
 
           if(taxAmountNode) {
-            document.getElementById("taxAmount").textContent = formatCurrency(taxAmountNode.textContent.trim(), currencySymbol);
+            const taxAmount = taxAmountNode.textContent.trim();
+            const formattedTax = formatCurrency(taxAmount, currencySymbol);
+            document.getElementById("taxAmount").textContent = formattedTax;
+            invoiceData.payment.taxAmount = parseFloat(taxAmount);
           }
 
           if(grossAmountNode) {
-            document.getElementById("grossAmount").textContent = formatCurrency(grossAmountNode.textContent.trim(), currencySymbol);
+            const grossAmount = grossAmountNode.textContent.trim();
+            const formattedGross = formatCurrency(grossAmount, currencySymbol);
+            document.getElementById("grossAmount").textContent = formattedGross;
+            invoiceData.payment.grossAmount = parseFloat(grossAmount);
           }
 
           if(dueAmountNode) {
-            document.getElementById("dueAmount").textContent = formatCurrency(dueAmountNode.textContent.trim(), currencySymbol);
+            const dueAmount = dueAmountNode.textContent.trim();
+            const formattedDue = formatCurrency(dueAmount, currencySymbol);
+            document.getElementById("dueAmount").textContent = formattedDue;
+            invoiceData.payment.dueAmount = parseFloat(dueAmount);
           }
         }
 
@@ -623,13 +973,17 @@
         const tbody = lineItemsTable.querySelector("tbody");
         let calculatedTotalNet = 0;
 
+        invoiceData.lineItems = [];
+
         lineItems.forEach((item, index) => {
           const lineID = selectNode(item, "./ram:AssociatedDocumentLineDocument/ram:LineID")?.textContent.trim() || (index + 1).toString();
           const productNote = selectNode(item, "./ram:AssociatedDocumentLineDocument/ram:IncludedNote/ram:Content")?.textContent.trim() || "";
           const productName = selectNode(item, "./ram:SpecifiedTradeProduct/ram:Name")?.textContent.trim() || "";
           const productDesc = selectNode(item, "./ram:SpecifiedTradeProduct/ram:Description")?.textContent.trim() || "";
-          const qtyText = selectNode(item, "./ram:SpecifiedLineTradeDelivery/ram:BilledQuantity")?.textContent.trim() || "0";
+          const qtyElement = selectNode(item, "./ram:SpecifiedLineTradeDelivery/ram:BilledQuantity");
+          const qtyText = qtyElement?.textContent.trim() || "0";
           const quantity = parseFloat(qtyText);
+          const unit = qtyElement?.getAttribute('unitCode') || "";
           const netPricePerUnit = parseFloat(selectNode(item, "./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount")?.textContent.trim() || "0");
           const taxRateText = selectNode(item, "./ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent")?.textContent.trim() || "0";
           const taxRate = parseFloat(taxRateText);
@@ -639,6 +993,20 @@
 
           calculatedTotalNet += lineNet;
 
+          // Daten für Export speichern
+          invoiceData.lineItems.push({
+            position: lineID,
+            productName,
+            description: productDesc,
+            notes: productNote,
+            quantity,
+            unit,
+            unitPrice: netPricePerUnit,
+            lineNet,
+            taxRate,
+            lineGross
+          });
+
           const tr = document.createElement("tr");
 
           tr.innerHTML = `
@@ -647,6 +1015,7 @@
             <td>${escapeHtml(productDesc)}</td>
             <td>${escapeHtml(productNote)}</td>
             <td>${escapeHtml(quantity.toFixed(2))}</td>
+            <td>${escapeHtml(unit)}</td>
             <td>${formatCurrency(netPricePerUnit.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
             <td>${formatCurrency(lineNet.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
             <td>${escapeHtml(taxRate.toFixed(2))}%</td>
@@ -663,6 +1032,94 @@
           }
           lineItemsSection.classList.remove('hidden');
         }
+
+        return lineItems.length;
+      }
+
+      function showLoading() {
+        loadingSection.classList.remove('hidden');
+      }
+
+      function hideLoading() {
+        loadingSection.classList.add('hidden');
+      }
+
+      function showSuccess() {
+        successSection.classList.remove('hidden');
+        setTimeout(() => successSection.classList.add('hidden'), 3000);
+      }
+
+      function displayStatistics(lineItemsCount) {
+        document.getElementById('statLineItems').textContent = lineItemsCount;
+        document.getElementById('statNetAmount').textContent = document.getElementById('netAmount').textContent || '0 €';
+        document.getElementById('statTaxAmount').textContent = document.getElementById('taxAmount').textContent || '0 €';
+        document.getElementById('statGrossAmount').textContent = document.getElementById('grossAmount').textContent || '0 €';
+        statsSection.classList.remove('hidden');
+      }
+
+      function formatDate(dateStr) {
+        if (/^\d{8}$/.test(dateStr)) {
+          return `${dateStr.slice(6,8)}.${dateStr.slice(4,6)}.${dateStr.slice(0,4)}`;
+        }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          const [year, month, day] = dateStr.split('-');
+          return `${day}.${month}.${year}`;
+        }
+        return dateStr;
+      }
+
+      function getPaymentTypeName(code) {
+        const paymentTypes = {
+          '1': 'Instrumentenbasierte Zahlung',
+          '10': 'Barzahlung',
+          '20': 'Scheck',
+          '30': 'Überweisung',
+          '31': 'Abbuchung',
+          '42': 'Zahlung an ein Bankkonto',
+          '48': 'Kartenzahlung',
+          '49': 'Lastschrift',
+          '58': 'SEPA-Überweisung',
+          '59': 'SEPA-Lastschrift'
+        };
+        return paymentTypes[code] || `Unbekannt (${code})`;
+      }
+
+      function downloadInvoiceAsJson() {
+        const jsonData = JSON.stringify(invoiceData, null, 2);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const filename = `invoice_${invoiceData.header?.number || 'unknown'}.json`;
+        downloadBlob(blob, filename);
+      }
+
+      function downloadInvoiceAsCsv() {
+        if (!invoiceData.lineItems || invoiceData.lineItems.length === 0) {
+          alert('Keine Positionen zum Exportieren verfügbar.');
+          return;
+        }
+
+        // CSV Header
+        const headers = ['Position', 'Produktname', 'Beschreibung', 'Notiz', 'Menge', 'Einheit', 'Einzelpreis', 'Zeilen-Netto', 'Steuersatz', 'Zeilenbrutto'];
+        
+        // CSV Daten
+        const csvData = [
+          headers.join(','),
+          ...invoiceData.lineItems.map(item => [
+            `"${item.position}"`,
+            `"${item.productName}"`,
+            `"${item.description}"`,
+            `"${item.notes}"`,
+            item.quantity,
+            `"${item.unit}"`,
+            item.unitPrice.toFixed(2),
+            item.lineNet.toFixed(2),
+            item.taxRate.toFixed(2),
+            item.lineGross.toFixed(2)
+          ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+        const filename = `invoice_${invoiceData.header?.number || 'unknown'}_positions.csv`;
+        downloadBlob(blob, filename);
       }
 
       function showError(msg) {
@@ -674,13 +1131,17 @@
         // Fehler- und Anzeigeabschnitte zurücksetzen
         errorSection.textContent = "";
         errorSection.classList.add("hidden");
+        successSection.classList.add("hidden");
 
-        [headerSection, sellerSection, buyerSection, paymentSection, lineItemsSection, xmlViewer, downloadButtons].forEach(section => section.classList.add('hidden'));
+        [headerSection, sellerSection, buyerSection, paymentSection, lineItemsSection, xmlViewer, downloadButtons, statsSection].forEach(section => section.classList.add('hidden'));
 
         // Inhalt der Tabellen und Bereiche zurücksetzen
         document.querySelectorAll("#headerSection td, #sellerSection td, #buyerSection td, #paymentSection td").forEach(td => td.textContent = "");
         originalXml.textContent = "";
         lineItemsTable.querySelector("tbody").innerHTML = "";
+        
+        // Daten zurücksetzen
+        invoiceData = {};
       }
 
       function beautifyXml(xml) {
