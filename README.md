@@ -9,7 +9,7 @@ Ein leichtgewichtiger, clientseitiger Web-Viewer für elektronische Rechnungen m
 
 ## 🎥 Demo
 
-[![Demo auf YouTube](https://img.youtube.com/vi/OcTL1rdS2Uk/0.jpg)](https://www.youtube.com/watch?v=OcTL1rdS2Uk)
+[![Watch the video](https://img.youtube.com/vi/Qyn5-ZxSHXo/maxresdefault.jpg)](https://youtu.be/Qyn5-ZxSHXo)
 
 ## ✨ Features
 
