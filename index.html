@@ -510,6 +510,9 @@
           <strong id="qrCodeInfoTitle">Zum Bezahlen einfach QR-Code mit Banking-App scannen</strong><br>
           <span id="qrCodeDetails">EPC-QR-Code (Girocode) nach europäischem Standard</span>
         </div>
+        <div style="margin-top:10px;">
+          <button id="downloadQrBtn" type="button">QR-Code speichern</button>
+        </div>
       </div>
     </div>
   </section>
@@ -540,6 +543,59 @@
   <script>
     (function() {
       "use strict";
+
+      // Configure PDF.js worker for reliability when parsing attachments
+      if (window.pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js';
+      }
+
+      // Helper: get current language labels anywhere in the script
+      function getLabels() {
+        return labels[currentLanguage] || labels.de;
+      }
+
+      // IBAN utilities: validation (ISO 13616 mod-97) and formatting for display
+      function isValidIBAN(iban) {
+        if (!iban) return false;
+        const cleaned = iban.replace(/\s+/g, '').toUpperCase();
+        if (!/^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$/.test(cleaned)) return false;
+        const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
+        const expanded = rearranged.replace(/[A-Z]/g, c => (c.charCodeAt(0) - 55).toString());
+        let remainder = 0;
+        for (let i = 0; i < expanded.length; i += 7) {
+          const block = remainder.toString() + expanded.substr(i, 7);
+          remainder = parseInt(block, 10) % 97;
+        }
+        return remainder === 1;
+      }
+
+      function formatIbanForDisplay(iban) {
+        return iban.replace(/\s+/g, '').replace(/(.{4})/g, '$1 ').trim();
+      }
+
+      function attachCopyButton(cellId) {
+        const cell = document.getElementById(cellId);
+        if (!cell) return;
+        // avoid duplicating button
+        if (cell.querySelector('button.copy-btn')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy-btn';
+        btn.style.marginLeft = '8px';
+        btn.style.fontSize = '0.85em';
+        btn.textContent = (currentLanguage === 'en') ? 'Copy' : 'Kopieren';
+        btn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(cell.firstChild?.textContent?.trim() || '');
+            const old = btn.textContent;
+            btn.textContent = (currentLanguage === 'en') ? 'Copied!' : 'Kopiert!';
+            setTimeout(() => { btn.textContent = old; }, 1200);
+          } catch (e) {
+            console.error('Clipboard failed', e);
+          }
+        });
+        cell.appendChild(btn);
+      }
 
       // DOM-Elemente
       const dropZone = document.getElementById('dropZone');
@@ -750,6 +806,7 @@
       // Sprachenerkennung und Labels setzen
       function setLanguage(lang) {
         currentLanguage = lang;
+        try { localStorage.setItem('lang', lang); } catch (_) {}
         const currentLabels = labels[lang];
         
         // UI Elemente aktualisieren
@@ -818,6 +875,8 @@
         if (qrCodeTitle) qrCodeTitle.textContent = currentLabels.qrCodeTitle;
         if (qrCodeInfoTitle) qrCodeInfoTitle.textContent = currentLabels.qrCodeInfoTitle;
         if (qrCodeDetails) qrCodeDetails.textContent = currentLabels.qrCodeDetails;
+  const downloadQrBtn = document.getElementById('downloadQrBtn');
+  if (downloadQrBtn) downloadQrBtn.textContent = lang === 'de' ? 'QR-Code speichern' : 'Save QR Code';
 
         // Tabellenkopf für Line Items
         document.getElementById('posNrHeader').textContent = currentLabels.posNr;
@@ -901,9 +960,11 @@
       }
 
       function initializeLanguage() {
-        // Automatische Spracherkennung basierend auf Browser-Einstellungen
-        const userLang = navigator.language || navigator.userLanguage;
-        const initialLang = userLang.startsWith('de') ? 'de' : 'en';
+  // Bevorzugte Sprache aus LocalStorage, sonst aus Browser-Einstellungen
+  let savedLang = null;
+  try { savedLang = localStorage.getItem('lang'); } catch (_) {}
+  const userLang = navigator.language || navigator.userLanguage || 'en';
+  const initialLang = savedLang || (userLang.startsWith('de') ? 'de' : 'en');
         setLanguage(initialLang);
       }
 
@@ -957,17 +1018,18 @@
               originalXmlBlob = new Blob([xmlContent], { type: "application/xml" });
               await parseXML(xmlContent);
             } else {
-              showError(currentLabels.noFileFound || "No XML file found in the PDF.");
+              showError((getLabels().noFileFound) || "No XML file found in the PDF.");
             }
           } else if(file.name.toLowerCase().endsWith(".xml")) {
             originalXmlBlob = file;
             const text = await file.text();
             await parseXML(text);
           } else {
-            showError(currentLabels.unsupportedFormat || "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.");
+            showError((getLabels().unsupportedFormat) || "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.");
           }
         } catch (err) {
-          showError(`${currentLabels.processingError || "Error processing the file: "} ${err.message}`);
+          const L = getLabels();
+          showError(`${L.processingError || "Error processing the file: "} ${err.message}`);
           console.error(err);
         } finally {
           hideLoading();
@@ -1001,7 +1063,7 @@
         xmlDoc = parser.parseFromString(xmlString, "application/xml");
 
         if(xmlDoc.querySelector("parsererror")) {
-          showError(currentLabels.invalidXml || "The extracted file is not a valid XML invoice.");
+          showError((getLabels().invalidXml) || "The extracted file is not a valid XML invoice.");
           return;
         }
 
@@ -1013,11 +1075,11 @@
         if(originalXmlBlob || originalPdfBlob) {
           downloadButtons.classList.remove('hidden');
           downloadXmlButton.onclick = () => downloadBlob(originalXmlBlob, 'invoice.xml');
-          downloadPdfButton.onclick = () => {
+      downloadPdfButton.onclick = () => {
             if(originalPdfBlob) {
               downloadBlob(originalPdfBlob, 'invoice.pdf');
             } else {
-              showError(currentLabels.pdfNotAvailable || "Original PDF is not available.");
+        showError((getLabels().pdfNotAvailable) || "Original PDF is not available.");
             }
           };
           downloadJsonButton.onclick = () => downloadInvoiceAsJson();
@@ -1084,6 +1146,7 @@
           const number = invNumber.textContent.trim();
           document.getElementById("invNumber").textContent = number;
           invoiceData.header.number = number;
+          attachCopyButton('invNumber');
         }
         
         if(invType) {
@@ -1263,9 +1326,14 @@
           // IBAN
           const iban = selectNode(paymentMeans, ".//ram:PayerPartyCreditorFinancialAccount/ram:IBANID | .//ram:PayeePartyCreditorFinancialAccount/ram:IBANID");
           if(iban) {
-            const ibanValue = iban.textContent.trim();
-            document.getElementById("iban").textContent = ibanValue;
-            invoiceData.payment.iban = ibanValue;
+            const rawIban = iban.textContent.trim();
+            document.getElementById("iban").textContent = formatIbanForDisplay(rawIban);
+            invoiceData.payment.iban = rawIban;
+            // einfache Validierung
+            if (!isValidIBAN(rawIban)) {
+              console.warn('Invalid IBAN detected');
+            }
+            attachCopyButton('iban');
           }
 
           // BIC
@@ -1274,6 +1342,7 @@
             const bicValue = bic.textContent.trim();
             document.getElementById("bic").textContent = bicValue;
             invoiceData.payment.bic = bicValue;
+            attachCopyButton('bic');
           }
 
           // Kontoinhaber
@@ -1338,9 +1407,10 @@
       function generateEPCQRCode(paymentData) {
         const qrCodeSection = document.getElementById('qrCodeSection');
         const qrCodeContainer = document.querySelector('.qr-code-container');
+  const downloadQrBtn = document.getElementById('downloadQrBtn');
         
         // Prüfen ob notwendige Daten vorhanden sind
-        if (!paymentData || !paymentData.iban || !paymentData.grossAmount) {
+  if (!paymentData || !paymentData.iban || (!paymentData.grossAmount && !paymentData.dueAmount)) {
           qrCodeSection.classList.add('hidden');
           return;
         }
@@ -1371,6 +1441,23 @@
               qrCodeSection.classList.add('hidden');
             } else {
               qrCodeSection.classList.remove('hidden');
+              // Download-Button aktivieren
+              if (downloadQrBtn) {
+                downloadQrBtn.disabled = false;
+                downloadQrBtn.onclick = () => {
+                  try {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = dataUrl;
+                    link.download = `epc_qrcode_${invoiceData.header?.number || 'invoice'}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  } catch (e) {
+                    console.error('QR download failed', e);
+                  }
+                };
+              }
             }
           });
           
@@ -1397,19 +1484,20 @@
         const beneficiaryIban = paymentData.iban.replace(/\s/g, '');
         
         // Betrag in EUR mit 2 Dezimalstellen (max EUR 999999999.99)
-        let amount = paymentData.grossAmount || paymentData.dueAmount || 0;
+  let amount = paymentData.grossAmount || paymentData.dueAmount || 0;
         if (amount > 999999999.99) amount = 999999999.99;
         const amountStr = `EUR${amount.toFixed(2)}`;
         
         // Verwendungszweck (max 140 Zeichen)
         const purpose = ""; // Leer lassen
         
-        // Strukturierte Referenz / Rechnungsnummer (max 35 Zeichen)
-        const structuredReference = truncateString(invoiceData.header?.number || "", 35);
+        // Strukturierte Referenz (leer lassen, außer eine gültige RF-Referenz liegt vor)
+        const structuredReference = "";
         
         // Unstrukturierte Remittance Information (max 140 Zeichen)
+        const prefix = (currentLanguage === 'en') ? 'Invoice' : 'Rechnung';
         const unstructuredReference = truncateString(
-          `Rechnung ${invoiceData.header?.number || ""}`.trim(), 140
+          `${prefix} ${invoiceData.header?.number || ''}`.trim(), 140
         );
         
         // Information for Beneficiary (max 70 Zeichen) - optional
@@ -1540,7 +1628,7 @@
       }
 
       function getPaymentTypeName(code) {
-        const paymentTypes = {
+        const mapDe = {
           '1': 'Instrumentenbasierte Zahlung',
           '10': 'Barzahlung',
           '20': 'Scheck',
@@ -1552,7 +1640,21 @@
           '58': 'SEPA-Überweisung',
           '59': 'SEPA-Lastschrift'
         };
-        return paymentTypes[code] || `Unbekannt (${code})`;
+        const mapEn = {
+          '1': 'Instrument-based payment',
+          '10': 'Cash payment',
+          '20': 'Cheque',
+          '30': 'Credit transfer',
+          '31': 'Debit transfer',
+          '42': 'Payment to a bank account',
+          '48': 'Card payment',
+          '49': 'Direct debit',
+          '58': 'SEPA Credit Transfer',
+          '59': 'SEPA Direct Debit'
+        };
+        const dict = (currentLanguage === 'en') ? mapEn : mapDe;
+        const fallback = (currentLanguage === 'en') ? `Unknown (${code})` : `Unbekannt (${code})`;
+        return dict[code] || fallback;
       }
 
       function downloadInvoiceAsJson() {
@@ -1563,13 +1665,25 @@
       }
 
       function downloadInvoiceAsCsv() {
+        const L = getLabels();
         if (!invoiceData.lineItems || invoiceData.lineItems.length === 0) {
-          alert('Keine Positionen zum Exportieren verfügbar.');
+          alert(L.noPositionsToExport || 'No line items available for export.');
           return;
         }
 
         // CSV Header
-        const headers = ['Position', 'Produktname', 'Beschreibung', 'Notiz', 'Menge', 'Einheit', 'Einzelpreis', 'Zeilen-Netto', 'Steuersatz', 'Zeilenbrutto'];
+        const headers = [
+          L.posNr,
+          L.productName,
+          L.description,
+          L.notes,
+          L.quantity,
+          L.unit,
+          L.unitPrice,
+          L.lineNet,
+          L.taxRate,
+          L.lineGross
+        ];
         
         // CSV Daten
         const csvData = [
@@ -1613,6 +1727,11 @@
           const qrCodeContainer = document.querySelector('.qr-code-container');
           if (qrCodeContainer) {
             qrCodeContainer.innerHTML = '';
+          }
+          const downloadQrBtn = document.getElementById('downloadQrBtn');
+          if (downloadQrBtn) {
+            downloadQrBtn.disabled = true;
+            downloadQrBtn.onclick = null;
           }
         }
 
