@@ -93,7 +93,6 @@
     table {
       border-collapse: collapse;
       width: 100%;
-      margin-bottom: 20px;
     }
 
     table th, table td {
@@ -440,9 +439,10 @@
     <p id="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
     <p id="supportedFormatsText" style="font-size: 0.9em; color: #666; margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
     <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display:none;" />
-    <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-      <button id="loadSampleBtn" type="button" class="sample-btn">🧪 Beispiel-Rechnung laden</button>
-    </div>
+  </div>
+
+  <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+    <button id="loadSampleBtn" type="button" class="sample-btn">🧪 Beispiel-Rechnung laden</button>
   </div>
 
   <div id="loadingSection" class="hidden" style="text-align: center; padding: 20px;">
@@ -1161,6 +1161,7 @@
             showError(msg + e.message);
           } finally {
             hideLoading();
+            loadSampleBtn.classList.add('hidden');
           }
         });
       }
