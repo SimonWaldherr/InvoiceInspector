@@ -57,7 +57,7 @@
     .description, section, details {
       background: #fff;
       padding: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       border-radius: 5px;
       border: 1px solid #ccc;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -143,6 +143,33 @@
       background-color: #0056b3;
       transform: scale(1.05);
     }
+
+    .sample-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #007BFF;
+      background-color: #ffffff;
+      color: #007BFF;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, color 0.3s;
+    }
+
+    .sample-btn:hover {
+      background-color: #e7f1ff;
+      color: #0056b3;
+      transform: translateY(-1px);
+    }
+
+    /* Copy button styling */
+    .copy-btn {
+      padding: 3px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #f0f0f0;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #e6e6e6; }
 
     details summary {
       cursor: pointer;
@@ -407,6 +434,9 @@
     <p id="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
     <p id="supportedFormatsText" style="font-size: 0.9em; color: #666; margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
     <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display:none;" />
+    <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+      <button id="loadSampleBtn" type="button" class="sample-btn">🧪 Beispiel-Rechnung laden</button>
+    </div>
   </div>
 
   <div id="loadingSection" class="hidden" style="text-align: center; padding: 20px;">
@@ -612,6 +642,7 @@
       // DOM-Elemente
       const dropZone = document.getElementById('dropZone');
       const fileInput = document.getElementById('invoiceFile');
+  const loadSampleBtn = document.getElementById('loadSampleBtn');
       const loadingSection = document.getElementById('loadingSection');
       const successSection = document.getElementById('successSection');
       const errorSection = document.getElementById('errorSection');
@@ -727,6 +758,8 @@
           qrCodeTitle: "📱 QR-Code für Überweisung",
           qrCodeInfoTitle: "Zum Bezahlen einfach QR-Code mit Banking-App scannen",
           qrCodeDetails: "EPC-QR-Code (Girocode) nach europäischem Standard",
+          // Beispiel-Rechnung
+          loadSample: "🧪 Beispiel-Rechnung laden",
         },
         en: {
           // UI Texte
@@ -814,6 +847,8 @@
           qrCodeTitle: "📱 QR Code for Payment",
           qrCodeInfoTitle: "Simply scan QR code with your banking app to pay",
           qrCodeDetails: "EPC QR Code (Girocode) according to European standard",
+          // Sample invoice
+          loadSample: "🧪 Load sample invoice",
         }
       };
 
@@ -943,6 +978,11 @@
         downloadPdfButton.textContent = currentLabels.downloadPdf;
         downloadJsonButton.textContent = currentLabels.downloadJson;
         downloadCsvButton.textContent = currentLabels.downloadCsv;
+
+        // Sample button label
+        if (loadSampleBtn && currentLabels.loadSample) {
+          loadSampleBtn.textContent = currentLabels.loadSample;
+        }
 
         // XML Viewer Summary
         const xmlViewerSummary = document.querySelector('#xmlViewer summary');
@@ -1084,6 +1124,34 @@
       // Event Listeners für Sprachumschaltung
       document.getElementById('langDe').addEventListener('click', () => setLanguage('de'));
       document.getElementById('langEn').addEventListener('click', () => setLanguage('en'));
+
+      // Beispiel-Rechnung laden
+      if (loadSampleBtn) {
+        loadSampleBtn.addEventListener('click', async () => {
+          try {
+            resetUI();
+            showLoading();
+            const url = 'https://simonwaldherr.github.io/InvoiceInspector/RE-2025-0815.pdf';
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error('HTTP ' + response.status);
+            }
+            const blob = await response.blob();
+            // Blob in File-ähnliches Objekt wrappen, damit handleFile-Pfade funktionieren
+            const file = new File([blob], 'RE-2025-0815.pdf', { type: 'application/pdf' });
+            await handleFile(file);
+          } catch (e) {
+            console.error('Sample invoice load failed', e);
+            const L = getLabels();
+            const msg = (currentLanguage === 'en')
+              ? 'Sample invoice could not be loaded: '
+              : 'Beispiel-Rechnung konnte nicht geladen werden: ';
+            showError(msg + e.message);
+          } finally {
+            hideLoading();
+          }
+        });
+      }
 
       // Initialisierung der Sprache
       initializeLanguage();
