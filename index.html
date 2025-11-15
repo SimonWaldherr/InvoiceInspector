@@ -108,6 +108,13 @@
       width: 12.5%;
     }
 
+    .zugferd-tag {
+      font-size: 0.75em;
+      color: #666;
+      margin-left: 4px;
+      opacity: 0.8;
+    }
+
     .error {
       color: red;
       background-color: #ffe6e6;
@@ -208,6 +215,10 @@
         background-color: #1e1e1e;
         border-color: #555;
         color: #e0e0e0;
+      }
+
+      .zugferd-tag {
+        color: #adb5bd;
       }
 
       .error {
@@ -477,6 +488,7 @@
       <table>
         <tr><th id="buyerNameLabel">Name</th><td id="buyerName"></td></tr>
         <tr><th id="buyerAddressLabel">Adresse</th><td id="buyerAddress"></td></tr>
+        <tr><th id="buyerAddress2Label">Adresszusatz</th><td id="buyerAddress2"></td></tr>
         <tr><th id="buyerEmailLabel">E-Mail</th><td id="buyerEmail"></td></tr>
         <tr><th id="buyerPhoneLabel">Telefon</th><td id="buyerPhone"></td></tr>
         <tr><th id="buyerTaxIDLabel">Steuer-ID</th><td id="buyerTaxID"></td></tr>
@@ -682,6 +694,7 @@
           sellerRegister: "Handelsregister",
           buyerName: "Name",
           buyerAddress: "Adresse",
+          buyerAddress2: "Adresszusatz",
           buyerEmail: "E-Mail",
           buyerPhone: "Telefon",
           buyerTaxID: "Steuer-ID",
@@ -768,6 +781,7 @@
           sellerRegister: "Commercial Register",
           buyerName: "Name",
           buyerAddress: "Address",
+          buyerAddress2: "Address line 2",
           buyerEmail: "Email",
           buyerPhone: "Phone",
           buyerTaxID: "Tax ID",
@@ -801,6 +815,75 @@
           qrCodeInfoTitle: "Simply scan QR code with your banking app to pay",
           qrCodeDetails: "EPC QR Code (Girocode) according to European standard",
         }
+      };
+
+      // Mapping of UI label element IDs to ZUGFeRD / EN16931 BT codes
+      // Based on "Übersichtsliste-Eingabefelder-OZG-RE_092025" (OZG-RE input field overview).
+      // Some UI fields aggregate several BT fields (e.g. address), in which case
+      // multiple BT codes are listed.
+      const zugferdFieldMap = {
+        // 1.1 Rechnungsdaten
+        invTypeLabel: 'BT-3',
+        invNumberLabel: 'BT-1',
+        invDateLabel: 'BT-2',
+        invDueDateLabel: 'BT-9',
+        invOrderNumberLabel: 'BT-13',
+        invNoteLabel: 'BT-22',
+
+        // 2.1 Verkäufer – rechtlicher Name, steuerliche Angaben
+        sellerNameLabel: 'BT-27',
+        sellerTaxIDLabel: 'BT-31, BT-32',
+        sellerRegisterLabel: 'BT-33',
+
+        // 2.3 Postanschrift des Verkäufers – aggregated into one address field
+        // Straße/Hausnummer (BT-35), Postfach (BT-36), PLZ (BT-38), Ort (BT-37),
+        // Bundesland (BT-39), Land (BT-40)
+        sellerAddressLabel: 'BT-35, BT-36, BT-38, BT-37, BT-39, BT-40',
+
+        // 2.4 Kontaktdaten des Verkäufers
+        sellerPhoneLabel: 'BT-42',
+        sellerEmailLabel: 'BT-43',
+
+        // 3.1 Käufer – rechtlicher Name, steuerliche Angaben
+        buyerNameLabel: 'BT-44',
+        buyerTaxIDLabel: 'BT-48',
+
+        // 3.2 Postanschrift des Käufers – aggregated into one address field
+        // Straße/Hausnummer oder Postfach (BT-50), PLZ (BT-53), Ort (BT-52),
+        // Bundesland (BT-54), Land (BT-55)
+        buyerAddressLabel: 'BT-50, BT-53, BT-52, BT-54, BT-55',
+
+        // 3.2 Adresszusatz
+        buyerAddress2Label: 'BT-51',
+
+        // 3.3 Kontaktdaten des Käufers
+        buyerEmailLabel: 'BT-58',
+        buyerPhoneLabel: 'BT-57',
+
+        // 5.4 Rechnungsbeträge
+        netAmountLabel: 'BT-106',
+        taxAmountLabel: 'BT-110',
+        grossAmountLabel: 'BT-112',
+        dueAmountLabel: 'BT-115',
+
+        // 1.1 Währung
+        currencyLabel: 'BT-5',
+
+        // 6. Zahlungsdaten
+        paymentTypeLabel: 'BT-82',
+        paymentTermsLabel: 'BT-20',
+
+        // 6.2 Zahlungsmittel: Überweisung
+        accountHolderLabel: 'BT-85',
+        ibanLabel: 'BT-84',
+        bicLabel: 'BT-86',
+
+        // 4.1 Rechnungspositionen (tabellarische Darstellung der Positionen)
+        posNrHeader: 'BT-126',
+        productNameHeader: 'BT-153',
+        descriptionHeader: 'BT-154',
+        quantityHeader: 'BT-129',
+        unitHeader: 'BT-130'
       };
 
       // Sprachenerkennung und Labels setzen
@@ -889,6 +972,9 @@
         document.getElementById('lineNetHeader').textContent = currentLabels.lineNet;
         document.getElementById('taxRateHeader').textContent = currentLabels.taxRate;
         document.getElementById('lineGrossHeader').textContent = currentLabels.lineGross;
+
+        // After all labels are re-rendered, append ZUGFeRD BT tags
+        applyZugferdFieldTags();
       }
 
       function updateTableLabels(currentLabels) {
@@ -925,12 +1011,14 @@
         // Käufer
         const buyerNameLabel = document.getElementById('buyerNameLabel');
         const buyerAddressLabel = document.getElementById('buyerAddressLabel');
+        const buyerAddress2Label = document.getElementById('buyerAddress2Label');
         const buyerEmailLabel = document.getElementById('buyerEmailLabel');
         const buyerPhoneLabel = document.getElementById('buyerPhoneLabel');
         const buyerTaxIDLabel = document.getElementById('buyerTaxIDLabel');
 
         if (buyerNameLabel) buyerNameLabel.textContent = currentLabels.buyerName;
         if (buyerAddressLabel) buyerAddressLabel.textContent = currentLabels.buyerAddress;
+        if (buyerAddress2Label) buyerAddress2Label.textContent = currentLabels.buyerAddress2;
         if (buyerEmailLabel) buyerEmailLabel.textContent = currentLabels.buyerEmail;
         if (buyerPhoneLabel) buyerPhoneLabel.textContent = currentLabels.buyerPhone;
         if (buyerTaxIDLabel) buyerTaxIDLabel.textContent = currentLabels.buyerTaxID;
@@ -957,6 +1045,25 @@
         if (taxAmountLabel) taxAmountLabel.textContent = currentLabels.taxAmount;
         if (grossAmountLabel) grossAmountLabel.textContent = currentLabels.grossAmount;
         if (dueAmountLabel) dueAmountLabel.textContent = currentLabels.dueAmount;
+      }
+
+      function applyZugferdFieldTags() {
+        Object.entries(zugferdFieldMap).forEach(([labelId, btCode]) => {
+          if (!btCode) return;
+          const labelElement = document.getElementById(labelId);
+          if (!labelElement) return;
+
+          // Remove any existing BT tag so we can re-apply on language change
+          const existingTag = labelElement.querySelector('.zugferd-tag');
+          if (existingTag) {
+            existingTag.remove();
+          }
+
+          const tagSpan = document.createElement('span');
+          tagSpan.className = 'zugferd-tag';
+          tagSpan.textContent = ` (${btCode})`;
+          labelElement.appendChild(tagSpan);
+        });
       }
 
       function initializeLanguage() {
@@ -1247,6 +1354,7 @@
       function displayBuyerInfo(selectNode) {
         const buyerName = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:Name");
         const buyerStreet = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne");
+        const buyerAddressLineTwo = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineTwo");
         const buyerCity = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CityName");
         const buyerZip = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
         const buyerCountry = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID");
@@ -1271,6 +1379,12 @@
         if(buyerAddressParts) {
           document.getElementById("buyerAddress").textContent = buyerAddressParts;
           invoiceData.buyer.address = buyerAddressParts;
+        }
+
+        if(buyerAddressLineTwo) {
+          const address2 = buyerAddressLineTwo.textContent.trim();
+          document.getElementById("buyerAddress2").textContent = address2;
+          invoiceData.buyer.address2 = address2;
         }
 
         if(buyerEmail) {
