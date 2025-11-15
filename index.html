@@ -428,6 +428,12 @@
     <h2 id="descriptionTitle">Beschreibung</h2>
     <p id="descriptionText">Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.</p>
     <p id="disclaimerText"><strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.</p>
+    <p id="projectRelationText">
+      Dieses Projekt gehört zusammen mit dem
+      <a href="https://github.com/SimonWaldherr/InvoiceGenerator" target="_blank" rel="noopener noreferrer">InvoiceGenerator</a>.
+      Den ZUGFeRD-Invoice-Rechnungsgenerator kannst du hier testen:
+      <a href="https://simonwaldherr.github.io/InvoiceGenerator/" target="_blank" rel="noopener noreferrer">https://simonwaldherr.github.io/InvoiceGenerator/</a>
+    </p>
   </section>
 
   <div class="drop-zone" id="dropZone">
@@ -678,6 +684,7 @@
           descriptionTitle: "Beschreibung",
           descriptionText: "Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.",
           disclaimerText: "<strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.",
+          projectRelationText: "Dieses Projekt gehört zusammen mit dem <a href=\"https://github.com/SimonWaldherr/InvoiceGenerator\" target=\"_blank\" rel=\"noopener noreferrer\">InvoiceGenerator</a>. Den ZUGFeRD-Invoice-Rechnungsgenerator kannst du hier testen: <a href=\"https://simonwaldherr.github.io/InvoiceGenerator/\" target=\"_blank\" rel=\"noopener noreferrer\">https://simonwaldherr.github.io/InvoiceGenerator/</a>",
           dropZoneText: "📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.",
           supportedFormatsText: "Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
           loadingText: "Verarbeitung läuft...",
@@ -767,6 +774,7 @@
           descriptionTitle: "Description",
           descriptionText: "This tool allows viewing electronic invoices in XML format as well as ZUGFeRD PDF/A-3 files. The embedded XML file in ZUGFeRD PDFs is automatically extracted and the invoice data is displayed in a structured format.",
           disclaimerText: "<strong>Note:</strong> This tool processes electronic invoices (e.g. ZUGFeRD, XRechnung) completely client-side in the browser. Files are not uploaded or stored.<br/>No warranty is given for the accuracy, completeness or legal compliance of the displayed data. Any liability for damage or loss resulting from use is excluded. The responsibility for correct processing and verification of data lies with the user.",
+          projectRelationText: "This project belongs together with the <a href=\"https://github.com/SimonWaldherr/InvoiceGenerator\" target=\"_blank\" rel=\"noopener noreferrer\">InvoiceGenerator</a>. You can test the ZUGFeRD invoice generator here: <a href=\"https://simonwaldherr.github.io/InvoiceGenerator/\" target=\"_blank\" rel=\"noopener noreferrer\">https://simonwaldherr.github.io/InvoiceGenerator/</a>",
           dropZoneText: "📄 Drag and drop a file here or click to select a file.",
           supportedFormatsText: "Supported formats: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
           loadingText: "Processing...",
@@ -932,6 +940,10 @@
         document.getElementById('descriptionTitle').textContent = currentLabels.descriptionTitle;
         document.getElementById('descriptionText').textContent = currentLabels.descriptionText;
         document.getElementById('disclaimerText').innerHTML = currentLabels.disclaimerText;
+        const projectRelation = document.getElementById('projectRelationText');
+        if (projectRelation && currentLabels.projectRelationText) {
+          projectRelation.innerHTML = currentLabels.projectRelationText;
+        }
         document.getElementById('dropZoneText').textContent = currentLabels.dropZoneText;
         document.getElementById('supportedFormatsText').textContent = currentLabels.supportedFormatsText;
         document.getElementById('loadingText').textContent = currentLabels.loadingText;

@@ -1,4 +1,4 @@
-# InvoiceInspector 📄⚡
+# InvoiceInspector
 
 [![DOI](https://zenodo.org/badge/900334942.svg)](https://doi.org/10.5281/zenodo.15257729)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -7,27 +7,33 @@
 
 Ein leichtgewichtiger, clientseitiger Web-Viewer für elektronische Rechnungen mit Unterstützung für ZUGFeRD, XRechnung, EN 16931 und weitere Standards.
 
-## 🎥 Demo
+InvoiceInspector ist eng mit dem Projekt
+[SimonWaldherr/InvoiceGenerator](https://github.com/SimonWaldherr/InvoiceGenerator)
+verknüpft. Den zugehörigen ZUGFeRD-Rechnungsgenerator können Sie hier direkt im
+Browser testen:
+https://simonwaldherr.github.io/InvoiceGenerator/
+
+## Demo
 
 [![Watch the video](https://img.youtube.com/vi/Qyn5-ZxSHXo/maxresdefault.jpg)](https://youtu.be/Qyn5-ZxSHXo)
 
-## ✨ Features
+## Funktionsumfang
 
-### 📋 **Vollständige Rechnungsanalyse**
+### Vollständige Rechnungsanalyse
 
 - **Rechnungsinformationen**: Nummer, Typ, Datum, Fälligkeitsdatum, Bestellnummer
 - **Verkäufer/Käufer Details**: Name, Adresse, Kontaktdaten, Steuer-ID, Handelsregister
 - **Zahlungsinformationen**: IBAN, BIC, Zahlungsart, Zahlungsziel, alle Beträge
 - **Detaillierte Positionen**: Mit Einheiten, Steuersätzen und Berechnungen
 
-### 🔒 **Datenschutz & Sicherheit**
+### Datenschutz und Sicherheit
 
 - **100% clientseitig**: Keine Datenübertragung an Server
 - **Keine Installation**: Läuft direkt im Browser
 - **Offline-fähig**: Funktioniert ohne Internetverbindung
 - **Open Source**: Vollständig transparenter Code
 
-### 📊 **Erweiterte Funktionen**
+### Erweiterte Funktionen
 
 - **Statistik-Dashboard**: Überblick über Positionen und Summen
 - **Multi-Format Export**: XML, PDF, JSON, CSV
@@ -36,14 +42,14 @@ Ein leichtgewichtiger, clientseitiger Web-Viewer für elektronische Rechnungen m
 - **Mehrsprachig**: Deutsch und Englisch
 - **Loading-Anzeigen**: Benutzerfreundliche Verarbeitungshinweise
 
-### 🔧 **Technische Features**
+### Technische Merkmale
 
 - **PDF-Extraktion**: Automatische XML-Extraktion aus ZUGFeRD-PDFs
 - **Robuste XML-Parsing**: Unterstützung verschiedener Namespaces
 - **Fehlerbehandlung**: Detaillierte Fehlermeldungen
 - **Barrierefreiheit**: Semantisches HTML und ARIA-Labels
 
-## 🚀 Verwendung
+## Verwendung
 
 1. **Öffnen Sie** `index.html` in Ihrem Browser
 2. **Ziehen Sie** eine ZUGFeRD-PDF oder XRechnung-XML in die Drop-Zone oder klicken zum Auswählen
@@ -57,44 +63,44 @@ Ein leichtgewichtiger, clientseitiger Web-Viewer für elektronische Rechnungen m
 - **EN 16931 kompatible XML-Dateien**
 - **Factur-X** (französischer ZUGFeRD-Standard)
 
-## 🔍 Getestete Beispiele
+## Getestete Beispiele
 
 Umfangreiche Tests mit Beispielen aus [github.com/ZUGFeRD/corpus](https://github.com/ZUGFeRD/corpus).
 
-## ⚖️ Rechtliche Hinweise
+## Rechtliche Hinweise
 
 ### Offizielles Elster-Tool
 
 Es gibt inzwischen ein offizielles Tool auf [elster.de](https://www.elster.de/eportal/e-rechnung).
 Während ich sehr gerne auf dieses offizielle Tool hinweisen und es ausdrücklich empfehlen möchte, tue ich dies mit erheblichen Vorbehalten:
 
-**Probleme des offiziellen Tools:**
+**Einschränkungen des offiziellen Tools:**
 
-1. 📤 **Datenübertragung**: Die Daten werden zum Elster-Server hochgeladen (anstatt direkt im Browser ausgewertet zu werden)
-2. ⚠️ **Keine Garantie**: Das offizielle Tool weist ebenfalls darauf hin, dass es keine ordnungsgemäße Funktionalität oder korrekte Extraktion der angezeigten Daten garantieren kann
+1. **Datenübertragung**: Die Daten werden zum Elster-Server hochgeladen (anstatt direkt im Browser ausgewertet zu werden).
+2. **Keine Garantie**: Das offizielle Tool weist ebenfalls darauf hin, dass es keine ordnungsgemäße Funktionalität oder korrekte Extraktion der angezeigten Daten garantieren kann.
 
 ### Haftungsausschluss
 
-- ⚠️ **Keine Gewähr** für Richtigkeit, Vollständigkeit oder Rechtskonformität
-- 🚫 **Keine Haftung** für Schäden oder Verluste aus der Nutzung
-- 👤 **Nutzerverantwortung** für korrekte Verarbeitung und Prüfung der Daten
+- **Keine Gewähr** für Richtigkeit, Vollständigkeit oder Rechtskonformität.
+- **Keine Haftung** für Schäden oder Verluste aus der Nutzung.
+- **Nutzerverantwortung** für korrekte Verarbeitung und Prüfung der Daten.
 
-### Warum All-in-One?
+### Warum eine einzelne HTML-Datei?
 
-- **Einfache Bereitstellung**: Nur eine Datei kopieren
-- **Keine Abhängigkeiten**: Läuft ohne zusätzliche Assets
-- **Maximale Portabilität**: Funktioniert auf jedem Webserver
-- **Offline-fähig**: Keine externen Ressourcen erforderlich
+- **Einfache Bereitstellung**: Nur eine Datei kopieren.
+- **Keine Abhängigkeiten**: Läuft ohne zusätzliche Assets.
+- **Hohe Portabilität**: Funktioniert auf jedem Webserver.
+- **Offline-fähig**: Keine externen Ressourcen erforderlich.
 
-## 🤝 Beitragen
+## Beitragen
 
-Ich freue mich über Beiträge! 
+Beiträge in Form von Bugmeldungen, Ideen oder Pull Requests sind willkommen.
 
-## 📄 Lizenz
+## Lizenz
 
 Dieses Projekt steht unter der [MIT-Lizenz](LICENSE).
 
-## 🔗 Links
+## Links
 
 - **Repository**: [github.com/SimonWaldherr/InvoiceInspector](https://github.com/SimonWaldherr/InvoiceInspector)
 - **Issues**: [GitHub Issues](https://github.com/SimonWaldherr/InvoiceInspector/issues)
@@ -102,7 +108,7 @@ Dieses Projekt steht unter der [MIT-Lizenz](LICENSE).
 - **ZUGFeRD Standard**: [ferd-net.de](https://www.ferd-net.de/)
 - **XRechnung**: [xeinkauf.de](https://xeinkauf.de/xrechnung/)
 
-## 👨‍💻 Autor
+## Autor
 
 Simon Waldherr
 
