@@ -336,6 +336,24 @@
       }
     }
 
+    /* Responsive Grid für Sektionen */
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 1400px) {
+      .section-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .section-grid > section {
+      margin-bottom: 0;
+    }
+
     @media (max-width: 768px) {
       table th, table td {
         font-size: 0.9em;
@@ -363,6 +381,40 @@
       padding: 20px;
       margin: 20px 0;
       text-align: center;
+    }
+
+    /* Modal für QR-Code */
+    .qr-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .qr-modal.visible {
+      display: flex;
+    }
+
+    .qr-modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .qr-modal-content .qr-code-container {
+      display: block;
+      margin: 0 auto 12px auto;
     }
 
     .qr-section h3 {
@@ -435,6 +487,46 @@
     </p>
   </section>
 
+  <section id="unitMappingSection" class="description" style="display: none;">
+    <h2>Mengeneinheiten (BT-130)</h2>
+    <p>Übersetzung der UNECE Rec 20 Einheitencodes zu fachlichen Einheiten.</p>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Fachliche Einheit (DE)</th>
+            <th>Beschreibung</th>
+            <th>UNECE Rec 20 Code</th>
+            <th>Beispiel in XML</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Stück</td><td>Einzelstück</td><td>C62</td><td>&lt;cbc:InvoicedQuantity unitCode="C62"&gt;10&lt;/cbc:InvoicedQuantity&gt;</td></tr>
+          <tr><td>Stunde</td><td>Arbeitsstunde</td><td>HUR</td><td>&lt;cbc:InvoicedQuantity unitCode="HUR"&gt;8&lt;/cbc:InvoicedQuantity&gt;</td></tr>
+          <tr><td>Tag</td><td>Arbeitstag</td><td>DAY</td><td>&lt;cbc:InvoicedQuantity unitCode="DAY"&gt;5&lt;/cbc:InvoicedQuantity&gt;</td></tr>
+          <tr><td>Monat</td><td>Monatliche Leistung</td><td>MON</td><td>&lt;cbc:InvoicedQuantity unitCode="MON"&gt;1&lt;/cbc:InvoicedQuantity&gt;</td></tr>
+          <tr><td>Jahr</td><td>Jahresleistung</td><td>ANN</td><td>&lt;cbc:InvoicedQuantity unitCode="ANN"&gt;1&lt;/cbc:InvoicedQuantity&gt;</td></tr>
+          <tr><td>Kilogramm</td><td>Gewicht</td><td>KGM</td><td>&lt;cbc:InvoicedQuantity unitCode="KGM"&gt;150&lt;/cbc:InvoicedQuantity&gt;</td></tr>
+          <tr><td>Gramm</td><td>Gewicht</td><td>GRM</td><td>unitCode="GRM"</td></tr>
+          <tr><td>Tonne</td><td>Metrische Tonne</td><td>TNE</td><td>unitCode="TNE"</td></tr>
+          <tr><td>Meter</td><td>Länge</td><td>MTR</td><td>unitCode="MTR"</td></tr>
+          <tr><td>Zentimeter</td><td>Länge</td><td>CMT</td><td>unitCode="CMT"</td></tr>
+          <tr><td>Quadratmeter</td><td>Fläche</td><td>MTK</td><td>unitCode="MTK"</td></tr>
+          <tr><td>Kubikmeter</td><td>Volumen</td><td>MTQ</td><td>unitCode="MTQ"</td></tr>
+          <tr><td>Liter</td><td>Volumen</td><td>LTR</td><td>unitCode="LTR"</td></tr>
+          <tr><td>Minute</td><td>Zeiteinheit</td><td>MIN</td><td>unitCode="MIN"</td></tr>
+          <tr><td>Pauschale</td><td>Pauschale Leistung</td><td>ZZ* oder C62**</td><td>projektspezifisch</td></tr>
+          <tr><td>Prozent</td><td>Prozentuale Leistung</td><td>P1</td><td>unitCode="P1"</td></tr>
+          <tr><td>Paar</td><td>Zwei Stück</td><td>PR</td><td>unitCode="PR"</td></tr>
+          <tr><td>Paket</td><td>Verpackungseinheit</td><td>PA</td><td>unitCode="PA"</td></tr>
+          <tr><td>Karton</td><td>Karton</td><td>CT</td><td>unitCode="CT"</td></tr>
+          <tr><td>Palette</td><td>Palette</td><td>PAL</td><td>unitCode="PAL"</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.9em;margin-top:8px;">* ZZ = mutually defined (nur verwenden, wenn wirklich keine passende Standard-Einheit existiert). ** Viele ERP-Systeme verwenden für Pauschalen auch C62 (Stück).</p>
+  </section>
+
   <div class="drop-zone" id="dropZone">
     <p id="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
     <p id="supportedFormatsText" style="font-size: 0.9em; color: #666; margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
@@ -490,52 +582,25 @@
 
   <section id="errorSection" class="error hidden"></section>
 
-  <section id="headerSection" class="hidden">
-    <h2 id="invoiceInfoTitle">📋 Rechnungsinformationen</h2>
-    <div class="table-container">
-      <table>
-        <tr><th id="invNumberLabel">Rechnungsnummer</th><td id="invNumber"></td></tr>
-        <tr><th id="invTypeLabel">Rechnungstyp</th><td id="invType"></td></tr>
-        <tr><th id="invDateLabel">Rechnungsdatum</th><td id="invDate"></td></tr>
-        <tr><th id="invDueDateLabel">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
-        <tr><th id="invOrderNumberLabel">Bestellnummer</th><td id="invOrderNumber"></td></tr>
-        <tr><th id="invNoteLabel">Notiz</th><td id="invNote"></td></tr>
-      </table>
-    </div>
-  </section>
+  <div class="section-grid" id="invoicePaymentGrid">
+    <section id="headerSection" class="hidden">
+      <h2 id="invoiceInfoTitle">📋 Rechnungsinformationen</h2>
+      <div class="table-container">
+        <table>
+          <tr><th id="invNumberLabel">Rechnungsnummer</th><td id="invNumber"></td></tr>
+          <tr><th id="invTypeLabel">Rechnungstyp</th><td id="invType"></td></tr>
+          <tr><th id="invDateLabel">Rechnungsdatum</th><td id="invDate"></td></tr>
+          <tr><th id="invDueDateLabel">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
+          <tr><th id="invOrderNumberLabel">Bestellnummer</th><td id="invOrderNumber"></td></tr>
+          <tr><th id="invNoteLabel">Notiz</th><td id="invNote"></td></tr>
+        </table>
+      </div>
+    </section>
 
-  <section id="sellerSection" class="hidden">
-    <h2 id="sellerInfoTitle">🏢 Verkäufer / Rechnungssteller</h2>
-    <div class="table-container">
-      <table>
-        <tr><th id="sellerNameLabel">Name</th><td id="sellerName"></td></tr>
-        <tr><th id="sellerAddressLabel">Adresse</th><td id="sellerAddress"></td></tr>
-        <tr><th id="sellerEmailLabel">E-Mail</th><td id="sellerEmail"></td></tr>
-        <tr><th id="sellerPhoneLabel">Telefon</th><td id="sellerPhone"></td></tr>
-        <tr><th id="sellerTaxIDLabel">Steuer-ID</th><td id="sellerTaxID"></td></tr>
-        <tr><th id="sellerRegisterLabel">Handelsregister</th><td id="sellerRegister"></td></tr>
-      </table>
-    </div>
-  </section>
-
-  <section id="buyerSection" class="hidden">
-    <h2 id="buyerInfoTitle">👤 Käufer / Rechnungsempfänger</h2>
-    <div class="table-container">
-      <table>
-        <tr><th id="buyerNameLabel">Name</th><td id="buyerName"></td></tr>
-        <tr><th id="buyerAddressLabel">Adresse</th><td id="buyerAddress"></td></tr>
-        <tr><th id="buyerAddress2Label">Adresszusatz</th><td id="buyerAddress2"></td></tr>
-        <tr><th id="buyerEmailLabel">E-Mail</th><td id="buyerEmail"></td></tr>
-        <tr><th id="buyerPhoneLabel">Telefon</th><td id="buyerPhone"></td></tr>
-        <tr><th id="buyerTaxIDLabel">Steuer-ID</th><td id="buyerTaxID"></td></tr>
-      </table>
-    </div>
-  </section>
-
-  <section id="paymentSection" class="hidden">
-    <h2 id="paymentInfoTitle">💳 Zahlungsinformationen</h2>
-    <div class="table-container">
-      <table>
+    <section id="paymentSection" class="hidden">
+      <h2 id="paymentInfoTitle">💳 Zahlungsinformationen</h2>
+      <div class="table-container">
+        <table>
         <tr><th id="currencyLabel">Währung</th><td id="currency"></td></tr>
         <tr><th id="paymentTypeLabel">Zahlungsart</th><td id="paymentType"></td></tr>
         <tr><th id="paymentTermsLabel">Zahlungsziel</th><td id="paymentTerms"></td></tr>
@@ -549,8 +614,17 @@
       </table>
     </div>
     
-    <!-- EPC QR Code Section -->
-    <div id="qrCodeSection" class="qr-section hidden">
+    <!-- EPC QR Code: Button to open modal -->
+    <div style="margin-top:10px;">
+      <button id="showQrBtn" type="button" class="sample-btn hidden">QR-Code anzeigen</button>
+      <button id="downloadQrBtn" type="button" class="sample-btn hidden" style="margin-left:8px;">QR-Code speichern</button>
+    </div>
+    </section>
+  </div>
+
+  <!-- QR Modal (hidden by default) -->
+  <div id="qrModal" class="qr-modal" role="dialog" aria-hidden="true">
+    <div class="qr-modal-content">
       <h3 id="qrCodeTitle">📱 QR-Code für Überweisung</h3>
       <div class="qr-code-container"></div>
       <div class="qr-info">
@@ -558,12 +632,43 @@
           <strong id="qrCodeInfoTitle">Zum Bezahlen einfach QR-Code mit Banking-App scannen</strong><br>
           <span id="qrCodeDetails">EPC-QR-Code (Girocode) nach europäischem Standard</span>
         </div>
-        <div style="margin-top:10px;">
-          <button id="downloadQrBtn" type="button">QR-Code speichern</button>
+        <div style="margin-top:10px; display:flex; gap:8px; justify-content:center;">
+          <button id="modalDownloadQrBtn" type="button" class="sample-btn">QR-Code speichern</button>
+          <button id="closeQrModal" type="button" class="sample-btn">Schließen</button>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+
+  <div class="section-grid" id="sellerBuyerGrid">
+    <section id="sellerSection" class="hidden">
+      <h2 id="sellerInfoTitle">🏢 Verkäufer / Rechnungssteller</h2>
+      <div class="table-container">
+        <table>
+          <tr><th id="sellerNameLabel">Name</th><td id="sellerName"></td></tr>
+          <tr><th id="sellerAddressLabel">Adresse</th><td id="sellerAddress"></td></tr>
+          <tr><th id="sellerEmailLabel">E-Mail</th><td id="sellerEmail"></td></tr>
+          <tr><th id="sellerPhoneLabel">Telefon</th><td id="sellerPhone"></td></tr>
+          <tr><th id="sellerTaxIDLabel">Steuer-ID</th><td id="sellerTaxID"></td></tr>
+          <tr><th id="sellerRegisterLabel">Handelsregister</th><td id="sellerRegister"></td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section id="buyerSection" class="hidden">
+      <h2 id="buyerInfoTitle">👤 Käufer / Rechnungsempfänger</h2>
+      <div class="table-container">
+        <table>
+          <tr><th id="buyerNameLabel">Name</th><td id="buyerName"></td></tr>
+          <tr><th id="buyerAddressLabel">Adresse</th><td id="buyerAddress"></td></tr>
+          <tr><th id="buyerAddress2Label">Adresszusatz</th><td id="buyerAddress2"></td></tr>
+          <tr><th id="buyerEmailLabel">E-Mail</th><td id="buyerEmail"></td></tr>
+          <tr><th id="buyerPhoneLabel">Telefon</th><td id="buyerPhone"></td></tr>
+          <tr><th id="buyerTaxIDLabel">Steuer-ID</th><td id="buyerTaxID"></td></tr>
+        </table>
+      </div>
+    </section>
+  </div>
 
   <section id="lineItemsSection" class="hidden">
     <h2 id="lineItemsTitle">📦 Positionen</h2>
@@ -929,6 +1034,46 @@
         unitHeader: 'BT-130'
       };
 
+      // Mapping von UNECE Rec 20 Einheitencodes auf lesbare Bezeichnungen (DE/EN)
+      // Enthält sowohl deutsche als auch englische Labels.
+      const unitCodeMap = {
+        'C62': { name: { de: 'Stück', en: 'Piece' }, description: { de: 'Einzelstück', en: 'Single item' } },
+        'HUR': { name: { de: 'Stunde', en: 'Hour' }, description: { de: 'Arbeitsstunde', en: 'Working hour' } },
+        'DAY': { name: { de: 'Tag', en: 'Day' }, description: { de: 'Arbeitstag', en: 'Working day' } },
+        'MON': { name: { de: 'Monat', en: 'Month' }, description: { de: 'Monatliche Leistung', en: 'Monthly service' } },
+        'ANN': { name: { de: 'Jahr', en: 'Year' }, description: { de: 'Jahresleistung', en: 'Annual service' } },
+        'KGM': { name: { de: 'Kilogramm', en: 'Kilogram' }, description: { de: 'Gewicht', en: 'Weight' } },
+        'GRM': { name: { de: 'Gramm', en: 'Gram' }, description: { de: 'Gewicht', en: 'Weight' } },
+        'TNE': { name: { de: 'Tonne', en: 'Tonne' }, description: { de: 'Metrische Tonne', en: 'Metric tonne' } },
+        'MTR': { name: { de: 'Meter', en: 'Metre' }, description: { de: 'Länge', en: 'Length' } },
+        'CMT': { name: { de: 'Zentimeter', en: 'Centimetre' }, description: { de: 'Länge', en: 'Length' } },
+        'MTK': { name: { de: 'Quadratmeter', en: 'Square metre' }, description: { de: 'Fläche', en: 'Area' } },
+        'MTQ': { name: { de: 'Kubikmeter', en: 'Cubic metre' }, description: { de: 'Volumen', en: 'Volume' } },
+        'LTR': { name: { de: 'Liter', en: 'Litre' }, description: { de: 'Volumen', en: 'Volume' } },
+        'MIN': { name: { de: 'Minute', en: 'Minute' }, description: { de: 'Zeiteinheit', en: 'Time unit' } },
+        'P1':  { name: { de: 'Prozent', en: 'Percent' }, description: { de: 'Prozentuale Leistung', en: 'Percentage' } },
+        'PR':  { name: { de: 'Paar', en: 'Pair' }, description: { de: 'Zwei Stück', en: 'Two pieces' } },
+        'PA':  { name: { de: 'Paket', en: 'Package' }, description: { de: 'Verpackungseinheit', en: 'Packaging unit' } },
+        'CT':  { name: { de: 'Karton', en: 'Carton' }, description: { de: 'Karton', en: 'Carton' } },
+        'PAL': { name: { de: 'Palette', en: 'Pallet' }, description: { de: 'Palette', en: 'Pallet' } },
+        // Pauschale: projektabhängig, kann ZZ* oder C62 genutzt werden
+        'ZZ':  { name: { de: 'Pauschale (ZZ)', en: 'Lump sum (ZZ)' }, description: { de: 'Mutually defined; projektabhängig', en: 'Mutually defined; project-specific' } }
+      };
+
+      function getUnitDisplay(code) {
+        if (!code) return '';
+        const normalized = code.trim().toUpperCase();
+        const entry = unitCodeMap[normalized];
+        if (!entry) return normalized;
+        let displayName = '';
+        if (entry.name && typeof entry.name === 'object') {
+          displayName = entry.name[currentLanguage] || entry.name.de || Object.values(entry.name)[0];
+        } else {
+          displayName = entry.name;
+        }
+        return `${displayName} (${normalized})`;
+      }
+
       // Sprachenerkennung und Labels setzen
       function setLanguage(lang) {
         currentLanguage = lang;
@@ -1007,11 +1152,15 @@
         const qrCodeInfoTitle = document.getElementById('qrCodeInfoTitle');
         const qrCodeDetails = document.getElementById('qrCodeDetails');
         
-        if (qrCodeTitle) qrCodeTitle.textContent = currentLabels.qrCodeTitle;
-        if (qrCodeInfoTitle) qrCodeInfoTitle.textContent = currentLabels.qrCodeInfoTitle;
-        if (qrCodeDetails) qrCodeDetails.textContent = currentLabels.qrCodeDetails;
-  const downloadQrBtn = document.getElementById('downloadQrBtn');
-  if (downloadQrBtn) downloadQrBtn.textContent = lang === 'de' ? 'QR-Code speichern' : 'Save QR Code';
+          if (qrCodeTitle) qrCodeTitle.textContent = currentLabels.qrCodeTitle;
+          if (qrCodeInfoTitle) qrCodeInfoTitle.textContent = currentLabels.qrCodeInfoTitle;
+          if (qrCodeDetails) qrCodeDetails.textContent = currentLabels.qrCodeDetails;
+          const downloadQrBtn = document.getElementById('downloadQrBtn');
+          const modalDownloadQrBtn = document.getElementById('modalDownloadQrBtn');
+          const showQrBtn = document.getElementById('showQrBtn');
+          if (downloadQrBtn) downloadQrBtn.textContent = lang === 'de' ? 'QR-Code speichern' : 'Save QR Code';
+          if (modalDownloadQrBtn) modalDownloadQrBtn.textContent = lang === 'de' ? 'QR-Code speichern' : 'Save QR Code';
+          if (showQrBtn) showQrBtn.textContent = lang === 'de' ? 'QR-Code anzeigen' : 'Show QR Code';
 
         // Tabellenkopf für Line Items
         document.getElementById('posNrHeader').textContent = currentLabels.posNr;
@@ -1600,46 +1749,63 @@
       }
 
       function generateEPCQRCode(paymentData) {
-        const qrCodeSection = document.getElementById('qrCodeSection');
-        const qrCodeContainer = document.querySelector('.qr-code-container');
-  const downloadQrBtn = document.getElementById('downloadQrBtn');
-        
+        const qrModal = document.getElementById('qrModal');
+        const modalContainer = qrModal ? qrModal.querySelector('.qr-code-container') : null;
+        const showQrBtn = document.getElementById('showQrBtn');
+        const modalDownloadBtn = document.getElementById('modalDownloadQrBtn');
+        const inlineDownloadBtn = document.getElementById('downloadQrBtn');
+
         // Prüfen ob notwendige Daten vorhanden sind
-  if (!paymentData || !paymentData.iban || (!paymentData.grossAmount && !paymentData.dueAmount)) {
-          qrCodeSection.classList.add('hidden');
+        if (!paymentData || !paymentData.iban || (!paymentData.grossAmount && !paymentData.dueAmount)) {
+          if (showQrBtn) showQrBtn.classList.add('hidden');
+          if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
+          if (qrModal) {
+            qrModal.classList.remove('visible');
+            qrModal.setAttribute('aria-hidden', 'true');
+            if (modalContainer) modalContainer.innerHTML = '';
+          }
           return;
         }
 
         try {
           // Vorherigen QR-Code löschen
-          qrCodeContainer.innerHTML = '';
-          
+          if (modalContainer) modalContainer.innerHTML = '';
+
           // EPC QR Code Daten nach SEPA Credit Transfer Standard
           const epcData = generateEPCData(paymentData);
-          
+
           // Canvas Element erstellen
           const canvas = document.createElement('canvas');
-          qrCodeContainer.appendChild(canvas);
-          
+          if (modalContainer) modalContainer.appendChild(canvas);
+
           // QR Code generieren mit qrcode Bibliothek
           QRCode.toCanvas(canvas, epcData, {
             width: 200,
             height: 200,
-            color: {
-              dark: '#000000',
-              light: '#FFFFFF'
-            },
+            color: { dark: '#000000', light: '#FFFFFF' },
             errorCorrectionLevel: 'M'
           }, function (error) {
             if (error) {
               console.error('EPC QR Code generation failed:', error);
-              qrCodeSection.classList.add('hidden');
+              if (showQrBtn) showQrBtn.classList.add('hidden');
+              if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
             } else {
-              qrCodeSection.classList.remove('hidden');
-              // Download-Button aktivieren
-              if (downloadQrBtn) {
-                downloadQrBtn.disabled = false;
-                downloadQrBtn.onclick = () => {
+              // QR erzeugt: Modal-Öffnen Button anzeigen
+              if (showQrBtn) {
+                showQrBtn.classList.remove('hidden');
+                showQrBtn.onclick = () => {
+                  if (qrModal) {
+                    qrModal.classList.add('visible');
+                    qrModal.setAttribute('aria-hidden', 'false');
+                  }
+                };
+              }
+
+              // Inline download bleibt versteckt; modalDownloadBtn übernimmt Download
+              if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
+
+              if (modalDownloadBtn) {
+                modalDownloadBtn.onclick = () => {
                   try {
                     const dataUrl = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
@@ -1653,12 +1819,22 @@
                   }
                 };
               }
+
+              // Close button
+              const closeBtn = document.getElementById('closeQrModal');
+              if (closeBtn && qrModal) {
+                closeBtn.onclick = () => {
+                  qrModal.classList.remove('visible');
+                  qrModal.setAttribute('aria-hidden', 'true');
+                };
+              }
             }
           });
-          
+
         } catch (error) {
           console.error('EPC QR Code generation failed:', error);
-          qrCodeSection.classList.add('hidden');
+          if (showQrBtn) showQrBtn.classList.add('hidden');
+          if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
         }
       }
 
@@ -1738,6 +1914,7 @@
           const qtyText = qtyElement?.textContent.trim() || "0";
           const quantity = parseFloat(qtyText);
           const unit = qtyElement?.getAttribute('unitCode') || "";
+          const unitDisplay = getUnitDisplay(unit);
           const netPricePerUnit = parseFloat(selectNode(item, "./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount")?.textContent.trim() || "0");
           const taxRateText = selectNode(item, "./ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent")?.textContent.trim() || "0";
           const taxRate = parseFloat(taxRateText);
@@ -1754,7 +1931,8 @@
             description: productDesc,
             notes: productNote,
             quantity,
-            unit,
+            unitCode: unit,
+            unit: unitDisplay,
             unitPrice: netPricePerUnit,
             lineNet,
             taxRate,
@@ -1769,7 +1947,7 @@
             <td>${escapeHtml(productDesc)}</td>
             <td>${escapeHtml(productNote)}</td>
             <td>${escapeHtml(quantity.toFixed(2))}</td>
-            <td>${escapeHtml(unit)}</td>
+            <td>${escapeHtml(unitDisplay)}</td>
             <td>${formatCurrency(netPricePerUnit.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
             <td>${formatCurrency(lineNet.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
             <td>${escapeHtml(taxRate.toFixed(2))}%</td>
@@ -1929,6 +2107,18 @@
             downloadQrBtn.onclick = null;
           }
         }
+        // Modal / Show-QR button zurücksetzen
+        const qrModal = document.getElementById('qrModal');
+        if (qrModal) {
+          qrModal.classList.remove('visible');
+          qrModal.setAttribute('aria-hidden', 'true');
+          const modalContainer = qrModal.querySelector('.qr-code-container');
+          if (modalContainer) modalContainer.innerHTML = '';
+          const modalDownloadBtn = document.getElementById('modalDownloadQrBtn');
+          if (modalDownloadBtn) modalDownloadBtn.onclick = null;
+        }
+        const showQrBtn = document.getElementById('showQrBtn');
+        if (showQrBtn) showQrBtn.classList.add('hidden');
 
         // Inhalt der Tabellen und Bereiche zurücksetzen
         document.querySelectorAll("#headerSection td, #sellerSection td, #buyerSection td, #paymentSection td").forEach(td => td.textContent = "");
