@@ -2,41 +2,115 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZUGFeRD / XRechnung / EN16931 E-Rechnungs-Reader inkl. PDF-Extraktion</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-  
+
   <style>
+    /* ================================================================
+       CSS Custom Properties — single source for theming (light/dark)
+       ================================================================ */
+    :root {
+      --color-bg: #f7f7f7;
+      --color-text: #333;
+      --color-heading: #333;
+      --color-accent: #007BFF;
+      --color-accent-hover: #0056b3;
+      --color-card-bg: #fff;
+      --color-card-border: #ccc;
+      --color-card-shadow: rgba(0, 0, 0, 0.1);
+      --color-input-bg: #fff;
+      --color-input-border: #aaa;
+      --color-table-header-bg: #f0f0f0;
+      --color-pre-bg: #f9f9f9;
+      --color-pre-border: #ccc;
+      --color-tag: #666;
+      --color-error-bg: #ffe6e6;
+      --color-error-text: red;
+      --color-success-bg: #d4edda;
+      --color-success-text: #155724;
+      --color-success-border: #c3e6cb;
+      --color-stat-bg: #f8f9fa;
+      --color-stat-border: #dee2e6;
+      --color-stat-heading: #495057;
+      --color-qr-info: #666;
+      --color-qr-info-strong: #333;
+      --color-dragover-bg: #f0f8ff;
+      --color-dragover-border: #007BFF;
+      --color-lang-bg: #fff;
+      --color-lang-text: #007BFF;
+      --color-lang-border: #007BFF;
+      --color-lang-hover-bg: #f0f8ff;
+      --color-muted: #666;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-bg: #1a1a1a;
+        --color-text: #e0e0e0;
+        --color-heading: #e0e0e0;
+        --color-accent: #0099ff;
+        --color-accent-hover: #007acc;
+        --color-card-bg: #2d2d2d;
+        --color-card-border: #444;
+        --color-card-shadow: rgba(0, 0, 0, 0.3);
+        --color-input-bg: #2d2d2d;
+        --color-input-border: #555;
+        --color-table-header-bg: #383838;
+        --color-pre-bg: #1e1e1e;
+        --color-pre-border: #555;
+        --color-tag: #adb5bd;
+        --color-error-bg: #4a1a1a;
+        --color-error-text: #ff9999;
+        --color-success-bg: #155724;
+        --color-success-text: #b8e6b8;
+        --color-success-border: #28a745;
+        --color-stat-bg: #343a40;
+        --color-stat-border: #495057;
+        --color-stat-heading: #adb5bd;
+        --color-qr-info: #adb5bd;
+        --color-qr-info-strong: #fff;
+        --color-dragover-bg: #1a3a5a;
+        --color-dragover-border: #0099ff;
+        --color-lang-bg: #2d2d2d;
+        --color-lang-text: #0099ff;
+        --color-lang-border: #0099ff;
+        --color-lang-hover-bg: #1a3a5a;
+        --color-muted: #adb5bd;
+      }
+    }
+
+    /* ================================================================
+       Base & Typography
+       ================================================================ */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
       line-height: 1.6;
-      background: #f7f7f7;
+      background: var(--color-bg);
+      color: var(--color-text);
     }
 
-    h1, h2 {
-      margin-bottom: 0.5em;
-    }
+    h1, h2 { margin-bottom: 0.5em; }
 
     h1 {
       font-size: 2em;
       margin-top: 0;
-      color: #333;
+      color: var(--color-heading);
       flex: 1;
     }
 
-    /* Language Switcher */
-    .language-switcher {
-      display: flex;
-      gap: 5px;
-    }
+    /* ================================================================
+       Language Switcher
+       ================================================================ */
+    .language-switcher { display: flex; gap: 5px; }
 
     .lang-btn {
       padding: 8px 15px;
-      border: 2px solid #007BFF;
-      background: #fff;
-      color: #007BFF;
+      border: 2px solid var(--color-lang-border);
+      background: var(--color-lang-bg);
+      color: var(--color-lang-text);
       border-radius: 20px;
       cursor: pointer;
       font-size: 0.9em;
@@ -45,31 +119,37 @@
     }
 
     .lang-btn:hover {
-      background: #f0f8ff;
+      background: var(--color-lang-hover-bg);
       transform: scale(1.05);
     }
 
     .lang-btn.active {
-      background: #007BFF;
+      background: var(--color-accent);
       color: #fff;
     }
 
+    /* ================================================================
+       Cards (description, sections, details)
+       ================================================================ */
     .description, section, details {
-      background: #fff;
+      background: var(--color-card-bg);
       padding: 20px;
       margin-bottom: 16px;
       border-radius: 5px;
-      border: 1px solid #ccc;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border: 1px solid var(--color-card-border);
+      box-shadow: 0 2px 4px var(--color-card-shadow);
     }
 
+    /* ================================================================
+       Drop Zone
+       ================================================================ */
     .drop-zone {
-      border: 2px dashed #aaa;
+      border: 2px dashed var(--color-input-border);
       border-radius: 5px;
       padding: 40px;
       text-align: center;
-      color: #333;
-      background: #fff;
+      color: var(--color-text);
+      background: var(--color-card-bg);
       margin-bottom: 20px;
       transition: border-color 0.3s, background-color 0.3s;
       cursor: pointer;
@@ -77,50 +157,70 @@
     }
 
     .drop-zone.dragover {
-      border-color: #007BFF;
-      background-color: #f0f8ff;
+      border-color: var(--color-dragover-border);
+      background-color: var(--color-dragover-bg);
     }
 
-    .drop-zone p {
-      margin: 0;
-      font-size: 1.1em;
-    }
+    .drop-zone p { margin: 0; font-size: 1.1em; }
 
-    .hidden {
-      display: none;
-    }
+    /* ================================================================
+       Utility
+       ================================================================ */
+    .hidden { display: none; }
 
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
+    /* ================================================================
+       Tables
+       ================================================================ */
+    table { border-collapse: collapse; width: 100%; }
 
     table th, table td {
-      border: 1px solid #ccc;
+      border: 1px solid var(--color-card-border);
       padding: 8px;
       vertical-align: top;
     }
 
     table th {
-      background: #f0f0f0;
+      background: var(--color-table-header-bg);
       text-align: left;
       width: 12.5%;
+      color: var(--color-text);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border-radius: 5px;
+      border: 1px solid var(--color-card-border);
     }
 
     .zugferd-tag {
       font-size: 0.75em;
-      color: #666;
+      color: var(--color-tag);
       margin-left: 4px;
       opacity: 0.8;
     }
 
+    /* ================================================================
+       Feedback: Errors & Success
+       ================================================================ */
     .error {
-      color: red;
-      background-color: #ffe6e6;
+      color: var(--color-error-text);
+      background-color: var(--color-error-bg);
       padding: 10px;
       border-radius: 5px;
     }
 
+    .success {
+      color: var(--color-success-text);
+      background-color: var(--color-success-bg);
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid var(--color-success-border);
+      margin-bottom: 20px;
+    }
+
+    /* ================================================================
+       Buttons
+       ================================================================ */
     .download-buttons {
       margin-bottom: 20px;
       text-align: center;
@@ -133,133 +233,69 @@
       cursor: pointer;
       border: none;
       border-radius: 5px;
-      background-color: #007BFF;
+      background-color: var(--color-accent);
       color: white;
       transition: background-color 0.3s, transform 0.2s;
     }
 
     .download-buttons button:hover {
-      background-color: #0056b3;
+      background-color: var(--color-accent-hover);
       transform: scale(1.05);
     }
 
     .sample-btn {
       padding: 8px 16px;
       border-radius: 20px;
-      border: 1px solid #007BFF;
-      background-color: #ffffff;
-      color: #007BFF;
+      border: 1px solid var(--color-accent);
+      background-color: var(--color-card-bg);
+      color: var(--color-accent);
       font-size: 0.95em;
       cursor: pointer;
       transition: background-color 0.3s, transform 0.2s, color 0.3s;
     }
 
     .sample-btn:hover {
-      background-color: #e7f1ff;
-      color: #0056b3;
+      background-color: var(--color-dragover-bg);
+      color: var(--color-accent-hover);
       transform: translateY(-1px);
     }
 
-    /* Copy button styling */
     .copy-btn {
       padding: 3px 8px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--color-card-border);
       border-radius: 4px;
-      background: #f0f0f0;
+      background: var(--color-table-header-bg);
       cursor: pointer;
     }
-    .copy-btn:hover { background: #e6e6e6; }
 
-    details summary {
-      cursor: pointer;
-      font-weight: bold;
-    }
+    .copy-btn:hover { background: var(--color-stat-bg); }
+
+    /* ================================================================
+       Code / XML Viewer
+       ================================================================ */
+    details summary { cursor: pointer; font-weight: bold; }
 
     pre {
       white-space: pre-wrap;
       word-wrap: break-word;
       max-height: 400px;
       overflow: auto;
-      background-color: #f9f9f9;
+      background-color: var(--color-pre-bg);
       padding: 10px;
       border-radius: 5px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--color-pre-border);
+      color: var(--color-text);
     }
 
-    @media (prefers-color-scheme: dark) {
-      body {
-        background: #1a1a1a;
-        color: #e0e0e0;
-      }
-
-      h1 {
-        color: #e0e0e0;
-      }
-
-      .lang-btn {
-        border-color: #0099ff;
-        background: #2d2d2d;
-        color: #0099ff;
-      }
-
-      .lang-btn:hover {
-        background: #1a3a5a;
-      }
-
-      .lang-btn.active {
-        background: #0099ff;
-        color: #fff;
-      }
-
-      .description, section, details {
-        background: #2d2d2d;
-        border-color: #444;
-        color: #e0e0e0;
-      }
-
-      .drop-zone {
-        background: #2d2d2d;
-        border-color: #555;
-        color: #e0e0e0;
-      }
-
-      .drop-zone.dragover {
-        border-color: #0099ff;
-        background-color: #1a3a5a;
-      }
-
-      table th {
-        background: #383838;
-        color: #e0e0e0;
-      }
-
-      table th, table td {
-        border-color: #555;
-      }
-
-      pre {
-        background-color: #1e1e1e;
-        border-color: #555;
-        color: #e0e0e0;
-      }
-
-      .zugferd-tag {
-        color: #adb5bd;
-      }
-
-      .error {
-        background-color: #4a1a1a;
-        color: #ff9999;
-      }
-    }
-
-    /* Loading Animation */
+    /* ================================================================
+       Loading Spinner
+       ================================================================ */
     .loading {
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #007BFF;
+      border: 3px solid var(--color-card-border);
+      border-top: 3px solid var(--color-accent);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin-right: 10px;
@@ -270,24 +306,9 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Improved table responsiveness */
-    .table-container {
-      overflow-x: auto;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    /* Success message */
-    .success {
-      color: #155724;
-      background-color: #d4edda;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #c3e6cb;
-      margin-bottom: 20px;
-    }
-
-    /* Statistics section */
+    /* ================================================================
+       Statistics Cards
+       ================================================================ */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -296,47 +317,28 @@
     }
 
     .stat-card {
-      background: #f8f9fa;
+      background: var(--color-stat-bg);
       padding: 15px;
       border-radius: 5px;
-      border: 1px solid #dee2e6;
+      border: 1px solid var(--color-stat-border);
       text-align: center;
     }
 
     .stat-card h3 {
       margin: 0 0 10px 0;
       font-size: 1.2em;
-      color: #495057;
+      color: var(--color-stat-heading);
     }
 
     .stat-card .value {
       font-size: 1.5em;
       font-weight: bold;
-      color: #007BFF;
+      color: var(--color-accent);
     }
 
-    @media (prefers-color-scheme: dark) {
-      .stat-card {
-        background: #343a40;
-        border-color: #495057;
-      }
-
-      .stat-card h3 {
-        color: #adb5bd;
-      }
-
-      .success {
-        color: #b8e6b8;
-        background-color: #155724;
-        border-color: #28a745;
-      }
-
-      .table-container {
-        border-color: #555;
-      }
-    }
-
-    /* Responsive Grid für Sektionen */
+    /* ================================================================
+       Section Grid (side-by-side on wide screens)
+       ================================================================ */
     .section-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -345,81 +347,26 @@
     }
 
     @media (min-width: 1400px) {
-      .section-grid {
-        grid-template-columns: 1fr 1fr;
-      }
+      .section-grid { grid-template-columns: 1fr 1fr; }
     }
 
-    .section-grid > section {
-      margin-bottom: 0;
-    }
+    .section-grid > section { margin-bottom: 0; }
 
-    @media (max-width: 768px) {
-      table th, table td {
-        font-size: 0.9em;
-      }
-
-      .drop-zone {
-        padding: 20px;
-      }
-
-      .download-buttons button {
-        width: 100%;
-        margin: 10px 0;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* EPC QR Code Styles */
+    /* ================================================================
+       EPC QR Code
+       ================================================================ */
     .qr-section {
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
+      background: var(--color-stat-bg);
+      border: 1px solid var(--color-stat-border);
       border-radius: 8px;
       padding: 20px;
       margin: 20px 0;
       text-align: center;
     }
 
-    /* Modal für QR-Code */
-    .qr-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      padding: 20px;
-    }
-
-    .qr-modal.visible {
-      display: flex;
-    }
-
-    .qr-modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-
-    .qr-modal-content .qr-code-container {
-      display: block;
-      margin: 0 auto 12px auto;
-    }
-
     .qr-section h3 {
       margin: 0 0 15px 0;
-      color: #495057;
+      color: var(--color-stat-heading);
       font-size: 1.2em;
     }
 
@@ -434,205 +381,204 @@
 
     .qr-info {
       font-size: 0.9em;
-      color: #666;
+      color: var(--color-qr-info);
       line-height: 1.4;
     }
 
-    .qr-info strong {
-      color: #333;
+    .qr-info strong { color: var(--color-qr-info-strong); }
+
+    /* QR Modal */
+    .qr-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
     }
 
-    @media (prefers-color-scheme: dark) {
-      .qr-section {
-        background: #343a40;
-        border-color: #495057;
-      }
+    .qr-modal.visible { display: flex; }
 
-      .qr-section h3 {
-        color: #adb5bd;
-      }
+    .qr-modal-content {
+      background: var(--color-card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
 
-      .qr-code-container {
-        background: #fff;
-      }
+    .qr-modal-content .qr-code-container {
+      display: block;
+      margin: 0 auto 12px auto;
+    }
 
-      .qr-info {
-        color: #adb5bd;
-      }
-
-      .qr-info strong {
-        color: #fff;
-      }
+    /* ================================================================
+       Responsive
+       ================================================================ */
+    @media (max-width: 768px) {
+      table th, table td { font-size: 0.9em; }
+      .drop-zone { padding: 20px; }
+      .download-buttons button { width: 100%; margin: 10px 0; }
+      .stats-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
+
+  <!-- ============================================================
+       Header with title & language switcher
+       ============================================================ -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h1 id="mainTitle">E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion</h1>
+    <h1 data-i18n="mainTitle">E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion</h1>
     <div class="language-switcher">
       <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
       <button id="langEn" class="lang-btn">🇺🇸 EN</button>
     </div>
   </div>
 
+  <!-- ============================================================
+       Description
+       ============================================================ -->
   <section class="description">
-    <h2 id="descriptionTitle">Beschreibung</h2>
-    <p id="descriptionText">Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.</p>
-    <p id="disclaimerText"><strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.</p>
-    <p id="projectRelationText">
-      Dieses Projekt gehört zusammen mit dem
-      <a href="https://github.com/SimonWaldherr/InvoiceGenerator" target="_blank" rel="noopener noreferrer">InvoiceGenerator</a>.
-      Den ZUGFeRD-Invoice-Rechnungsgenerator kannst du hier testen:
-      <a href="https://simonwaldherr.github.io/InvoiceGenerator/" target="_blank" rel="noopener noreferrer">https://simonwaldherr.github.io/InvoiceGenerator/</a>
-    </p>
+    <h2 data-i18n="descriptionTitle">Beschreibung</h2>
+    <p data-i18n="descriptionText">Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.</p>
+    <p data-i18n-html="disclaimerText"><strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.</p>
   </section>
 
-  <section id="unitMappingSection" class="description" style="display: none;">
-    <h2>Mengeneinheiten (BT-130)</h2>
-    <p>Übersetzung der UNECE Rec 20 Einheitencodes zu fachlichen Einheiten.</p>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Fachliche Einheit (DE)</th>
-            <th>Beschreibung</th>
-            <th>UNECE Rec 20 Code</th>
-            <th>Beispiel in XML</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Stück</td><td>Einzelstück</td><td>C62</td><td>&lt;cbc:InvoicedQuantity unitCode="C62"&gt;10&lt;/cbc:InvoicedQuantity&gt;</td></tr>
-          <tr><td>Stunde</td><td>Arbeitsstunde</td><td>HUR</td><td>&lt;cbc:InvoicedQuantity unitCode="HUR"&gt;8&lt;/cbc:InvoicedQuantity&gt;</td></tr>
-          <tr><td>Tag</td><td>Arbeitstag</td><td>DAY</td><td>&lt;cbc:InvoicedQuantity unitCode="DAY"&gt;5&lt;/cbc:InvoicedQuantity&gt;</td></tr>
-          <tr><td>Monat</td><td>Monatliche Leistung</td><td>MON</td><td>&lt;cbc:InvoicedQuantity unitCode="MON"&gt;1&lt;/cbc:InvoicedQuantity&gt;</td></tr>
-          <tr><td>Jahr</td><td>Jahresleistung</td><td>ANN</td><td>&lt;cbc:InvoicedQuantity unitCode="ANN"&gt;1&lt;/cbc:InvoicedQuantity&gt;</td></tr>
-          <tr><td>Kilogramm</td><td>Gewicht</td><td>KGM</td><td>&lt;cbc:InvoicedQuantity unitCode="KGM"&gt;150&lt;/cbc:InvoicedQuantity&gt;</td></tr>
-          <tr><td>Gramm</td><td>Gewicht</td><td>GRM</td><td>unitCode="GRM"</td></tr>
-          <tr><td>Tonne</td><td>Metrische Tonne</td><td>TNE</td><td>unitCode="TNE"</td></tr>
-          <tr><td>Meter</td><td>Länge</td><td>MTR</td><td>unitCode="MTR"</td></tr>
-          <tr><td>Zentimeter</td><td>Länge</td><td>CMT</td><td>unitCode="CMT"</td></tr>
-          <tr><td>Quadratmeter</td><td>Fläche</td><td>MTK</td><td>unitCode="MTK"</td></tr>
-          <tr><td>Kubikmeter</td><td>Volumen</td><td>MTQ</td><td>unitCode="MTQ"</td></tr>
-          <tr><td>Liter</td><td>Volumen</td><td>LTR</td><td>unitCode="LTR"</td></tr>
-          <tr><td>Minute</td><td>Zeiteinheit</td><td>MIN</td><td>unitCode="MIN"</td></tr>
-          <tr><td>Pauschale</td><td>Pauschale Leistung</td><td>ZZ* oder C62**</td><td>projektspezifisch</td></tr>
-          <tr><td>Prozent</td><td>Prozentuale Leistung</td><td>P1</td><td>unitCode="P1"</td></tr>
-          <tr><td>Paar</td><td>Zwei Stück</td><td>PR</td><td>unitCode="PR"</td></tr>
-          <tr><td>Paket</td><td>Verpackungseinheit</td><td>PA</td><td>unitCode="PA"</td></tr>
-          <tr><td>Karton</td><td>Karton</td><td>CT</td><td>unitCode="CT"</td></tr>
-          <tr><td>Palette</td><td>Palette</td><td>PAL</td><td>unitCode="PAL"</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p style="font-size:0.9em;margin-top:8px;">* ZZ = mutually defined (nur verwenden, wenn wirklich keine passende Standard-Einheit existiert). ** Viele ERP-Systeme verwenden für Pauschalen auch C62 (Stück).</p>
-  </section>
-
+  <!-- ============================================================
+       Drop Zone
+       ============================================================ -->
   <div class="drop-zone" id="dropZone">
-    <p id="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
-    <p id="supportedFormatsText" style="font-size: 0.9em; color: #666; margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
-    <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display:none;" />
+    <p data-i18n="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
+    <p data-i18n="supportedFormatsText" style="font-size: 0.9em; color: var(--color-muted); margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
+    <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display: none;" />
   </div>
 
   <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-    <button id="loadSampleBtn" type="button" class="sample-btn">🧪 Beispiel-Rechnung laden</button>
+    <button id="loadSampleBtn" type="button" class="sample-btn" data-i18n="loadSample">🧪 Beispiel-Rechnung laden</button>
   </div>
 
+  <!-- ============================================================
+       Loading & Success Feedback
+       ============================================================ -->
   <div id="loadingSection" class="hidden" style="text-align: center; padding: 20px;">
     <div class="loading"></div>
-    <span id="loadingText">Verarbeitung läuft...</span>
+    <span data-i18n="loadingText">Verarbeitung läuft...</span>
   </div>
 
   <div id="successSection" class="success hidden">
-    <span id="successText">✅ Rechnung erfolgreich verarbeitet!</span>
+    <span data-i18n="successText">✅ Rechnung erfolgreich verarbeitet!</span>
   </div>
 
+  <!-- ============================================================
+       Statistics
+       ============================================================ -->
   <section id="statsSection" class="hidden">
-    <h2 id="statsTitle">📊 Statistiken</h2>
+    <h2 data-i18n="statistics">📊 Statistiken</h2>
     <div class="stats-grid">
       <div class="stat-card">
-        <h3 id="statPositionsLabel">Positionen</h3>
+        <h3 data-i18n="statPositions">Positionen</h3>
         <div class="value" id="statLineItems">0</div>
       </div>
       <div class="stat-card">
-        <h3 id="statNetLabel">Nettosumme</h3>
+        <h3 data-i18n="statNet">Nettosumme</h3>
         <div class="value" id="statNetAmount">0 €</div>
       </div>
       <div class="stat-card">
-        <h3 id="statTaxLabel">Steuern</h3>
+        <h3 data-i18n="statTax">Steuern</h3>
         <div class="value" id="statTaxAmount">0 €</div>
       </div>
       <div class="stat-card">
-        <h3 id="statGrossLabel">Bruttosumme</h3>
+        <h3 data-i18n="statGross">Bruttosumme</h3>
         <div class="value" id="statGrossAmount">0 €</div>
       </div>
     </div>
   </section>
 
+  <!-- ============================================================
+       Download Buttons
+       ============================================================ -->
   <div class="download-buttons hidden" id="downloadButtons">
-    <button id="downloadXml">📄 XML speichern</button>
-    <button id="downloadPdf">📋 PDF speichern</button>
-    <button id="downloadJson">📊 JSON Export</button>
-    <button id="downloadCsv">📈 CSV Export</button>
+    <button id="downloadXml" data-i18n="downloadXml">📄 XML speichern</button>
+    <button id="downloadPdf" data-i18n="downloadPdf">📋 PDF speichern</button>
+    <button id="downloadJson" data-i18n="downloadJson">📊 JSON Export</button>
+    <button id="downloadCsv" data-i18n="downloadCsv">📈 CSV Export</button>
   </div>
 
+  <!-- ============================================================
+       XML Viewer
+       ============================================================ -->
   <details id="xmlViewer" class="hidden">
-    <summary>XML anzeigen</summary>
+    <summary data-i18n="xmlViewerSummary">XML anzeigen</summary>
     <pre id="originalXml"></pre>
   </details>
 
+  <!-- ============================================================
+       Error Section
+       ============================================================ -->
   <section id="errorSection" class="error hidden"></section>
 
+  <!-- ============================================================
+       Invoice & Payment Info (side-by-side grid)
+       ============================================================ -->
   <div class="section-grid" id="invoicePaymentGrid">
     <section id="headerSection" class="hidden">
-      <h2 id="invoiceInfoTitle">📋 Rechnungsinformationen</h2>
+      <h2 data-i18n="invoiceInfo">📋 Rechnungsinformationen</h2>
       <div class="table-container">
         <table>
-          <tr><th id="invNumberLabel">Rechnungsnummer</th><td id="invNumber"></td></tr>
-          <tr><th id="invTypeLabel">Rechnungstyp</th><td id="invType"></td></tr>
-          <tr><th id="invDateLabel">Rechnungsdatum</th><td id="invDate"></td></tr>
-          <tr><th id="invDueDateLabel">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
-          <tr><th id="invOrderNumberLabel">Bestellnummer</th><td id="invOrderNumber"></td></tr>
-          <tr><th id="invNoteLabel">Notiz</th><td id="invNote"></td></tr>
+          <tr><th data-i18n="invNumber" data-bt="BT-1">Rechnungsnummer</th><td id="invNumber"></td></tr>
+          <tr><th data-i18n="invType" data-bt="BT-3">Rechnungstyp</th><td id="invType"></td></tr>
+          <tr><th data-i18n="invDate" data-bt="BT-2">Rechnungsdatum</th><td id="invDate"></td></tr>
+          <tr><th data-i18n="invDueDate" data-bt="BT-9">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
+          <tr><th data-i18n="invOrderNumber" data-bt="BT-13">Bestellnummer</th><td id="invOrderNumber"></td></tr>
+          <tr><th data-i18n="invNote" data-bt="BT-22">Notiz</th><td id="invNote"></td></tr>
         </table>
       </div>
     </section>
 
     <section id="paymentSection" class="hidden">
-      <h2 id="paymentInfoTitle">💳 Zahlungsinformationen</h2>
+      <h2 data-i18n="paymentInfo">💳 Zahlungsinformationen</h2>
       <div class="table-container">
         <table>
-        <tr><th id="currencyLabel">Währung</th><td id="currency"></td></tr>
-        <tr><th id="paymentTypeLabel">Zahlungsart</th><td id="paymentType"></td></tr>
-        <tr><th id="paymentTermsLabel">Zahlungsziel</th><td id="paymentTerms"></td></tr>
-        <tr><th id="ibanLabel">IBAN</th><td id="iban"></td></tr>
-        <tr><th id="bicLabel">BIC</th><td id="bic"></td></tr>
-        <tr><th id="accountHolderLabel">Kontoinhaber</th><td id="accountHolder"></td></tr>
-        <tr><th id="netAmountLabel">Gesamt netto</th><td id="netAmount"></td></tr>
-        <tr><th id="taxAmountLabel">Steuerbetrag</th><td id="taxAmount"></td></tr>
-        <tr><th id="grossAmountLabel">Gesamt brutto</th><td id="grossAmount"></td></tr>
-        <tr><th id="dueAmountLabel">Fälliger Betrag</th><td id="dueAmount"></td></tr>
-      </table>
-    </div>
-    
-    <!-- EPC QR Code: Button to open modal -->
-    <div style="margin-top:10px;">
-      <button id="showQrBtn" type="button" class="sample-btn hidden">QR-Code anzeigen</button>
-      <button id="downloadQrBtn" type="button" class="sample-btn hidden" style="margin-left:8px;">QR-Code speichern</button>
-    </div>
+          <tr><th data-i18n="currency" data-bt="BT-5">Währung</th><td id="currency"></td></tr>
+          <tr><th data-i18n="paymentType" data-bt="BT-82">Zahlungsart</th><td id="paymentType"></td></tr>
+          <tr><th data-i18n="paymentTerms" data-bt="BT-20">Zahlungsziel</th><td id="paymentTerms"></td></tr>
+          <tr><th data-i18n="iban" data-bt="BT-84">IBAN</th><td id="iban"></td></tr>
+          <tr><th data-i18n="bic" data-bt="BT-86">BIC</th><td id="bic"></td></tr>
+          <tr><th data-i18n="accountHolder" data-bt="BT-85">Kontoinhaber</th><td id="accountHolder"></td></tr>
+          <tr><th data-i18n="netAmount" data-bt="BT-106">Gesamt netto</th><td id="netAmount"></td></tr>
+          <tr><th data-i18n="taxAmount" data-bt="BT-110">Steuerbetrag</th><td id="taxAmount"></td></tr>
+          <tr><th data-i18n="grossAmount" data-bt="BT-112">Gesamt brutto</th><td id="grossAmount"></td></tr>
+          <tr><th data-i18n="dueAmount" data-bt="BT-115">Fälliger Betrag</th><td id="dueAmount"></td></tr>
+        </table>
+      </div>
+
+      <!-- EPC QR Code buttons -->
+      <div style="margin-top: 10px;">
+        <button id="showQrBtn" type="button" class="sample-btn hidden">QR-Code anzeigen</button>
+        <button id="downloadQrBtn" type="button" class="sample-btn hidden" style="margin-left: 8px;">QR-Code speichern</button>
+      </div>
     </section>
   </div>
 
-  <!-- QR Modal (hidden by default) -->
+  <!-- ============================================================
+       QR Modal
+       ============================================================ -->
   <div id="qrModal" class="qr-modal" role="dialog" aria-hidden="true">
     <div class="qr-modal-content">
-      <h3 id="qrCodeTitle">📱 QR-Code für Überweisung</h3>
+      <h3 data-i18n="qrCodeTitle">📱 QR-Code für Überweisung</h3>
       <div class="qr-code-container"></div>
       <div class="qr-info">
         <div id="qrCodeInfo">
-          <strong id="qrCodeInfoTitle">Zum Bezahlen einfach QR-Code mit Banking-App scannen</strong><br>
-          <span id="qrCodeDetails">EPC-QR-Code (Girocode) nach europäischem Standard</span>
+          <strong data-i18n="qrCodeInfoTitle">Zum Bezahlen einfach QR-Code mit Banking-App scannen</strong><br>
+          <span data-i18n="qrCodeDetails">EPC-QR-Code (Girocode) nach europäischem Standard</span>
         </div>
-        <div style="margin-top:10px; display:flex; gap:8px; justify-content:center;">
+        <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
           <button id="modalDownloadQrBtn" type="button" class="sample-btn">QR-Code speichern</button>
           <button id="closeQrModal" type="button" class="sample-btn">Schließen</button>
         </div>
@@ -640,52 +586,58 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       Seller & Buyer Info (side-by-side grid)
+       ============================================================ -->
   <div class="section-grid" id="sellerBuyerGrid">
     <section id="sellerSection" class="hidden">
-      <h2 id="sellerInfoTitle">🏢 Verkäufer / Rechnungssteller</h2>
+      <h2 data-i18n="sellerInfo">🏢 Verkäufer / Rechnungssteller</h2>
       <div class="table-container">
         <table>
-          <tr><th id="sellerNameLabel">Name</th><td id="sellerName"></td></tr>
-          <tr><th id="sellerAddressLabel">Adresse</th><td id="sellerAddress"></td></tr>
-          <tr><th id="sellerEmailLabel">E-Mail</th><td id="sellerEmail"></td></tr>
-          <tr><th id="sellerPhoneLabel">Telefon</th><td id="sellerPhone"></td></tr>
-          <tr><th id="sellerTaxIDLabel">Steuer-ID</th><td id="sellerTaxID"></td></tr>
-          <tr><th id="sellerRegisterLabel">Handelsregister</th><td id="sellerRegister"></td></tr>
+          <tr><th data-i18n="sellerName" data-bt="BT-27">Name</th><td id="sellerName"></td></tr>
+          <tr><th data-i18n="sellerAddress" data-bt="BT-35, BT-36, BT-38, BT-37, BT-39, BT-40">Adresse</th><td id="sellerAddress"></td></tr>
+          <tr><th data-i18n="sellerEmail" data-bt="BT-43">E-Mail</th><td id="sellerEmail"></td></tr>
+          <tr><th data-i18n="sellerPhone" data-bt="BT-42">Telefon</th><td id="sellerPhone"></td></tr>
+          <tr><th data-i18n="sellerTaxID" data-bt="BT-31, BT-32">Steuer-ID</th><td id="sellerTaxID"></td></tr>
+          <tr><th data-i18n="sellerRegister" data-bt="BT-33">Handelsregister</th><td id="sellerRegister"></td></tr>
         </table>
       </div>
     </section>
 
     <section id="buyerSection" class="hidden">
-      <h2 id="buyerInfoTitle">👤 Käufer / Rechnungsempfänger</h2>
+      <h2 data-i18n="buyerInfo">👤 Käufer / Rechnungsempfänger</h2>
       <div class="table-container">
         <table>
-          <tr><th id="buyerNameLabel">Name</th><td id="buyerName"></td></tr>
-          <tr><th id="buyerAddressLabel">Adresse</th><td id="buyerAddress"></td></tr>
-          <tr><th id="buyerAddress2Label">Adresszusatz</th><td id="buyerAddress2"></td></tr>
-          <tr><th id="buyerEmailLabel">E-Mail</th><td id="buyerEmail"></td></tr>
-          <tr><th id="buyerPhoneLabel">Telefon</th><td id="buyerPhone"></td></tr>
-          <tr><th id="buyerTaxIDLabel">Steuer-ID</th><td id="buyerTaxID"></td></tr>
+          <tr><th data-i18n="buyerName" data-bt="BT-44">Name</th><td id="buyerName"></td></tr>
+          <tr><th data-i18n="buyerAddress" data-bt="BT-50, BT-53, BT-52, BT-54, BT-55">Adresse</th><td id="buyerAddress"></td></tr>
+          <tr><th data-i18n="buyerAddress2" data-bt="BT-51">Adresszusatz</th><td id="buyerAddress2"></td></tr>
+          <tr><th data-i18n="buyerEmail" data-bt="BT-58">E-Mail</th><td id="buyerEmail"></td></tr>
+          <tr><th data-i18n="buyerPhone" data-bt="BT-57">Telefon</th><td id="buyerPhone"></td></tr>
+          <tr><th data-i18n="buyerTaxID" data-bt="BT-48">Steuer-ID</th><td id="buyerTaxID"></td></tr>
         </table>
       </div>
     </section>
   </div>
 
+  <!-- ============================================================
+       Line Items
+       ============================================================ -->
   <section id="lineItemsSection" class="hidden">
-    <h2 id="lineItemsTitle">📦 Positionen</h2>
+    <h2 data-i18n="lineItems">📦 Positionen</h2>
     <div class="table-container">
       <table id="lineItemsTable">
         <thead>
           <tr>
-            <th data-key="posNr" id="posNrHeader">Pos.-Nr.</th>
-            <th data-key="productName" id="productNameHeader">Produktname</th>
-            <th data-key="description" id="descriptionHeader">Beschreibung</th>
-            <th data-key="notes" id="notesHeader">Notiz</th>
-            <th data-key="quantity" id="quantityHeader">Menge</th>
-            <th data-key="unit" id="unitHeader">Einheit</th>
-            <th data-key="unitPrice" id="unitPriceHeader">Einzelpreis</th>
-            <th data-key="lineNet" id="lineNetHeader">Zeilen-Netto</th>
-            <th data-key="taxRate" id="taxRateHeader">Steuersatz</th>
-            <th data-key="lineGross" id="lineGrossHeader">Zeilenbrutto</th>
+            <th data-i18n="posNr" data-bt="BT-126">Pos.-Nr.</th>
+            <th data-i18n="productName" data-bt="BT-153">Produktname</th>
+            <th data-i18n="description" data-bt="BT-154">Beschreibung</th>
+            <th data-i18n="notes">Notiz</th>
+            <th data-i18n="quantity" data-bt="BT-129">Menge</th>
+            <th data-i18n="unit" data-bt="BT-130">Einheit</th>
+            <th data-i18n="unitPrice">Einzelpreis</th>
+            <th data-i18n="lineNet">Zeilen-Netto</th>
+            <th data-i18n="taxRate">Steuersatz</th>
+            <th data-i18n="lineGross">Zeilenbrutto</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -693,121 +645,97 @@
     </div>
   </section>
 
+  <!-- ============================================================
+       Application Script
+       ============================================================ -->
   <script>
-    (function() {
+    (function () {
       "use strict";
 
-      // Configure PDF.js worker for reliability when parsing attachments
+      /* ==============================================================
+         1. CONFIGURATION & CONSTANTS
+         ============================================================== */
+
+      // PDF.js worker
       if (window.pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js";
       }
 
-      // Helper: get current language labels anywhere in the script
-      function getLabels() {
-        return labels[currentLanguage] || labels.de;
-      }
+      // XML namespace resolver for ZUGFeRD / CrossIndustryInvoice
+      const XML_NAMESPACES = {
+        rsm: "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100",
+        ram: "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100",
+        udt: "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100",
+      };
 
-      // IBAN utilities: validation (ISO 13616 mod-97) and formatting for display
-      function isValidIBAN(iban) {
-        if (!iban) return false;
-        const cleaned = iban.replace(/\s+/g, '').toUpperCase();
-        if (!/^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$/.test(cleaned)) return false;
-        const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
-        const expanded = rearranged.replace(/[A-Z]/g, c => (c.charCodeAt(0) - 55).toString());
-        let remainder = 0;
-        for (let i = 0; i < expanded.length; i += 7) {
-          const block = remainder.toString() + expanded.substr(i, 7);
-          remainder = parseInt(block, 10) % 97;
-        }
-        return remainder === 1;
-      }
+      const nsResolver = (prefix) => XML_NAMESPACES[prefix] || null;
 
-      function formatIbanForDisplay(iban) {
-        return iban.replace(/\s+/g, '').replace(/(.{4})/g, '$1 ').trim();
-      }
+      // UNECE Rec 20 unit code mapping (DE / EN)
+      const UNIT_CODE_MAP = {
+        C62: { de: "Stück",        en: "Piece" },
+        HUR: { de: "Stunde",       en: "Hour" },
+        DAY: { de: "Tag",          en: "Day" },
+        MON: { de: "Monat",        en: "Month" },
+        ANN: { de: "Jahr",         en: "Year" },
+        KGM: { de: "Kilogramm",    en: "Kilogram" },
+        GRM: { de: "Gramm",        en: "Gram" },
+        TNE: { de: "Tonne",        en: "Tonne" },
+        MTR: { de: "Meter",        en: "Metre" },
+        CMT: { de: "Zentimeter",   en: "Centimetre" },
+        MTK: { de: "Quadratmeter", en: "Square metre" },
+        MTQ: { de: "Kubikmeter",   en: "Cubic metre" },
+        LTR: { de: "Liter",        en: "Litre" },
+        MIN: { de: "Minute",       en: "Minute" },
+        P1:  { de: "Prozent",      en: "Percent" },
+        PR:  { de: "Paar",         en: "Pair" },
+        PA:  { de: "Paket",        en: "Package" },
+        CT:  { de: "Karton",       en: "Carton" },
+        PAL: { de: "Palette",      en: "Pallet" },
+        ZZ:  { de: "Pauschale",    en: "Lump sum" },
+      };
 
-      function attachCopyButton(cellId) {
-        const cell = document.getElementById(cellId);
-        if (!cell) return;
-        // avoid duplicating button
-        if (cell.querySelector('button.copy-btn')) return;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'copy-btn';
-        btn.style.marginLeft = '8px';
-        btn.style.fontSize = '0.85em';
-        btn.textContent = (currentLanguage === 'en') ? 'Copy' : 'Kopieren';
-        btn.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(cell.firstChild?.textContent?.trim() || '');
-            const old = btn.textContent;
-            btn.textContent = (currentLanguage === 'en') ? 'Copied!' : 'Kopiert!';
-            setTimeout(() => { btn.textContent = old; }, 1200);
-          } catch (e) {
-            console.error('Clipboard failed', e);
-          }
-        });
-        cell.appendChild(btn);
-      }
+      // Currency symbols
+      const CURRENCY_SYMBOLS = {
+        EUR: "€", USD: "$", GBP: "£", CHF: "CHF",
+      };
 
-      // DOM-Elemente
-      const dropZone = document.getElementById('dropZone');
-      const fileInput = document.getElementById('invoiceFile');
-  const loadSampleBtn = document.getElementById('loadSampleBtn');
-      const loadingSection = document.getElementById('loadingSection');
-      const successSection = document.getElementById('successSection');
-      const errorSection = document.getElementById('errorSection');
-      const statsSection = document.getElementById('statsSection');
-      const headerSection = document.getElementById('headerSection');
-      const sellerSection = document.getElementById('sellerSection');
-      const buyerSection = document.getElementById('buyerSection');
-      const paymentSection = document.getElementById('paymentSection');
-      const lineItemsSection = document.getElementById('lineItemsSection');
-      const xmlViewer = document.getElementById('xmlViewer');
-      const originalXml = document.getElementById('originalXml');
-      const downloadButtons = document.getElementById('downloadButtons');
-      const downloadXmlButton = document.getElementById('downloadXml');
-      const downloadPdfButton = document.getElementById('downloadPdf');
-      const downloadJsonButton = document.getElementById('downloadJson');
-      const downloadCsvButton = document.getElementById('downloadCsv');
-      const lineItemsTable = document.getElementById('lineItemsTable');
-      const tableHeaders = lineItemsTable.querySelectorAll('th');
-
-      // Globale Variablen
-      let xmlDoc = null;
-      let originalPdfBlob = null;
-      let originalXmlBlob = null;
-      // Initiale Sprachvariable
-      let currentLanguage = 'de'; // Standard: Deutsch
-      let invoiceData = {}; // Für JSON/CSV Export
-
-      // Mehrsprachige Labels
-      const labels = {
+      // Payment type codes (UNTDID 4461)
+      const PAYMENT_TYPES = {
         de: {
-          // UI Texte
+          1: "Instrumentenbasierte Zahlung", 10: "Barzahlung", 20: "Scheck",
+          30: "Überweisung", 31: "Abbuchung", 42: "Zahlung an ein Bankkonto",
+          48: "Kartenzahlung", 49: "Lastschrift", 58: "SEPA-Überweisung",
+          59: "SEPA-Lastschrift",
+        },
+        en: {
+          1: "Instrument-based payment", 10: "Cash payment", 20: "Cheque",
+          30: "Credit transfer", 31: "Debit transfer", 42: "Payment to a bank account",
+          48: "Card payment", 49: "Direct debit", 58: "SEPA Credit Transfer",
+          59: "SEPA Direct Debit",
+        },
+      };
+
+      /* ==============================================================
+         2. INTERNATIONALISATION (i18n)
+         ============================================================== */
+
+      const LABELS = {
+        de: {
           mainTitle: "E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion",
           descriptionTitle: "Beschreibung",
           descriptionText: "Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.",
-          disclaimerText: "<strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.",
-          projectRelationText: "Dieses Projekt gehört zusammen mit dem <a href=\"https://github.com/SimonWaldherr/InvoiceGenerator\" target=\"_blank\" rel=\"noopener noreferrer\">InvoiceGenerator</a>. Den ZUGFeRD-Invoice-Rechnungsgenerator kannst du hier testen: <a href=\"https://simonwaldherr.github.io/InvoiceGenerator/\" target=\"_blank\" rel=\"noopener noreferrer\">https://simonwaldherr.github.io/InvoiceGenerator/</a>",
+          disclaimerText: '<strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.',
+          projectRelationText: 'Dieses Projekt gehört zusammen mit dem <a href="https://github.com/SimonWaldherr/InvoiceGenerator" target="_blank" rel="noopener noreferrer">InvoiceGenerator</a>. Den ZUGFeRD-Invoice-Rechnungsgenerator kannst du hier testen: <a href="https://simonwaldherr.github.io/InvoiceGenerator/" target="_blank" rel="noopener noreferrer">https://simonwaldherr.github.io/InvoiceGenerator/</a>',
           dropZoneText: "📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.",
           supportedFormatsText: "Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
           loadingText: "Verarbeitung läuft...",
           successText: "✅ Rechnung erfolgreich verarbeitet!",
-          
-          // Tabellen-Header
-          posNr: "Pos.-Nr.",
-          productName: "Produktname",
-          description: "Beschreibung",
-          notes: "Notiz",
-          quantity: "Menge",
-          unit: "Einheit",
-          unitPrice: "Einzelpreis",
-          lineNet: "Zeilen-Netto",
-          taxRate: "Steuersatz",
-          lineGross: "Zeilenbrutto",
-          
-          // Sektionen
+          // Table headers
+          posNr: "Pos.-Nr.", productName: "Produktname", description: "Beschreibung",
+          notes: "Notiz", quantity: "Menge", unit: "Einheit", unitPrice: "Einzelpreis",
+          lineNet: "Zeilen-Netto", taxRate: "Steuersatz", lineGross: "Zeilenbrutto",
+          // Section titles
           xmlViewerSummary: "XML anzeigen",
           invoiceInfo: "📋 Rechnungsinformationen",
           sellerInfo: "🏢 Verkäufer / Rechnungssteller",
@@ -815,89 +743,58 @@
           paymentInfo: "💳 Zahlungsinformationen",
           lineItems: "📦 Positionen",
           statistics: "📊 Statistiken",
-          
           // Buttons
-          downloadXml: "📄 XML speichern",
-          downloadPdf: "📋 PDF speichern",
-          downloadJson: "📊 JSON Export",
-          downloadCsv: "📈 CSV Export",
-          
-          // Felder
-          invNumber: "Rechnungsnummer",
-          invType: "Rechnungstyp",
-          invDate: "Rechnungsdatum",
-          invDueDate: "Fälligkeitsdatum",
-          invOrderNumber: "Bestellnummer",
-          invNote: "Notiz",
-          sellerName: "Name",
-          sellerAddress: "Adresse",
-          sellerEmail: "E-Mail",
-          sellerPhone: "Telefon",
-          sellerTaxID: "Steuer-ID",
-          sellerRegister: "Handelsregister",
-          buyerName: "Name",
-          buyerAddress: "Adresse",
-          buyerAddress2: "Adresszusatz",
-          buyerEmail: "E-Mail",
-          buyerPhone: "Telefon",
-          buyerTaxID: "Steuer-ID",
-          currency: "Währung",
-          paymentType: "Zahlungsart",
-          paymentTerms: "Zahlungsziel",
-          iban: "IBAN",
-          bic: "BIC",
-          accountHolder: "Kontoinhaber",
-          netAmount: "Gesamt netto",
-          taxAmount: "Steuerbetrag",
-          grossAmount: "Gesamt brutto",
+          downloadXml: "📄 XML speichern", downloadPdf: "📋 PDF speichern",
+          downloadJson: "📊 JSON Export", downloadCsv: "📈 CSV Export",
+          // Field labels
+          invNumber: "Rechnungsnummer", invType: "Rechnungstyp",
+          invDate: "Rechnungsdatum", invDueDate: "Fälligkeitsdatum",
+          invOrderNumber: "Bestellnummer", invNote: "Notiz",
+          sellerName: "Name", sellerAddress: "Adresse",
+          sellerEmail: "E-Mail", sellerPhone: "Telefon",
+          sellerTaxID: "Steuer-ID", sellerRegister: "Handelsregister",
+          buyerName: "Name", buyerAddress: "Adresse",
+          buyerAddress2: "Adresszusatz", buyerEmail: "E-Mail",
+          buyerPhone: "Telefon", buyerTaxID: "Steuer-ID",
+          currency: "Währung", paymentType: "Zahlungsart",
+          paymentTerms: "Zahlungsziel", iban: "IBAN", bic: "BIC",
+          accountHolder: "Kontoinhaber", netAmount: "Gesamt netto",
+          taxAmount: "Steuerbetrag", grossAmount: "Gesamt brutto",
           dueAmount: "Fälliger Betrag",
-          
-          // Statistiken
-          statPositions: "Positionen",
-          statNet: "Nettosumme",
-          statTax: "Steuern",
-          statGross: "Bruttosumme",
-          
-          // Fehlermeldungen
+          // Stats
+          statPositions: "Positionen", statNet: "Nettosumme",
+          statTax: "Steuern", statGross: "Bruttosumme",
+          // Errors
           noFileFound: "Keine XML-Datei im PDF gefunden.",
           unsupportedFormat: "Dateiformat nicht unterstützt. Bitte eine PDF (ZUGFeRD) oder XML-Datei hochladen.",
           invalidXml: "Die extrahierte Datei ist keine gültige XML-Rechnung.",
           pdfNotAvailable: "Original-PDF ist nicht verfügbar.",
           processingError: "Fehler beim Verarbeiten der Datei: ",
           noPositionsToExport: "Keine Positionen zum Exportieren verfügbar.",
-          
-          // QR-Code
+          // QR
           qrCodeTitle: "📱 QR-Code für Überweisung",
           qrCodeInfoTitle: "Zum Bezahlen einfach QR-Code mit Banking-App scannen",
           qrCodeDetails: "EPC-QR-Code (Girocode) nach europäischem Standard",
-          // Beispiel-Rechnung
+          // Misc
           loadSample: "🧪 Beispiel-Rechnung laden",
+          copy: "Kopieren", copied: "Kopiert!",
+          showQr: "QR-Code anzeigen", saveQr: "QR-Code speichern",
+          close: "Schließen",
+          sampleLoadError: "Beispiel-Rechnung konnte nicht geladen werden: ",
         },
         en: {
-          // UI Texte
           mainTitle: "Electronic Invoice Reader (ZUGFeRD, XRechnung, EN16931) with PDF Extraction",
           descriptionTitle: "Description",
           descriptionText: "This tool allows viewing electronic invoices in XML format as well as ZUGFeRD PDF/A-3 files. The embedded XML file in ZUGFeRD PDFs is automatically extracted and the invoice data is displayed in a structured format.",
-          disclaimerText: "<strong>Note:</strong> This tool processes electronic invoices (e.g. ZUGFeRD, XRechnung) completely client-side in the browser. Files are not uploaded or stored.<br/>No warranty is given for the accuracy, completeness or legal compliance of the displayed data. Any liability for damage or loss resulting from use is excluded. The responsibility for correct processing and verification of data lies with the user.",
-          projectRelationText: "This project belongs together with the <a href=\"https://github.com/SimonWaldherr/InvoiceGenerator\" target=\"_blank\" rel=\"noopener noreferrer\">InvoiceGenerator</a>. You can test the ZUGFeRD invoice generator here: <a href=\"https://simonwaldherr.github.io/InvoiceGenerator/\" target=\"_blank\" rel=\"noopener noreferrer\">https://simonwaldherr.github.io/InvoiceGenerator/</a>",
+          disclaimerText: '<strong>Note:</strong> This tool processes electronic invoices (e.g. ZUGFeRD, XRechnung) completely client-side in the browser. Files are not uploaded or stored.<br/>No warranty is given for the accuracy, completeness or legal compliance of the displayed data. Any liability for damage or loss resulting from use is excluded. The responsibility for correct processing and verification of data lies with the user.',
+          projectRelationText: 'This project belongs together with the <a href="https://github.com/SimonWaldherr/InvoiceGenerator" target="_blank" rel="noopener noreferrer">InvoiceGenerator</a>. You can test the ZUGFeRD invoice generator here: <a href="https://simonwaldherr.github.io/InvoiceGenerator/" target="_blank" rel="noopener noreferrer">https://simonwaldherr.github.io/InvoiceGenerator/</a>',
           dropZoneText: "📄 Drag and drop a file here or click to select a file.",
           supportedFormatsText: "Supported formats: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
           loadingText: "Processing...",
           successText: "✅ Invoice processed successfully!",
-          
-          // Tabellen-Header
-          posNr: "No.",
-          productName: "Product Name",
-          description: "Description",
-          notes: "Notes",
-          quantity: "Quantity",
-          unit: "Unit",
-          unitPrice: "Unit Price",
-          lineNet: "Line Net",
-          taxRate: "Tax Rate",
-          lineGross: "Line Gross",
-          
-          // Sektionen
+          posNr: "No.", productName: "Product Name", description: "Description",
+          notes: "Notes", quantity: "Quantity", unit: "Unit", unitPrice: "Unit Price",
+          lineNet: "Line Net", taxRate: "Tax Rate", lineGross: "Line Gross",
           xmlViewerSummary: "Show XML",
           invoiceInfo: "📋 Invoice Information",
           sellerInfo: "🏢 Seller / Issuer",
@@ -905,1042 +802,611 @@
           paymentInfo: "💳 Payment Information",
           lineItems: "📦 Line Items",
           statistics: "📊 Statistics",
-          
-          // Buttons
-          downloadXml: "📄 Save XML",
-          downloadPdf: "📋 Save PDF",
-          downloadJson: "📊 JSON Export",
-          downloadCsv: "📈 CSV Export",
-          
-          // Felder
-          invNumber: "Invoice Number",
-          invType: "Invoice Type",
-          invDate: "Invoice Date",
-          invDueDate: "Due Date",
-          invOrderNumber: "Order Number",
-          invNote: "Note",
-          sellerName: "Name",
-          sellerAddress: "Address",
-          sellerEmail: "Email",
-          sellerPhone: "Phone",
-          sellerTaxID: "Tax ID",
-          sellerRegister: "Commercial Register",
-          buyerName: "Name",
-          buyerAddress: "Address",
-          buyerAddress2: "Address line 2",
-          buyerEmail: "Email",
-          buyerPhone: "Phone",
-          buyerTaxID: "Tax ID",
-          currency: "Currency",
-          paymentType: "Payment Type",
-          paymentTerms: "Payment Terms",
-          iban: "IBAN",
-          bic: "BIC",
-          accountHolder: "Account Holder",
-          netAmount: "Total Net",
-          taxAmount: "Tax Amount",
-          grossAmount: "Total Gross",
+          downloadXml: "📄 Save XML", downloadPdf: "📋 Save PDF",
+          downloadJson: "📊 JSON Export", downloadCsv: "📈 CSV Export",
+          invNumber: "Invoice Number", invType: "Invoice Type",
+          invDate: "Invoice Date", invDueDate: "Due Date",
+          invOrderNumber: "Order Number", invNote: "Note",
+          sellerName: "Name", sellerAddress: "Address",
+          sellerEmail: "Email", sellerPhone: "Phone",
+          sellerTaxID: "Tax ID", sellerRegister: "Commercial Register",
+          buyerName: "Name", buyerAddress: "Address",
+          buyerAddress2: "Address line 2", buyerEmail: "Email",
+          buyerPhone: "Phone", buyerTaxID: "Tax ID",
+          currency: "Currency", paymentType: "Payment Type",
+          paymentTerms: "Payment Terms", iban: "IBAN", bic: "BIC",
+          accountHolder: "Account Holder", netAmount: "Total Net",
+          taxAmount: "Tax Amount", grossAmount: "Total Gross",
           dueAmount: "Amount Due",
-          
-          // Statistiken
-          statPositions: "Line Items",
-          statNet: "Net Total",
-          statTax: "Taxes",
-          statGross: "Gross Total",
-          
-          // Fehlermeldungen
+          statPositions: "Line Items", statNet: "Net Total",
+          statTax: "Taxes", statGross: "Gross Total",
           noFileFound: "No XML file found in the PDF.",
           unsupportedFormat: "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.",
           invalidXml: "The extracted file is not a valid XML invoice.",
           pdfNotAvailable: "Original PDF is not available.",
           processingError: "Error processing the file: ",
           noPositionsToExport: "No line items available for export.",
-          
-          // QR-Code
           qrCodeTitle: "📱 QR Code for Payment",
           qrCodeInfoTitle: "Simply scan QR code with your banking app to pay",
           qrCodeDetails: "EPC QR Code (Girocode) according to European standard",
-          // Sample invoice
           loadSample: "🧪 Load sample invoice",
+          copy: "Copy", copied: "Copied!",
+          showQr: "Show QR Code", saveQr: "Save QR Code",
+          close: "Close",
+          sampleLoadError: "Sample invoice could not be loaded: ",
+        },
+      };
+
+      /* ==============================================================
+         3. APPLICATION STATE
+         ============================================================== */
+
+      let currentLanguage = "de";
+      let xmlDoc = null;
+      let originalPdfBlob = null;
+      let originalXmlBlob = null;
+      let invoiceData = {};
+
+      /** Shortcut for current labels */
+      const L = () => LABELS[currentLanguage] || LABELS.de;
+
+      /* ==============================================================
+         4. DOM REFERENCES (cached once)
+         ============================================================== */
+
+      const $ = (id) => document.getElementById(id);
+      const dom = {
+        dropZone:        $("dropZone"),
+        fileInput:       $("invoiceFile"),
+        loadSampleBtn:   $("loadSampleBtn"),
+        loadingSection:  $("loadingSection"),
+        successSection:  $("successSection"),
+        errorSection:    $("errorSection"),
+        statsSection:    $("statsSection"),
+        headerSection:   $("headerSection"),
+        sellerSection:   $("sellerSection"),
+        buyerSection:    $("buyerSection"),
+        paymentSection:  $("paymentSection"),
+        lineItemsSection:$("lineItemsSection"),
+        xmlViewer:       $("xmlViewer"),
+        originalXml:     $("originalXml"),
+        downloadButtons: $("downloadButtons"),
+        lineItemsTable:  $("lineItemsTable"),
+        qrModal:         $("qrModal"),
+        showQrBtn:       $("showQrBtn"),
+        downloadQrBtn:   $("downloadQrBtn"),
+        modalDownloadQr: $("modalDownloadQrBtn"),
+        closeQrModal:    $("closeQrModal"),
+      };
+
+      const CONTENT_SECTIONS = [
+        dom.headerSection, dom.sellerSection, dom.buyerSection,
+        dom.paymentSection, dom.lineItemsSection, dom.xmlViewer,
+        dom.downloadButtons, dom.statsSection,
+      ];
+
+      /* ==============================================================
+         5. PURE UTILITY FUNCTIONS
+         ============================================================== */
+
+      /** Validate IBAN checksum (ISO 13616 mod-97) */
+      function isValidIBAN(iban) {
+        if (!iban) return false;
+        const cleaned = iban.replace(/\s+/g, "").toUpperCase();
+        if (!/^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$/.test(cleaned)) return false;
+        const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
+        const expanded = rearranged.replace(/[A-Z]/g, (c) => (c.charCodeAt(0) - 55).toString());
+        let remainder = 0;
+        for (let i = 0; i < expanded.length; i += 7) {
+          remainder = parseInt(remainder.toString() + expanded.substr(i, 7), 10) % 97;
         }
-      };
-
-      // Mapping of UI label element IDs to ZUGFeRD / EN16931 BT codes
-      // Based on "Übersichtsliste-Eingabefelder-OZG-RE_092025" (OZG-RE input field overview).
-      // Some UI fields aggregate several BT fields (e.g. address), in which case
-      // multiple BT codes are listed.
-      const zugferdFieldMap = {
-        // 1.1 Rechnungsdaten
-        invTypeLabel: 'BT-3',
-        invNumberLabel: 'BT-1',
-        invDateLabel: 'BT-2',
-        invDueDateLabel: 'BT-9',
-        invOrderNumberLabel: 'BT-13',
-        invNoteLabel: 'BT-22',
-
-        // 2.1 Verkäufer – rechtlicher Name, steuerliche Angaben
-        sellerNameLabel: 'BT-27',
-        sellerTaxIDLabel: 'BT-31, BT-32',
-        sellerRegisterLabel: 'BT-33',
-
-        // 2.3 Postanschrift des Verkäufers – aggregated into one address field
-        // Straße/Hausnummer (BT-35), Postfach (BT-36), PLZ (BT-38), Ort (BT-37),
-        // Bundesland (BT-39), Land (BT-40)
-        sellerAddressLabel: 'BT-35, BT-36, BT-38, BT-37, BT-39, BT-40',
-
-        // 2.4 Kontaktdaten des Verkäufers
-        sellerPhoneLabel: 'BT-42',
-        sellerEmailLabel: 'BT-43',
-
-        // 3.1 Käufer – rechtlicher Name, steuerliche Angaben
-        buyerNameLabel: 'BT-44',
-        buyerTaxIDLabel: 'BT-48',
-
-        // 3.2 Postanschrift des Käufers – aggregated into one address field
-        // Straße/Hausnummer oder Postfach (BT-50), PLZ (BT-53), Ort (BT-52),
-        // Bundesland (BT-54), Land (BT-55)
-        buyerAddressLabel: 'BT-50, BT-53, BT-52, BT-54, BT-55',
-
-        // 3.2 Adresszusatz
-        buyerAddress2Label: 'BT-51',
-
-        // 3.3 Kontaktdaten des Käufers
-        buyerEmailLabel: 'BT-58',
-        buyerPhoneLabel: 'BT-57',
-
-        // 5.4 Rechnungsbeträge
-        netAmountLabel: 'BT-106',
-        taxAmountLabel: 'BT-110',
-        grossAmountLabel: 'BT-112',
-        dueAmountLabel: 'BT-115',
-
-        // 1.1 Währung
-        currencyLabel: 'BT-5',
-
-        // 6. Zahlungsdaten
-        paymentTypeLabel: 'BT-82',
-        paymentTermsLabel: 'BT-20',
-
-        // 6.2 Zahlungsmittel: Überweisung
-        accountHolderLabel: 'BT-85',
-        ibanLabel: 'BT-84',
-        bicLabel: 'BT-86',
-
-        // 4.1 Rechnungspositionen (tabellarische Darstellung der Positionen)
-        posNrHeader: 'BT-126',
-        productNameHeader: 'BT-153',
-        descriptionHeader: 'BT-154',
-        quantityHeader: 'BT-129',
-        unitHeader: 'BT-130'
-      };
-
-      // Mapping von UNECE Rec 20 Einheitencodes auf lesbare Bezeichnungen (DE/EN)
-      // Enthält sowohl deutsche als auch englische Labels.
-      const unitCodeMap = {
-        'C62': { name: { de: 'Stück', en: 'Piece' }, description: { de: 'Einzelstück', en: 'Single item' } },
-        'HUR': { name: { de: 'Stunde', en: 'Hour' }, description: { de: 'Arbeitsstunde', en: 'Working hour' } },
-        'DAY': { name: { de: 'Tag', en: 'Day' }, description: { de: 'Arbeitstag', en: 'Working day' } },
-        'MON': { name: { de: 'Monat', en: 'Month' }, description: { de: 'Monatliche Leistung', en: 'Monthly service' } },
-        'ANN': { name: { de: 'Jahr', en: 'Year' }, description: { de: 'Jahresleistung', en: 'Annual service' } },
-        'KGM': { name: { de: 'Kilogramm', en: 'Kilogram' }, description: { de: 'Gewicht', en: 'Weight' } },
-        'GRM': { name: { de: 'Gramm', en: 'Gram' }, description: { de: 'Gewicht', en: 'Weight' } },
-        'TNE': { name: { de: 'Tonne', en: 'Tonne' }, description: { de: 'Metrische Tonne', en: 'Metric tonne' } },
-        'MTR': { name: { de: 'Meter', en: 'Metre' }, description: { de: 'Länge', en: 'Length' } },
-        'CMT': { name: { de: 'Zentimeter', en: 'Centimetre' }, description: { de: 'Länge', en: 'Length' } },
-        'MTK': { name: { de: 'Quadratmeter', en: 'Square metre' }, description: { de: 'Fläche', en: 'Area' } },
-        'MTQ': { name: { de: 'Kubikmeter', en: 'Cubic metre' }, description: { de: 'Volumen', en: 'Volume' } },
-        'LTR': { name: { de: 'Liter', en: 'Litre' }, description: { de: 'Volumen', en: 'Volume' } },
-        'MIN': { name: { de: 'Minute', en: 'Minute' }, description: { de: 'Zeiteinheit', en: 'Time unit' } },
-        'P1':  { name: { de: 'Prozent', en: 'Percent' }, description: { de: 'Prozentuale Leistung', en: 'Percentage' } },
-        'PR':  { name: { de: 'Paar', en: 'Pair' }, description: { de: 'Zwei Stück', en: 'Two pieces' } },
-        'PA':  { name: { de: 'Paket', en: 'Package' }, description: { de: 'Verpackungseinheit', en: 'Packaging unit' } },
-        'CT':  { name: { de: 'Karton', en: 'Carton' }, description: { de: 'Karton', en: 'Carton' } },
-        'PAL': { name: { de: 'Palette', en: 'Pallet' }, description: { de: 'Palette', en: 'Pallet' } },
-        // Pauschale: projektabhängig, kann ZZ* oder C62 genutzt werden
-        'ZZ':  { name: { de: 'Pauschale (ZZ)', en: 'Lump sum (ZZ)' }, description: { de: 'Mutually defined; projektabhängig', en: 'Mutually defined; project-specific' } }
-      };
-
-      function getUnitDisplay(code) {
-        if (!code) return '';
-        const normalized = code.trim().toUpperCase();
-        const entry = unitCodeMap[normalized];
-        if (!entry) return normalized;
-        let displayName = '';
-        if (entry.name && typeof entry.name === 'object') {
-          displayName = entry.name[currentLanguage] || entry.name.de || Object.values(entry.name)[0];
-        } else {
-          displayName = entry.name;
-        }
-        return `${displayName} (${normalized})`;
+        return remainder === 1;
       }
 
-      // Sprachenerkennung und Labels setzen
+      /** Format IBAN in groups of 4 for readability */
+      function formatIBAN(iban) {
+        return iban.replace(/\s+/g, "").replace(/(.{4})/g, "$1 ").trim();
+      }
+
+      /** Get readable unit name for a UNECE Rec 20 code */
+      function getUnitDisplay(code) {
+        if (!code) return "";
+        const normalized = code.trim().toUpperCase();
+        const entry = UNIT_CODE_MAP[normalized];
+        if (!entry) return normalized;
+        return `${entry[currentLanguage] || entry.de} (${normalized})`;
+      }
+
+      /** Map currency code to symbol */
+      function getCurrencySymbol(code) {
+        return CURRENCY_SYMBOLS[code] || code;
+      }
+
+      /** Format a numeric amount with currency symbol */
+      function formatCurrency(amount, symbol) {
+        const formatted = parseFloat(amount).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        if (symbol === "$" || symbol === "£") return `${symbol}${formatted}`;
+        return `${formatted} ${symbol}`;
+      }
+
+      /** Look up payment type name by UNTDID 4461 code */
+      function getPaymentTypeName(code) {
+        const dict = PAYMENT_TYPES[currentLanguage] || PAYMENT_TYPES.de;
+        const fallback = currentLanguage === "en" ? `Unknown (${code})` : `Unbekannt (${code})`;
+        return dict[code] || fallback;
+      }
+
+      /** Format ZUGFeRD date strings (YYYYMMDD or YYYY-MM-DD) → DD.MM.YYYY */
+      function formatDate(str) {
+        if (/^\d{8}$/.test(str)) return `${str.slice(6, 8)}.${str.slice(4, 6)}.${str.slice(0, 4)}`;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+          const [y, m, d] = str.split("-");
+          return `${d}.${m}.${y}`;
+        }
+        return str;
+      }
+
+      /** Escape HTML entities */
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      /** Truncate string to a maximum length */
+      function truncate(str, max) {
+        return str.length <= max ? str : str.substring(0, max);
+      }
+
+      /** Pretty-print XML */
+      function beautifyXml(xml) {
+        const INDENT = "  ";
+        let formatted = "";
+        let depth = 0;
+
+        xml.replace(/(>)(<)(\/*)/g, "$1\r\n$2$3")
+          .split("\r\n")
+          .forEach((node) => {
+            let delta = 0;
+            if (node.match(/.+<\/\w[^>]*>$/)) {
+              delta = 0; // self-closing or inline
+            } else if (node.match(/^<\/\w/)) {
+              if (depth > 0) depth--;
+            } else if (node.match(/^<\w[^>]*[^/]>.*$/)) {
+              delta = 1; // opening tag
+            }
+            formatted += INDENT.repeat(depth) + node.trim() + "\r\n";
+            depth += delta;
+          });
+
+        return formatted;
+      }
+
+      /** Trigger download of a Blob */
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement("a"), {
+          href: url, download: filename, style: "display:none",
+        });
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      /* ==============================================================
+         6. XPath HELPERS
+         ============================================================== */
+
+      function xpathNode(ctx, xpath) {
+        return xmlDoc.evaluate(xpath, ctx, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      }
+
+      function xpathNodes(ctx, xpath) {
+        const result = xmlDoc.evaluate(xpath, ctx, nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        return Array.from({ length: result.snapshotLength }, (_, i) => result.snapshotItem(i));
+      }
+
+      /* ==============================================================
+         7. i18n — DATA-ATTRIBUTE DRIVEN LANGUAGE SWITCHING
+         ============================================================== */
+
+      /**
+       * Update all elements with data-i18n / data-i18n-html attributes,
+       * then re-apply BT tags from data-bt attributes.
+       */
+      function applyLanguage() {
+        const labels = L();
+
+        // Text content translations
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (labels[key] != null) el.textContent = labels[key];
+        });
+
+        // HTML translations (for elements needing rich content)
+        document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+          const key = el.getAttribute("data-i18n-html");
+          if (labels[key] != null) el.innerHTML = labels[key];
+        });
+
+        // Re-apply ZUGFeRD BT code tags
+        document.querySelectorAll("[data-bt]").forEach((el) => {
+          const existing = el.querySelector(".zugferd-tag");
+          if (existing) existing.remove();
+          const tag = document.createElement("span");
+          tag.className = "zugferd-tag";
+          tag.textContent = ` (${el.getAttribute("data-bt")})`;
+          el.appendChild(tag);
+        });
+
+        // QR button labels (not data-i18n since they might be hidden/dynamic)
+        if (dom.showQrBtn) dom.showQrBtn.textContent = labels.showQr;
+        if (dom.downloadQrBtn) dom.downloadQrBtn.textContent = labels.saveQr;
+        if (dom.modalDownloadQr) dom.modalDownloadQr.textContent = labels.saveQr;
+        const closeBtn = dom.closeQrModal;
+        if (closeBtn) closeBtn.textContent = labels.close;
+
+        // Language toggle buttons
+        document.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("active"));
+        $(currentLanguage === "de" ? "langDe" : "langEn").classList.add("active");
+
+        // Page title
+        document.title = labels.mainTitle;
+      }
+
       function setLanguage(lang) {
         currentLanguage = lang;
-        try { localStorage.setItem('lang', lang); } catch (_) {}
-        const currentLabels = labels[lang];
-        
-        // UI Elemente aktualisieren
-        document.getElementById('mainTitle').textContent = currentLabels.mainTitle;
-        document.getElementById('descriptionTitle').textContent = currentLabels.descriptionTitle;
-        document.getElementById('descriptionText').textContent = currentLabels.descriptionText;
-        document.getElementById('disclaimerText').innerHTML = currentLabels.disclaimerText;
-        const projectRelation = document.getElementById('projectRelationText');
-        if (projectRelation && currentLabels.projectRelationText) {
-          projectRelation.innerHTML = currentLabels.projectRelationText;
-        }
-        document.getElementById('dropZoneText').textContent = currentLabels.dropZoneText;
-        document.getElementById('supportedFormatsText').textContent = currentLabels.supportedFormatsText;
-        document.getElementById('loadingText').textContent = currentLabels.loadingText;
-        document.getElementById('successText').textContent = currentLabels.successText;
-
-        // Sprachbuttons aktualisieren
-        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(lang === 'de' ? 'langDe' : 'langEn').classList.add('active');
-
-        // Titel setzen
-        document.title = currentLabels.mainTitle;
-
-        // Sektionen-Titel
-        const statsTitle = document.getElementById('statsTitle');
-        const invoiceInfoTitle = document.getElementById('invoiceInfoTitle');
-        const sellerInfoTitle = document.getElementById('sellerInfoTitle');
-        const buyerInfoTitle = document.getElementById('buyerInfoTitle');
-        const paymentInfoTitle = document.getElementById('paymentInfoTitle');
-        const lineItemsTitle = document.getElementById('lineItemsTitle');
-
-        if (statsTitle) statsTitle.textContent = currentLabels.statistics;
-        if (invoiceInfoTitle) invoiceInfoTitle.textContent = currentLabels.invoiceInfo;
-        if (sellerInfoTitle) sellerInfoTitle.textContent = currentLabels.sellerInfo;
-        if (buyerInfoTitle) buyerInfoTitle.textContent = currentLabels.buyerInfo;
-        if (paymentInfoTitle) paymentInfoTitle.textContent = currentLabels.paymentInfo;
-        if (lineItemsTitle) lineItemsTitle.textContent = currentLabels.lineItems;
-
-        // Statistiken Labels
-        const statPositionsLabel = document.getElementById('statPositionsLabel');
-        const statNetLabel = document.getElementById('statNetLabel');
-        const statTaxLabel = document.getElementById('statTaxLabel');
-        const statGrossLabel = document.getElementById('statGrossLabel');
-
-        if (statPositionsLabel) statPositionsLabel.textContent = currentLabels.statPositions;
-        if (statNetLabel) statNetLabel.textContent = currentLabels.statNet;
-        if (statTaxLabel) statTaxLabel.textContent = currentLabels.statTax;
-        if (statGrossLabel) statGrossLabel.textContent = currentLabels.statGross;
-
-        // Tabellen-Labels
-        updateTableLabels(currentLabels);
-
-        // Download-Buttons
-        downloadXmlButton.textContent = currentLabels.downloadXml;
-        downloadPdfButton.textContent = currentLabels.downloadPdf;
-        downloadJsonButton.textContent = currentLabels.downloadJson;
-        downloadCsvButton.textContent = currentLabels.downloadCsv;
-
-        // Sample button label
-        if (loadSampleBtn && currentLabels.loadSample) {
-          loadSampleBtn.textContent = currentLabels.loadSample;
-        }
-
-        // XML Viewer Summary
-        const xmlViewerSummary = document.querySelector('#xmlViewer summary');
-        if (xmlViewerSummary) {
-          xmlViewerSummary.textContent = currentLabels.xmlViewerSummary;
-        }
-
-        // QR-Code Labels
-        const qrCodeTitle = document.getElementById('qrCodeTitle');
-        const qrCodeInfoTitle = document.getElementById('qrCodeInfoTitle');
-        const qrCodeDetails = document.getElementById('qrCodeDetails');
-        
-          if (qrCodeTitle) qrCodeTitle.textContent = currentLabels.qrCodeTitle;
-          if (qrCodeInfoTitle) qrCodeInfoTitle.textContent = currentLabels.qrCodeInfoTitle;
-          if (qrCodeDetails) qrCodeDetails.textContent = currentLabels.qrCodeDetails;
-          const downloadQrBtn = document.getElementById('downloadQrBtn');
-          const modalDownloadQrBtn = document.getElementById('modalDownloadQrBtn');
-          const showQrBtn = document.getElementById('showQrBtn');
-          if (downloadQrBtn) downloadQrBtn.textContent = lang === 'de' ? 'QR-Code speichern' : 'Save QR Code';
-          if (modalDownloadQrBtn) modalDownloadQrBtn.textContent = lang === 'de' ? 'QR-Code speichern' : 'Save QR Code';
-          if (showQrBtn) showQrBtn.textContent = lang === 'de' ? 'QR-Code anzeigen' : 'Show QR Code';
-
-        // Tabellenkopf für Line Items
-        document.getElementById('posNrHeader').textContent = currentLabels.posNr;
-        document.getElementById('productNameHeader').textContent = currentLabels.productName;
-        document.getElementById('descriptionHeader').textContent = currentLabels.description;
-        document.getElementById('notesHeader').textContent = currentLabels.notes;
-        document.getElementById('quantityHeader').textContent = currentLabels.quantity;
-        document.getElementById('unitHeader').textContent = currentLabels.unit;
-        document.getElementById('unitPriceHeader').textContent = currentLabels.unitPrice;
-        document.getElementById('lineNetHeader').textContent = currentLabels.lineNet;
-        document.getElementById('taxRateHeader').textContent = currentLabels.taxRate;
-        document.getElementById('lineGrossHeader').textContent = currentLabels.lineGross;
-
-        // After all labels are re-rendered, append ZUGFeRD BT tags
-        applyZugferdFieldTags();
+        try { localStorage.setItem("lang", lang); } catch (_) { /* ignored */ }
+        applyLanguage();
       }
 
-      function updateTableLabels(currentLabels) {
-        // Rechnungsinformationen
-        const invNumberLabel = document.getElementById('invNumberLabel');
-        const invTypeLabel = document.getElementById('invTypeLabel');
-        const invDateLabel = document.getElementById('invDateLabel');
-        const invDueDateLabel = document.getElementById('invDueDateLabel');
-        const invOrderNumberLabel = document.getElementById('invOrderNumberLabel');
-        const invNoteLabel = document.getElementById('invNoteLabel');
-
-        if (invNumberLabel) invNumberLabel.textContent = currentLabels.invNumber;
-        if (invTypeLabel) invTypeLabel.textContent = currentLabels.invType;
-        if (invDateLabel) invDateLabel.textContent = currentLabels.invDate;
-        if (invDueDateLabel) invDueDateLabel.textContent = currentLabels.invDueDate;
-        if (invOrderNumberLabel) invOrderNumberLabel.textContent = currentLabels.invOrderNumber;
-        if (invNoteLabel) invNoteLabel.textContent = currentLabels.invNote;
-
-        // Verkäufer
-        const sellerNameLabel = document.getElementById('sellerNameLabel');
-        const sellerAddressLabel = document.getElementById('sellerAddressLabel');
-        const sellerEmailLabel = document.getElementById('sellerEmailLabel');
-        const sellerPhoneLabel = document.getElementById('sellerPhoneLabel');
-        const sellerTaxIDLabel = document.getElementById('sellerTaxIDLabel');
-        const sellerRegisterLabel = document.getElementById('sellerRegisterLabel');
-
-        if (sellerNameLabel) sellerNameLabel.textContent = currentLabels.sellerName;
-        if (sellerAddressLabel) sellerAddressLabel.textContent = currentLabels.sellerAddress;
-        if (sellerEmailLabel) sellerEmailLabel.textContent = currentLabels.sellerEmail;
-        if (sellerPhoneLabel) sellerPhoneLabel.textContent = currentLabels.sellerPhone;
-        if (sellerTaxIDLabel) sellerTaxIDLabel.textContent = currentLabels.sellerTaxID;
-        if (sellerRegisterLabel) sellerRegisterLabel.textContent = currentLabels.sellerRegister;
-
-        // Käufer
-        const buyerNameLabel = document.getElementById('buyerNameLabel');
-        const buyerAddressLabel = document.getElementById('buyerAddressLabel');
-        const buyerAddress2Label = document.getElementById('buyerAddress2Label');
-        const buyerEmailLabel = document.getElementById('buyerEmailLabel');
-        const buyerPhoneLabel = document.getElementById('buyerPhoneLabel');
-        const buyerTaxIDLabel = document.getElementById('buyerTaxIDLabel');
-
-        if (buyerNameLabel) buyerNameLabel.textContent = currentLabels.buyerName;
-        if (buyerAddressLabel) buyerAddressLabel.textContent = currentLabels.buyerAddress;
-        if (buyerAddress2Label) buyerAddress2Label.textContent = currentLabels.buyerAddress2;
-        if (buyerEmailLabel) buyerEmailLabel.textContent = currentLabels.buyerEmail;
-        if (buyerPhoneLabel) buyerPhoneLabel.textContent = currentLabels.buyerPhone;
-        if (buyerTaxIDLabel) buyerTaxIDLabel.textContent = currentLabels.buyerTaxID;
-
-        // Zahlungsinformationen
-        const currencyLabel = document.getElementById('currencyLabel');
-        const paymentTypeLabel = document.getElementById('paymentTypeLabel');
-        const paymentTermsLabel = document.getElementById('paymentTermsLabel');
-        const ibanLabel = document.getElementById('ibanLabel');
-        const bicLabel = document.getElementById('bicLabel');
-        const accountHolderLabel = document.getElementById('accountHolderLabel');
-        const netAmountLabel = document.getElementById('netAmountLabel');
-        const taxAmountLabel = document.getElementById('taxAmountLabel');
-        const grossAmountLabel = document.getElementById('grossAmountLabel');
-        const dueAmountLabel = document.getElementById('dueAmountLabel');
-
-        if (currencyLabel) currencyLabel.textContent = currentLabels.currency;
-        if (paymentTypeLabel) paymentTypeLabel.textContent = currentLabels.paymentType;
-        if (paymentTermsLabel) paymentTermsLabel.textContent = currentLabels.paymentTerms;
-        if (ibanLabel) ibanLabel.textContent = currentLabels.iban;
-        if (bicLabel) bicLabel.textContent = currentLabels.bic;
-        if (accountHolderLabel) accountHolderLabel.textContent = currentLabels.accountHolder;
-        if (netAmountLabel) netAmountLabel.textContent = currentLabels.netAmount;
-        if (taxAmountLabel) taxAmountLabel.textContent = currentLabels.taxAmount;
-        if (grossAmountLabel) grossAmountLabel.textContent = currentLabels.grossAmount;
-        if (dueAmountLabel) dueAmountLabel.textContent = currentLabels.dueAmount;
+      function initLanguage() {
+        let saved = null;
+        try { saved = localStorage.getItem("lang"); } catch (_) { /* ignored */ }
+        const browserLang = (navigator.language || navigator.userLanguage || "en");
+        setLanguage(saved || (browserLang.startsWith("de") ? "de" : "en"));
       }
 
-      function applyZugferdFieldTags() {
-        Object.entries(zugferdFieldMap).forEach(([labelId, btCode]) => {
-          if (!btCode) return;
-          const labelElement = document.getElementById(labelId);
-          if (!labelElement) return;
+      /* ==============================================================
+         8. UI HELPERS — SHOW / HIDE / RESET
+         ============================================================== */
 
-          // Remove any existing BT tag so we can re-apply on language change
-          const existingTag = labelElement.querySelector('.zugferd-tag');
-          if (existingTag) {
-            existingTag.remove();
-          }
+      function showLoading() { dom.loadingSection.classList.remove("hidden"); }
+      function hideLoading() { dom.loadingSection.classList.add("hidden"); }
 
-          const tagSpan = document.createElement('span');
-          tagSpan.className = 'zugferd-tag';
-          tagSpan.textContent = ` (${btCode})`;
-          labelElement.appendChild(tagSpan);
-        });
+      function showSuccess() {
+        dom.successSection.classList.remove("hidden");
+        setTimeout(() => dom.successSection.classList.add("hidden"), 3000);
       }
 
-      function initializeLanguage() {
-  // Bevorzugte Sprache aus LocalStorage, sonst aus Browser-Einstellungen
-  let savedLang = null;
-  try { savedLang = localStorage.getItem('lang'); } catch (_) {}
-  const userLang = navigator.language || navigator.userLanguage || 'en';
-  const initialLang = savedLang || (userLang.startsWith('de') ? 'de' : 'en');
-        setLanguage(initialLang);
+      function showError(msg) {
+        dom.errorSection.textContent = msg;
+        dom.errorSection.classList.remove("hidden");
       }
 
-      // Variables
-      let xmlData = null;
-      let lineItems = [];
-      let pdfJs = null;
-      // currentLanguage = 'de';
-
-      // Event Listeners für Sprachumschaltung
-      document.getElementById('langDe').addEventListener('click', () => setLanguage('de'));
-      document.getElementById('langEn').addEventListener('click', () => setLanguage('en'));
-
-      // Beispiel-Rechnung laden
-      if (loadSampleBtn) {
-        loadSampleBtn.addEventListener('click', async () => {
+      /** Attach a one-click copy button next to a table cell's text */
+      function attachCopyButton(cellId) {
+        const cell = $(cellId);
+        if (!cell || cell.querySelector(".copy-btn")) return;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy-btn";
+        btn.style.marginLeft = "8px";
+        btn.style.fontSize = "0.85em";
+        btn.textContent = L().copy;
+        btn.addEventListener("click", async () => {
           try {
-            resetUI();
-            showLoading();
-            const url = 'https://simonwaldherr.github.io/InvoiceInspector/RE-2025-0815.pdf';
-            const response = await fetch(url);
-            if (!response.ok) {
-              throw new Error('HTTP ' + response.status);
-            }
-            const blob = await response.blob();
-            // Blob in File-ähnliches Objekt wrappen, damit handleFile-Pfade funktionieren
-            const file = new File([blob], 'RE-2025-0815.pdf', { type: 'application/pdf' });
-            await handleFile(file);
+            await navigator.clipboard.writeText(cell.firstChild?.textContent?.trim() || "");
+            const prev = btn.textContent;
+            btn.textContent = L().copied;
+            setTimeout(() => { btn.textContent = prev; }, 1200);
           } catch (e) {
-            console.error('Sample invoice load failed', e);
-            const L = getLabels();
-            const msg = (currentLanguage === 'en')
-              ? 'Sample invoice could not be loaded: '
-              : 'Beispiel-Rechnung konnte nicht geladen werden: ';
-            showError(msg + e.message);
-          } finally {
-            hideLoading();
-            loadSampleBtn.classList.add('hidden');
+            console.error("Clipboard failed", e);
           }
         });
+        cell.appendChild(btn);
       }
 
-      // Initialisierung der Sprache
-      initializeLanguage();
-
-      // Event-Listener für Drag-and-Drop und Klick
-      dropZone.addEventListener('click', () => fileInput.click());
-
-      ['dragover', 'dragleave', 'drop'].forEach(event => {
-        dropZone.addEventListener(event, handleDragEvents, false);
-      });
-
-      fileInput.addEventListener('change', () => {
-        const file = fileInput.files[0];
-        if(file) handleFile(file);
-      });
-
-      function handleDragEvents(e) {
-        e.preventDefault();
-        if (e.type === 'dragover') {
-          dropZone.classList.add('dragover');
-        } else {
-          dropZone.classList.remove('dragover');
-          if (e.type === 'drop') {
-            const file = e.dataTransfer.files[0];
-            if(file) handleFile(file);
+      /** Set a cell's text and store a value in invoiceData */
+      function setField(cellId, value, dataPath) {
+        if (value == null || value === "") return;
+        const cell = $(cellId);
+        if (cell) cell.textContent = value;
+        if (dataPath) {
+          const parts = dataPath.split(".");
+          let obj = invoiceData;
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!obj[parts[i]]) obj[parts[i]] = {};
+            obj = obj[parts[i]];
           }
+          obj[parts[parts.length - 1]] = value;
         }
       }
 
-      async function handleFile(file) {
-        resetUI();
-        showLoading();
-        
-        try {
-          if(file.type === "application/pdf") {
-            originalPdfBlob = file;
-            const xmlContent = await extractXmlFromPdf(file);
-            if(xmlContent) {
-              originalXmlBlob = new Blob([xmlContent], { type: "application/xml" });
-              await parseXML(xmlContent);
-            } else {
-              showError((getLabels().noFileFound) || "No XML file found in the PDF.");
-            }
-          } else if(file.name.toLowerCase().endsWith(".xml")) {
-            originalXmlBlob = file;
-            const text = await file.text();
-            await parseXML(text);
-          } else {
-            showError((getLabels().unsupportedFormat) || "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.");
-          }
-        } catch (err) {
-          const L = getLabels();
-          showError(`${L.processingError || "Error processing the file: "} ${err.message}`);
-          console.error(err);
-        } finally {
-          hideLoading();
+      function resetUI() {
+        dom.errorSection.textContent = "";
+        dom.errorSection.classList.add("hidden");
+        dom.successSection.classList.add("hidden");
+
+        CONTENT_SECTIONS.forEach((s) => s.classList.add("hidden"));
+
+        // Reset QR modal
+        if (dom.qrModal) {
+          dom.qrModal.classList.remove("visible");
+          dom.qrModal.setAttribute("aria-hidden", "true");
+          const container = dom.qrModal.querySelector(".qr-code-container");
+          if (container) container.innerHTML = "";
+          if (dom.modalDownloadQr) dom.modalDownloadQr.onclick = null;
         }
+        if (dom.showQrBtn) dom.showQrBtn.classList.add("hidden");
+        if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
+
+        // Clear table cells
+        document.querySelectorAll(
+          "#headerSection td, #sellerSection td, #buyerSection td, #paymentSection td"
+        ).forEach((td) => (td.textContent = ""));
+
+        dom.originalXml.textContent = "";
+        dom.lineItemsTable.querySelector("tbody").innerHTML = "";
+
+        invoiceData = {};
       }
+
+      /* ==============================================================
+         9. PDF XML EXTRACTION
+         ============================================================== */
 
       async function extractXmlFromPdf(file) {
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({data: new Uint8Array(arrayBuffer)}).promise;
-          const attachments = await pdf.getAttachments(); // Korrektur: await hinzugefügt
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+        const attachments = await pdf.getAttachments();
+        if (!attachments) return null;
 
-          if(!attachments) return null;
-
-          for (const [filename, attachment] of Object.entries(attachments)) {
-            if(filename.toLowerCase().endsWith(".xml")) {
-              const decoder = new TextDecoder("utf-8");
-              return decoder.decode(attachment.content);
-            }
+        for (const [filename, attachment] of Object.entries(attachments)) {
+          if (filename.toLowerCase().endsWith(".xml")) {
+            return new TextDecoder("utf-8").decode(attachment.content);
           }
-
-          return null;
-        } catch (error) {
-          console.error("Error extracting XML from PDF:", error);
-          throw error;
         }
+        return null;
       }
 
-      function parseXML(xmlString) {
-        const parser = new DOMParser();
-        xmlDoc = parser.parseFromString(xmlString, "application/xml");
+      /* ==============================================================
+         10. INVOICE DATA EXTRACTION & DISPLAY
+         ============================================================== */
 
-        if(xmlDoc.querySelector("parsererror")) {
-          showError((getLabels().invalidXml) || "The extracted file is not a valid XML invoice.");
-          return;
-        }
-
-        // XML anzeigen
-        originalXml.textContent = beautifyXml(xmlString);
-        xmlViewer.classList.remove('hidden');
-
-        // Download-Buttons konfigurieren
-        if(originalXmlBlob || originalPdfBlob) {
-          downloadButtons.classList.remove('hidden');
-          downloadXmlButton.onclick = () => downloadBlob(originalXmlBlob, 'invoice.xml');
-      downloadPdfButton.onclick = () => {
-            if(originalPdfBlob) {
-              downloadBlob(originalPdfBlob, 'invoice.pdf');
-            } else {
-        showError((getLabels().pdfNotAvailable) || "Original PDF is not available.");
-            }
-          };
-          downloadJsonButton.onclick = () => downloadInvoiceAsJson();
-          downloadCsvButton.onclick = () => downloadInvoiceAsCsv();
-        }
-
-        // Namespace-Resolver
-        const namespaces = {
-          'rsm': "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100",
-          'ram': "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100",
-          'udt': "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100"
-        };
-
-        const resolver = (prefix) => namespaces[prefix] || null;
-
-        // XPath-Hilfsfunktionen
-        const selectNode = (contextNode, xpath) => {
-          const result = xmlDoc.evaluate(
-            xpath,
-            contextNode,
-            resolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null
-          );
-          return result.singleNodeValue;
-        };
-
-        const selectNodes = (contextNode, xpath) => {
-          const result = xmlDoc.evaluate(
-            xpath,
-            contextNode,
-            resolver,
-            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-            null
-          );
-          return Array.from({length: result.snapshotLength}, (_, i) => result.snapshotItem(i));
-        };
-
-        // Rechnungsinformationen auslesen und anzeigen
-        displayInvoiceInfo(selectNode, selectNodes);
-        displaySellerInfo(selectNode);
-        displayBuyerInfo(selectNode);
-        displayPaymentInfo(selectNode, selectNodes);
-        const lineItemsCount = displayLineItems(selectNode, selectNodes);
-        
-        // Statistiken anzeigen
-        displayStatistics(lineItemsCount);
-        
-        // Erfolg anzeigen
-        showSuccess();
-      }
-
-      function displayInvoiceInfo(selectNode, selectNodes) {
-        const invNumber = selectNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:ID");
-        const invType = selectNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:TypeCode");
-        const invDateNode = selectNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString");
-        const invDueDateNode = selectNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:DueDateDateTime/udt:DateTimeString");
-        const invOrderNumber = selectNode(xmlDoc, "//ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID");
-        const invNoteNodes = selectNodes(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:Content");
+      function displayInvoiceInfo() {
+        const invNumber   = xpathNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:ID");
+        const invType     = xpathNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:TypeCode");
+        const invDateNode = xpathNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString");
+        const invDueNode  = xpathNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:DueDateDateTime/udt:DateTimeString");
+        const invOrder    = xpathNode(xmlDoc, "//ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID");
+        const invNotes    = xpathNodes(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:Content");
 
         invoiceData.header = {};
-        
-        if(invNumber) {
-          const number = invNumber.textContent.trim();
-          document.getElementById("invNumber").textContent = number;
-          invoiceData.header.number = number;
-          attachCopyButton('invNumber');
+
+        if (invNumber) {
+          setField("invNumber", invNumber.textContent.trim(), "header.number");
+          attachCopyButton("invNumber");
         }
-        
-        if(invType) {
-          const type = invType.textContent.trim();
-          document.getElementById("invType").textContent = type;
-          invoiceData.header.type = type;
+        if (invType)     setField("invType", invType.textContent.trim(), "header.type");
+        if (invDateNode) setField("invDate", formatDate(invDateNode.textContent.trim()), "header.date");
+        if (invDueNode)  setField("invDueDate", formatDate(invDueNode.textContent.trim()), "header.dueDate");
+        if (invOrder)    setField("invOrderNumber", invOrder.textContent.trim(), "header.orderNumber");
+
+        if (invNotes.length > 0) {
+          const notes = invNotes.map((n) => n.textContent.trim()).join("\n");
+          setField("invNote", notes, "header.notes");
         }
-        
-        if(invDateNode) {
-          let dtStr = invDateNode.textContent.trim();
-          let formattedDate = formatDate(dtStr);
-          document.getElementById("invDate").textContent = formattedDate;
-          invoiceData.header.date = formattedDate;
-        }
-        
-        if(invDueDateNode) {
-          let dtStr = invDueDateNode.textContent.trim();
-          let formattedDate = formatDate(dtStr);
-          document.getElementById("invDueDate").textContent = formattedDate;
-          invoiceData.header.dueDate = formattedDate;
-        }
-        
-        if(invOrderNumber) {
-          const orderNumber = invOrderNumber.textContent.trim();
-          document.getElementById("invOrderNumber").textContent = orderNumber;
-          invoiceData.header.orderNumber = orderNumber;
-        }
-        
-        if(invNoteNodes.length > 0) {
-          const notes = invNoteNodes.map(note => note.textContent.trim()).join("\n");
-          document.getElementById("invNote").textContent = notes;
-          invoiceData.header.notes = notes;
-        }
-        
-        headerSection.classList.remove('hidden');
+
+        dom.headerSection.classList.remove("hidden");
       }
 
-      function displaySellerInfo(selectNode) {
-        const sellerName = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:Name");
-        const sellerStreet = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne");
-        const sellerCity = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CityName");
-        const sellerZip = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
-        const sellerCountry = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID");
-        const sellerEmail = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
-        const sellerPhone = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
-        const sellerTaxVA = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
-        const sellerTaxFC = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
-        const sellerRegister = selectNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID");
+      function displayPartyInfo(partyXPath, sectionEl, fieldMappings) {
+        const dataKey = sectionEl === dom.sellerSection ? "seller" : "buyer";
+        invoiceData[dataKey] = {};
 
+        fieldMappings.forEach(({ cellId, xpath, dataField, formatter }) => {
+          const node = xpathNode(xmlDoc, xpath);
+          if (node) {
+            const val = formatter ? formatter(node.textContent.trim()) : node.textContent.trim();
+            setField(cellId, val, `${dataKey}.${dataField}`);
+          }
+        });
+
+        sectionEl.classList.remove("hidden");
+      }
+
+      function displaySellerInfo() {
         invoiceData.seller = {};
-        
-        if(sellerName) {
-          const name = sellerName.textContent.trim();
-          document.getElementById("sellerName").textContent = name;
-          invoiceData.seller.name = name;
-        }
 
-        const sellerAddressParts = [
-          sellerStreet?.textContent.trim(),
-          (sellerZip && sellerCity) ? `${sellerZip.textContent.trim()} ${sellerCity.textContent.trim()}` : null,
-          sellerCountry?.textContent.trim()
+        // Name
+        const sellerName = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:Name");
+        if (sellerName) setField("sellerName", sellerName.textContent.trim(), "seller.name");
+
+        // Address (composite)
+        const street  = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne");
+        const city    = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CityName");
+        const zip     = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
+        const country = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID");
+        const address = [
+          street?.textContent.trim(),
+          (zip && city) ? `${zip.textContent.trim()} ${city.textContent.trim()}` : null,
+          country?.textContent.trim(),
         ].filter(Boolean).join(", ");
-        if(sellerAddressParts) {
-          document.getElementById("sellerAddress").textContent = sellerAddressParts;
-          invoiceData.seller.address = sellerAddressParts;
-        }
+        if (address) setField("sellerAddress", address, "seller.address");
 
-        if(sellerEmail) {
-          const email = sellerEmail.textContent.trim();
-          document.getElementById("sellerEmail").textContent = email;
-          invoiceData.seller.email = email;
-        }
+        // Contact
+        const email = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
+        const phone = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
+        if (email) setField("sellerEmail", email.textContent.trim(), "seller.email");
+        if (phone) setField("sellerPhone", phone.textContent.trim(), "seller.phone");
 
-        if(sellerPhone) {
-          const phone = sellerPhone.textContent.trim();
-          document.getElementById("sellerPhone").textContent = phone;
-          invoiceData.seller.phone = phone;
-        }
-
+        // Tax
+        const taxVA = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
+        const taxFC = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
         const taxInfo = [
-          sellerTaxVA ? `VA: ${sellerTaxVA.textContent.trim()}` : null,
-          sellerTaxFC ? `FC: ${sellerTaxFC.textContent.trim()}` : null
+          taxVA ? `VA: ${taxVA.textContent.trim()}` : null,
+          taxFC ? `FC: ${taxFC.textContent.trim()}` : null,
         ].filter(Boolean).join("\n");
-        if(taxInfo) {
-          document.getElementById("sellerTaxID").textContent = taxInfo;
-          invoiceData.seller.taxId = taxInfo;
-        }
+        if (taxInfo) setField("sellerTaxID", taxInfo, "seller.taxId");
 
-        if(sellerRegister) {
-          const register = sellerRegister.textContent.trim();
-          document.getElementById("sellerRegister").textContent = register;
-          invoiceData.seller.register = register;
-        }
+        // Register
+        const register = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID");
+        if (register) setField("sellerRegister", register.textContent.trim(), "seller.register");
 
-        sellerSection.classList.remove('hidden');
+        dom.sellerSection.classList.remove("hidden");
       }
 
-      function displayBuyerInfo(selectNode) {
-        const buyerName = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:Name");
-        const buyerStreet = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne");
-        const buyerAddressLineTwo = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineTwo");
-        const buyerCity = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CityName");
-        const buyerZip = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
-        const buyerCountry = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID");
-        const buyerEmail = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
-        const buyerPhone = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
-        const buyerTaxVA = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
-        const buyerTaxFC = selectNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
-
+      function displayBuyerInfo() {
         invoiceData.buyer = {};
-        
-        if(buyerName) {
-          const name = buyerName.textContent.trim();
-          document.getElementById("buyerName").textContent = name;
-          invoiceData.buyer.name = name;
-        }
 
-        const buyerAddressParts = [
-          buyerStreet?.textContent.trim(),
-          (buyerZip && buyerCity) ? `${buyerZip.textContent.trim()} ${buyerCity.textContent.trim()}` : null,
-          buyerCountry?.textContent.trim()
+        const buyerName = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:Name");
+        if (buyerName) setField("buyerName", buyerName.textContent.trim(), "buyer.name");
+
+        const street  = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne");
+        const line2   = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineTwo");
+        const city    = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CityName");
+        const zip     = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
+        const country = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID");
+
+        const address = [
+          street?.textContent.trim(),
+          (zip && city) ? `${zip.textContent.trim()} ${city.textContent.trim()}` : null,
+          country?.textContent.trim(),
         ].filter(Boolean).join(", ");
-        if(buyerAddressParts) {
-          document.getElementById("buyerAddress").textContent = buyerAddressParts;
-          invoiceData.buyer.address = buyerAddressParts;
-        }
+        if (address)  setField("buyerAddress", address, "buyer.address");
+        if (line2)    setField("buyerAddress2", line2.textContent.trim(), "buyer.address2");
 
-        if(buyerAddressLineTwo) {
-          const address2 = buyerAddressLineTwo.textContent.trim();
-          document.getElementById("buyerAddress2").textContent = address2;
-          invoiceData.buyer.address2 = address2;
-        }
+        const email = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
+        const phone = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
+        if (email) setField("buyerEmail", email.textContent.trim(), "buyer.email");
+        if (phone) setField("buyerPhone", phone.textContent.trim(), "buyer.phone");
 
-        if(buyerEmail) {
-          const email = buyerEmail.textContent.trim();
-          document.getElementById("buyerEmail").textContent = email;
-          invoiceData.buyer.email = email;
-        }
-
-        if(buyerPhone) {
-          const phone = buyerPhone.textContent.trim();
-          document.getElementById("buyerPhone").textContent = phone;
-          invoiceData.buyer.phone = phone;
-        }
-
+        const taxVA = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
+        const taxFC = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
         const taxInfo = [
-          buyerTaxVA ? `VA: ${buyerTaxVA.textContent.trim()}` : null,
-          buyerTaxFC ? `FC: ${buyerTaxFC.textContent.trim()}` : null
+          taxVA ? `VA: ${taxVA.textContent.trim()}` : null,
+          taxFC ? `FC: ${taxFC.textContent.trim()}` : null,
         ].filter(Boolean).join("\n");
-        if(taxInfo) {
-          document.getElementById("buyerTaxID").textContent = taxInfo;
-          invoiceData.buyer.taxId = taxInfo;
-        }
+        if (taxInfo) setField("buyerTaxID", taxInfo, "buyer.taxId");
 
-        buyerSection.classList.remove('hidden');
+        dom.buyerSection.classList.remove("hidden");
       }
 
-      function displayPaymentInfo(selectNode, selectNodes) {
-        const paymentMeans = selectNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementPaymentMeans");
-        const paymentTerms = selectNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:Description");
-        let currencySymbol = "€"; // Standard-Währung
+      function displayPaymentInfo() {
+        const paymentMeans = xpathNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementPaymentMeans");
+        const paymentTerms = xpathNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:Description");
+        let currencySymbol = "€";
 
         invoiceData.payment = {};
 
-        if(paymentMeans) {
-          // Währung
-          const currencyNode = selectNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:InvoiceCurrencyCode");
+        if (paymentMeans) {
+          // Currency
+          const currencyNode = xpathNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:InvoiceCurrencyCode");
           let currencyCode = "EUR";
-          if(currencyNode) {
+          if (currencyNode) {
             currencyCode = currencyNode.textContent.trim();
-            document.getElementById("currency").textContent = currencyCode;
+            setField("currency", currencyCode, "payment.currency");
             currencySymbol = getCurrencySymbol(currencyCode);
-            invoiceData.payment.currency = currencyCode;
           }
 
-          // Zahlungsart
-          const paymentTypeCode = selectNode(paymentMeans, ".//ram:TypeCode");
-          if(paymentTypeCode) {
-            const paymentType = getPaymentTypeName(paymentTypeCode.textContent.trim());
-            document.getElementById("paymentType").textContent = paymentType;
-            invoiceData.payment.type = paymentType;
+          // Payment type
+          const typeCode = xpathNode(paymentMeans, ".//ram:TypeCode");
+          if (typeCode) {
+            const typeName = getPaymentTypeName(typeCode.textContent.trim());
+            setField("paymentType", typeName, "payment.type");
           }
 
           // IBAN
-          const iban = selectNode(paymentMeans, ".//ram:PayerPartyCreditorFinancialAccount/ram:IBANID | .//ram:PayeePartyCreditorFinancialAccount/ram:IBANID");
-          if(iban) {
-            const rawIban = iban.textContent.trim();
-            document.getElementById("iban").textContent = formatIbanForDisplay(rawIban);
-            invoiceData.payment.iban = rawIban;
-            // einfache Validierung
-            if (!isValidIBAN(rawIban)) {
-              console.warn('Invalid IBAN detected');
-            }
-            attachCopyButton('iban');
+          const ibanNode = xpathNode(paymentMeans,
+            ".//ram:PayerPartyCreditorFinancialAccount/ram:IBANID | .//ram:PayeePartyCreditorFinancialAccount/ram:IBANID");
+          if (ibanNode) {
+            const rawIban = ibanNode.textContent.trim();
+            setField("iban", formatIBAN(rawIban), "payment.iban");
+            invoiceData.payment.iban = rawIban; // store raw value for QR code
+            if (!isValidIBAN(rawIban)) console.warn("Invalid IBAN detected");
+            attachCopyButton("iban");
           }
 
           // BIC
-          const bic = selectNode(paymentMeans, ".//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID | .//ram:PayeePartyCreditorFinancialInstitution/ram:BICID");
-          if(bic) {
-            const bicValue = bic.textContent.trim();
-            document.getElementById("bic").textContent = bicValue;
-            invoiceData.payment.bic = bicValue;
-            attachCopyButton('bic');
+          const bicNode = xpathNode(paymentMeans,
+            ".//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID | .//ram:PayeePartyCreditorFinancialInstitution/ram:BICID");
+          if (bicNode) {
+            setField("bic", bicNode.textContent.trim(), "payment.bic");
+            attachCopyButton("bic");
           }
 
-          // Kontoinhaber
-          const accountHolder = selectNode(paymentMeans, ".//ram:PayeePartyCreditorFinancialAccount/ram:AccountName");
-          if(accountHolder) {
-            const holder = accountHolder.textContent.trim();
-            document.getElementById("accountHolder").textContent = holder;
-            invoiceData.payment.accountHolder = holder;
-          }
+          // Account holder
+          const holderNode = xpathNode(paymentMeans, ".//ram:PayeePartyCreditorFinancialAccount/ram:AccountName");
+          if (holderNode) setField("accountHolder", holderNode.textContent.trim(), "payment.accountHolder");
         }
 
-        // Zahlungsziel
-        if(paymentTerms) {
-          const terms = paymentTerms.textContent.trim();
-          document.getElementById("paymentTerms").textContent = terms;
-          invoiceData.payment.terms = terms;
+        // Payment terms
+        if (paymentTerms) setField("paymentTerms", paymentTerms.textContent.trim(), "payment.terms");
+
+        // Monetary summation
+        const summation = xpathNode(xmlDoc,
+          "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementMonetarySummation | " +
+          "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation");
+
+        if (summation) {
+          const amounts = [
+            { xpath: ".//ram:LineTotalAmount",   cellId: "netAmount",   key: "netAmount" },
+            { xpath: ".//ram:TaxTotalAmount",     cellId: "taxAmount",   key: "taxAmount" },
+            { xpath: ".//ram:GrandTotalAmount",   cellId: "grossAmount", key: "grossAmount" },
+            { xpath: ".//ram:DuePayableAmount",   cellId: "dueAmount",   key: "dueAmount" },
+          ];
+
+          amounts.forEach(({ xpath, cellId, key }) => {
+            const node = xpathNode(summation, xpath);
+            if (node) {
+              const raw = node.textContent.trim();
+              setField(cellId, formatCurrency(raw, currencySymbol));
+              invoiceData.payment[key] = parseFloat(raw);
+            }
+          });
         }
 
-        // Monetäre Summen
-        const monetarySummation = selectNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementMonetarySummation | //ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation");
-        if(monetarySummation) {
-          const netAmountNode = selectNode(monetarySummation, ".//ram:LineTotalAmount");
-          const taxAmountNode = selectNode(monetarySummation, ".//ram:TaxTotalAmount");
-          const grossAmountNode = selectNode(monetarySummation, ".//ram:GrandTotalAmount");
-          const dueAmountNode = selectNode(monetarySummation, ".//ram:DuePayableAmount");
-
-          if(netAmountNode) {
-            const netAmount = netAmountNode.textContent.trim();
-            const formattedNet = formatCurrency(netAmount, currencySymbol);
-            document.getElementById("netAmount").textContent = formattedNet;
-            invoiceData.payment.netAmount = parseFloat(netAmount);
-          }
-
-          if(taxAmountNode) {
-            const taxAmount = taxAmountNode.textContent.trim();
-            const formattedTax = formatCurrency(taxAmount, currencySymbol);
-            document.getElementById("taxAmount").textContent = formattedTax;
-            invoiceData.payment.taxAmount = parseFloat(taxAmount);
-          }
-
-          if(grossAmountNode) {
-            const grossAmount = grossAmountNode.textContent.trim();
-            const formattedGross = formatCurrency(grossAmount, currencySymbol);
-            document.getElementById("grossAmount").textContent = formattedGross;
-            invoiceData.payment.grossAmount = parseFloat(grossAmount);
-          }
-
-          if(dueAmountNode) {
-            const dueAmount = dueAmountNode.textContent.trim();
-            const formattedDue = formatCurrency(dueAmount, currencySymbol);
-            document.getElementById("dueAmount").textContent = formattedDue;
-            invoiceData.payment.dueAmount = parseFloat(dueAmount);
-          }
-        }
-
-        paymentSection.classList.remove('hidden');
-        
-        // EPC QR-Code generieren wenn IBAN vorhanden
+        dom.paymentSection.classList.remove("hidden");
         generateEPCQRCode(invoiceData.payment);
       }
 
-      function generateEPCQRCode(paymentData) {
-        const qrModal = document.getElementById('qrModal');
-        const modalContainer = qrModal ? qrModal.querySelector('.qr-code-container') : null;
-        const showQrBtn = document.getElementById('showQrBtn');
-        const modalDownloadBtn = document.getElementById('modalDownloadQrBtn');
-        const inlineDownloadBtn = document.getElementById('downloadQrBtn');
-
-        // Prüfen ob notwendige Daten vorhanden sind
-        if (!paymentData || !paymentData.iban || (!paymentData.grossAmount && !paymentData.dueAmount)) {
-          if (showQrBtn) showQrBtn.classList.add('hidden');
-          if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
-          if (qrModal) {
-            qrModal.classList.remove('visible');
-            qrModal.setAttribute('aria-hidden', 'true');
-            if (modalContainer) modalContainer.innerHTML = '';
-          }
-          return;
-        }
-
-        try {
-          // Vorherigen QR-Code löschen
-          if (modalContainer) modalContainer.innerHTML = '';
-
-          // EPC QR Code Daten nach SEPA Credit Transfer Standard
-          const epcData = generateEPCData(paymentData);
-
-          // Canvas Element erstellen
-          const canvas = document.createElement('canvas');
-          if (modalContainer) modalContainer.appendChild(canvas);
-
-          // QR Code generieren mit qrcode Bibliothek
-          QRCode.toCanvas(canvas, epcData, {
-            width: 200,
-            height: 200,
-            color: { dark: '#000000', light: '#FFFFFF' },
-            errorCorrectionLevel: 'M'
-          }, function (error) {
-            if (error) {
-              console.error('EPC QR Code generation failed:', error);
-              if (showQrBtn) showQrBtn.classList.add('hidden');
-              if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
-            } else {
-              // QR erzeugt: Modal-Öffnen Button anzeigen
-              if (showQrBtn) {
-                showQrBtn.classList.remove('hidden');
-                showQrBtn.onclick = () => {
-                  if (qrModal) {
-                    qrModal.classList.add('visible');
-                    qrModal.setAttribute('aria-hidden', 'false');
-                  }
-                };
-              }
-
-              // Inline download bleibt versteckt; modalDownloadBtn übernimmt Download
-              if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
-
-              if (modalDownloadBtn) {
-                modalDownloadBtn.onclick = () => {
-                  try {
-                    const dataUrl = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.href = dataUrl;
-                    link.download = `epc_qrcode_${invoiceData.header?.number || 'invoice'}.png`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  } catch (e) {
-                    console.error('QR download failed', e);
-                  }
-                };
-              }
-
-              // Close button
-              const closeBtn = document.getElementById('closeQrModal');
-              if (closeBtn && qrModal) {
-                closeBtn.onclick = () => {
-                  qrModal.classList.remove('visible');
-                  qrModal.setAttribute('aria-hidden', 'true');
-                };
-              }
-            }
-          });
-
-        } catch (error) {
-          console.error('EPC QR Code generation failed:', error);
-          if (showQrBtn) showQrBtn.classList.add('hidden');
-          if (inlineDownloadBtn) inlineDownloadBtn.classList.add('hidden');
-        }
-      }
-
-      function generateEPCData(paymentData) {
-        // EPC QR Code Format nach EPC069-12 Standard
-        const serviceTag = "BCD";  // Service Tag
-        const version = "002";     // Version
-        const characterSet = "1";  // UTF-8
-        const identification = "SCT"; // SEPA Credit Transfer
-        
-        // BIC (optional, kann leer sein bei IBAN)
-        const bic = paymentData.bic || "";
-        
-        // Empfänger Name (max 70 Zeichen)
-        const beneficiaryName = truncateString(invoiceData.seller?.name || "", 70);
-        
-        // IBAN (ohne Leerzeichen)
-        const beneficiaryIban = paymentData.iban.replace(/\s/g, '');
-        
-        // Betrag in EUR mit 2 Dezimalstellen (max EUR 999999999.99)
-  let amount = paymentData.grossAmount || paymentData.dueAmount || 0;
-        if (amount > 999999999.99) amount = 999999999.99;
-        const amountStr = `EUR${amount.toFixed(2)}`;
-        
-        // Verwendungszweck (max 140 Zeichen)
-        const purpose = ""; // Leer lassen
-        
-        // Strukturierte Referenz (leer lassen, außer eine gültige RF-Referenz liegt vor)
-        const structuredReference = "";
-        
-        // Unstrukturierte Remittance Information (max 140 Zeichen)
-        const prefix = (currentLanguage === 'en') ? 'Invoice' : 'Rechnung';
-        const unstructuredReference = truncateString(
-          `${prefix} ${invoiceData.header?.number || ''}`.trim(), 140
-        );
-        
-        // Information for Beneficiary (max 70 Zeichen) - optional
-        const beneficiaryInfo = "";
-        
-        // EPC String zusammenbauen (Felder durch \n getrennt)
-        const epcLines = [
-          serviceTag,
-          version,
-          characterSet,
-          identification,
-          bic,
-          beneficiaryName,
-          beneficiaryIban,
-          amountStr,
-          purpose,
-          structuredReference,
-          unstructuredReference,
-          beneficiaryInfo
-        ];
-        
-        return epcLines.join('\n');
-      }
-
-      function truncateString(str, maxLength) {
-        if (str.length <= maxLength) return str;
-        return str.substring(0, maxLength);
-      }
-
-      function displayLineItems(selectNode, selectNodes) {
-        const lineItems = selectNodes(xmlDoc, "//ram:IncludedSupplyChainTradeLineItem");
-        const tbody = lineItemsTable.querySelector("tbody");
-        let calculatedTotalNet = 0;
+      function displayLineItems() {
+        const items = xpathNodes(xmlDoc, "//ram:IncludedSupplyChainTradeLineItem");
+        const tbody = dom.lineItemsTable.querySelector("tbody");
+        const currencyCode = $("currency")?.textContent?.trim() || "EUR";
+        const symbol = getCurrencySymbol(currencyCode);
+        let totalNet = 0;
 
         invoiceData.lineItems = [];
 
-        lineItems.forEach((item, index) => {
-          const lineID = selectNode(item, "./ram:AssociatedDocumentLineDocument/ram:LineID")?.textContent.trim() || (index + 1).toString();
-          const productNote = selectNode(item, "./ram:AssociatedDocumentLineDocument/ram:IncludedNote/ram:Content")?.textContent.trim() || "";
-          const productName = selectNode(item, "./ram:SpecifiedTradeProduct/ram:Name")?.textContent.trim() || "";
-          const productDesc = selectNode(item, "./ram:SpecifiedTradeProduct/ram:Description")?.textContent.trim() || "";
-          const qtyElement = selectNode(item, "./ram:SpecifiedLineTradeDelivery/ram:BilledQuantity");
-          const qtyText = qtyElement?.textContent.trim() || "0";
-          const quantity = parseFloat(qtyText);
-          const unit = qtyElement?.getAttribute('unitCode') || "";
-          const unitDisplay = getUnitDisplay(unit);
-          const netPricePerUnit = parseFloat(selectNode(item, "./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount")?.textContent.trim() || "0");
-          const taxRateText = selectNode(item, "./ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent")?.textContent.trim() || "0";
-          const taxRate = parseFloat(taxRateText);
-          const lineNet = netPricePerUnit * quantity;
-          const vatAmount = lineNet * (taxRate / 100);
-          const lineGross = lineNet + vatAmount;
+        items.forEach((item, index) => {
+          const lineID      = xpathNode(item, "./ram:AssociatedDocumentLineDocument/ram:LineID")?.textContent.trim() || String(index + 1);
+          const productNote = xpathNode(item, "./ram:AssociatedDocumentLineDocument/ram:IncludedNote/ram:Content")?.textContent.trim() || "";
+          const productName = xpathNode(item, "./ram:SpecifiedTradeProduct/ram:Name")?.textContent.trim() || "";
+          const productDesc = xpathNode(item, "./ram:SpecifiedTradeProduct/ram:Description")?.textContent.trim() || "";
+          const qtyEl       = xpathNode(item, "./ram:SpecifiedLineTradeDelivery/ram:BilledQuantity");
+          const quantity     = parseFloat(qtyEl?.textContent.trim() || "0");
+          const unitCode     = qtyEl?.getAttribute("unitCode") || "";
+          const unitDisplay  = getUnitDisplay(unitCode);
+          const unitPrice    = parseFloat(xpathNode(item, "./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount")?.textContent.trim() || "0");
+          const taxRate      = parseFloat(xpathNode(item, "./ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent")?.textContent.trim() || "0");
+          const lineNet      = unitPrice * quantity;
+          const lineGross    = lineNet + lineNet * (taxRate / 100);
 
-          calculatedTotalNet += lineNet;
+          totalNet += lineNet;
 
-          // Daten für Export speichern
           invoiceData.lineItems.push({
-            position: lineID,
-            productName,
-            description: productDesc,
-            notes: productNote,
-            quantity,
-            unitCode: unit,
-            unit: unitDisplay,
-            unitPrice: netPricePerUnit,
-            lineNet,
-            taxRate,
-            lineGross
+            position: lineID, productName, description: productDesc,
+            notes: productNote, quantity, unitCode, unit: unitDisplay,
+            unitPrice, lineNet, taxRate, lineGross,
           });
 
           const tr = document.createElement("tr");
-
           tr.innerHTML = `
             <td>${escapeHtml(lineID)}</td>
             <td>${escapeHtml(productName)}</td>
@@ -1948,255 +1414,289 @@
             <td>${escapeHtml(productNote)}</td>
             <td>${escapeHtml(quantity.toFixed(2))}</td>
             <td>${escapeHtml(unitDisplay)}</td>
-            <td>${formatCurrency(netPricePerUnit.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
-            <td>${formatCurrency(lineNet.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
+            <td>${formatCurrency(unitPrice.toFixed(2), symbol)}</td>
+            <td>${formatCurrency(lineNet.toFixed(2), symbol)}</td>
             <td>${escapeHtml(taxRate.toFixed(2))}%</td>
-            <td>${formatCurrency(lineGross.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'))}</td>
+            <td>${formatCurrency(lineGross.toFixed(2), symbol)}</td>
           `;
-
           tbody.appendChild(tr);
         });
 
-        if(lineItems.length > 0) {
-          const netAmountDisplay = document.getElementById("netAmount");
-          if(!netAmountDisplay.textContent) {
-            netAmountDisplay.textContent = formatCurrency(calculatedTotalNet.toFixed(2), getCurrencySymbol(document.getElementById("currency").textContent.trim() || 'EUR'));
+        if (items.length > 0) {
+          const net = $("netAmount");
+          if (!net.textContent) net.textContent = formatCurrency(totalNet.toFixed(2), symbol);
+          dom.lineItemsSection.classList.remove("hidden");
+        }
+
+        return items.length;
+      }
+
+      function displayStatistics(count) {
+        $("statLineItems").textContent  = count;
+        $("statNetAmount").textContent  = $("netAmount").textContent  || "0 €";
+        $("statTaxAmount").textContent  = $("taxAmount").textContent  || "0 €";
+        $("statGrossAmount").textContent = $("grossAmount").textContent || "0 €";
+        dom.statsSection.classList.remove("hidden");
+      }
+
+      /* ==============================================================
+         11. EPC QR CODE GENERATION
+         ============================================================== */
+
+      function generateEPCQRCode(paymentData) {
+        const modalContainer = dom.qrModal?.querySelector(".qr-code-container");
+
+        if (!paymentData?.iban || (!paymentData.grossAmount && !paymentData.dueAmount)) {
+          if (dom.showQrBtn)     dom.showQrBtn.classList.add("hidden");
+          if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
+          if (dom.qrModal) {
+            dom.qrModal.classList.remove("visible");
+            dom.qrModal.setAttribute("aria-hidden", "true");
+            if (modalContainer) modalContainer.innerHTML = "";
           }
-          lineItemsSection.classList.remove('hidden');
-        }
-
-        return lineItems.length;
-      }
-
-      function showLoading() {
-        loadingSection.classList.remove('hidden');
-      }
-
-      function hideLoading() {
-        loadingSection.classList.add('hidden');
-      }
-
-      function showSuccess() {
-        successSection.classList.remove('hidden');
-        setTimeout(() => successSection.classList.add('hidden'), 3000);
-      }
-
-      function displayStatistics(lineItemsCount) {
-        document.getElementById('statLineItems').textContent = lineItemsCount;
-        document.getElementById('statNetAmount').textContent = document.getElementById('netAmount').textContent || '0 €';
-        document.getElementById('statTaxAmount').textContent = document.getElementById('taxAmount').textContent || '0 €';
-        document.getElementById('statGrossAmount').textContent = document.getElementById('grossAmount').textContent || '0 €';
-        statsSection.classList.remove('hidden');
-      }
-
-      function formatDate(dateStr) {
-        if (/^\d{8}$/.test(dateStr)) {
-          return `${dateStr.slice(6,8)}.${dateStr.slice(4,6)}.${dateStr.slice(0,4)}`;
-        }
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-          const [year, month, day] = dateStr.split('-');
-          return `${day}.${month}.${year}`;
-        }
-        return dateStr;
-      }
-
-      function getPaymentTypeName(code) {
-        const mapDe = {
-          '1': 'Instrumentenbasierte Zahlung',
-          '10': 'Barzahlung',
-          '20': 'Scheck',
-          '30': 'Überweisung',
-          '31': 'Abbuchung',
-          '42': 'Zahlung an ein Bankkonto',
-          '48': 'Kartenzahlung',
-          '49': 'Lastschrift',
-          '58': 'SEPA-Überweisung',
-          '59': 'SEPA-Lastschrift'
-        };
-        const mapEn = {
-          '1': 'Instrument-based payment',
-          '10': 'Cash payment',
-          '20': 'Cheque',
-          '30': 'Credit transfer',
-          '31': 'Debit transfer',
-          '42': 'Payment to a bank account',
-          '48': 'Card payment',
-          '49': 'Direct debit',
-          '58': 'SEPA Credit Transfer',
-          '59': 'SEPA Direct Debit'
-        };
-        const dict = (currentLanguage === 'en') ? mapEn : mapDe;
-        const fallback = (currentLanguage === 'en') ? `Unknown (${code})` : `Unbekannt (${code})`;
-        return dict[code] || fallback;
-      }
-
-      function downloadInvoiceAsJson() {
-        const jsonData = JSON.stringify(invoiceData, null, 2);
-        const blob = new Blob([jsonData], { type: 'application/json' });
-        const filename = `invoice_${invoiceData.header?.number || 'unknown'}.json`;
-        downloadBlob(blob, filename);
-      }
-
-      function downloadInvoiceAsCsv() {
-        const L = getLabels();
-        if (!invoiceData.lineItems || invoiceData.lineItems.length === 0) {
-          alert(L.noPositionsToExport || 'No line items available for export.');
           return;
         }
 
-        // CSV Header
+        try {
+          if (modalContainer) modalContainer.innerHTML = "";
+
+          // Build EPC069-12 payload
+          let amount = paymentData.grossAmount || paymentData.dueAmount || 0;
+          if (amount > 999999999.99) amount = 999999999.99;
+
+          const prefix = currentLanguage === "en" ? "Invoice" : "Rechnung";
+          const epcPayload = [
+            "BCD",                                          // Service Tag
+            "002",                                          // Version
+            "1",                                            // Charset (UTF-8)
+            "SCT",                                          // SEPA Credit Transfer
+            paymentData.bic || "",                           // BIC
+            truncate(invoiceData.seller?.name || "", 70),   // Beneficiary
+            paymentData.iban.replace(/\s/g, ""),            // IBAN
+            `EUR${amount.toFixed(2)}`,                      // Amount
+            "",                                             // Purpose
+            "",                                             // Structured reference
+            truncate(`${prefix} ${invoiceData.header?.number || ""}`.trim(), 140),
+            "",                                             // Beneficiary info
+          ].join("\n");
+
+          const canvas = document.createElement("canvas");
+          if (modalContainer) modalContainer.appendChild(canvas);
+
+          QRCode.toCanvas(canvas, epcPayload, {
+            width: 200, height: 200,
+            color: { dark: "#000000", light: "#FFFFFF" },
+            errorCorrectionLevel: "M",
+          }, (error) => {
+            if (error) {
+              console.error("EPC QR Code generation failed:", error);
+              if (dom.showQrBtn) dom.showQrBtn.classList.add("hidden");
+              return;
+            }
+
+            // Show "open modal" button
+            if (dom.showQrBtn) {
+              dom.showQrBtn.classList.remove("hidden");
+              dom.showQrBtn.onclick = () => {
+                dom.qrModal.classList.add("visible");
+                dom.qrModal.setAttribute("aria-hidden", "false");
+              };
+            }
+
+            // Keep inline download hidden; use modal download
+            if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
+
+            if (dom.modalDownloadQr) {
+              dom.modalDownloadQr.onclick = () => {
+                try {
+                  const link = document.createElement("a");
+                  link.href = canvas.toDataURL("image/png");
+                  link.download = `epc_qrcode_${invoiceData.header?.number || "invoice"}.png`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                } catch (e) { console.error("QR download failed", e); }
+              };
+            }
+
+            if (dom.closeQrModal) {
+              dom.closeQrModal.onclick = () => {
+                dom.qrModal.classList.remove("visible");
+                dom.qrModal.setAttribute("aria-hidden", "true");
+              };
+            }
+          });
+        } catch (error) {
+          console.error("EPC QR Code generation failed:", error);
+          if (dom.showQrBtn) dom.showQrBtn.classList.add("hidden");
+          if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
+        }
+      }
+
+      /* ==============================================================
+         12. EXPORT — JSON & CSV
+         ============================================================== */
+
+      function downloadInvoiceAsJson() {
+        const blob = new Blob([JSON.stringify(invoiceData, null, 2)], { type: "application/json" });
+        downloadBlob(blob, `invoice_${invoiceData.header?.number || "unknown"}.json`);
+      }
+
+      function downloadInvoiceAsCsv() {
+        const labels = L();
+        if (!invoiceData.lineItems?.length) {
+          alert(labels.noPositionsToExport);
+          return;
+        }
+
         const headers = [
-          L.posNr,
-          L.productName,
-          L.description,
-          L.notes,
-          L.quantity,
-          L.unit,
-          L.unitPrice,
-          L.lineNet,
-          L.taxRate,
-          L.lineGross
+          labels.posNr, labels.productName, labels.description, labels.notes,
+          labels.quantity, labels.unit, labels.unitPrice, labels.lineNet,
+          labels.taxRate, labels.lineGross,
         ];
-        
-        // CSV Daten
-        const csvData = [
-          headers.join(','),
-          ...invoiceData.lineItems.map(item => [
-            `"${item.position}"`,
-            `"${item.productName}"`,
-            `"${item.description}"`,
-            `"${item.notes}"`,
-            item.quantity,
-            `"${item.unit}"`,
-            item.unitPrice.toFixed(2),
-            item.lineNet.toFixed(2),
-            item.taxRate.toFixed(2),
-            item.lineGross.toFixed(2)
-          ].join(','))
-        ].join('\n');
 
-        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-        const filename = `invoice_${invoiceData.header?.number || 'unknown'}_positions.csv`;
-        downloadBlob(blob, filename);
+        const rows = invoiceData.lineItems.map((item) => [
+          `"${item.position}"`, `"${item.productName}"`,
+          `"${item.description}"`, `"${item.notes}"`,
+          item.quantity, `"${item.unit}"`,
+          item.unitPrice.toFixed(2), item.lineNet.toFixed(2),
+          item.taxRate.toFixed(2), item.lineGross.toFixed(2),
+        ].join(","));
+
+        const csv = [headers.join(","), ...rows].join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        downloadBlob(blob, `invoice_${invoiceData.header?.number || "unknown"}_positions.csv`);
       }
 
-      function showError(msg) {
-        errorSection.textContent = msg;
-        errorSection.classList.remove("hidden");
-      }
+      /* ==============================================================
+         13. MAIN PARSING PIPELINE
+         ============================================================== */
 
-      function resetUI() {
-        // Fehler- und Anzeigeabschnitte zurücksetzen
-        errorSection.textContent = "";
-        errorSection.classList.add("hidden");
-        successSection.classList.add("hidden");
+      function parseXML(xmlString) {
+        const parser = new DOMParser();
+        xmlDoc = parser.parseFromString(xmlString, "application/xml");
 
-        [headerSection, sellerSection, buyerSection, paymentSection, lineItemsSection, xmlViewer, downloadButtons, statsSection].forEach(section => section.classList.add('hidden'));
-
-        // QR-Code Sektion zurücksetzen
-        const qrCodeSection = document.getElementById('qrCodeSection');
-        if (qrCodeSection) {
-          qrCodeSection.classList.add('hidden');
-          const qrCodeContainer = document.querySelector('.qr-code-container');
-          if (qrCodeContainer) {
-            qrCodeContainer.innerHTML = '';
-          }
-          const downloadQrBtn = document.getElementById('downloadQrBtn');
-          if (downloadQrBtn) {
-            downloadQrBtn.disabled = true;
-            downloadQrBtn.onclick = null;
-          }
+        if (xmlDoc.querySelector("parsererror")) {
+          showError(L().invalidXml);
+          return;
         }
-        // Modal / Show-QR button zurücksetzen
-        const qrModal = document.getElementById('qrModal');
-        if (qrModal) {
-          qrModal.classList.remove('visible');
-          qrModal.setAttribute('aria-hidden', 'true');
-          const modalContainer = qrModal.querySelector('.qr-code-container');
-          if (modalContainer) modalContainer.innerHTML = '';
-          const modalDownloadBtn = document.getElementById('modalDownloadQrBtn');
-          if (modalDownloadBtn) modalDownloadBtn.onclick = null;
-        }
-        const showQrBtn = document.getElementById('showQrBtn');
-        if (showQrBtn) showQrBtn.classList.add('hidden');
 
-        // Inhalt der Tabellen und Bereiche zurücksetzen
-        document.querySelectorAll("#headerSection td, #sellerSection td, #buyerSection td, #paymentSection td").forEach(td => td.textContent = "");
-        originalXml.textContent = "";
-        lineItemsTable.querySelector("tbody").innerHTML = "";
-        
-        // Daten zurücksetzen
-        invoiceData = {};
+        // Show raw XML
+        dom.originalXml.textContent = beautifyXml(xmlString);
+        dom.xmlViewer.classList.remove("hidden");
+
+        // Configure download buttons
+        if (originalXmlBlob || originalPdfBlob) {
+          dom.downloadButtons.classList.remove("hidden");
+          $("downloadXml").onclick = () => downloadBlob(originalXmlBlob, "invoice.xml");
+          $("downloadPdf").onclick = () => {
+            if (originalPdfBlob) downloadBlob(originalPdfBlob, "invoice.pdf");
+            else showError(L().pdfNotAvailable);
+          };
+          $("downloadJson").onclick = downloadInvoiceAsJson;
+          $("downloadCsv").onclick = downloadInvoiceAsCsv;
+        }
+
+        // Extract & display all sections
+        displayInvoiceInfo();
+        displaySellerInfo();
+        displayBuyerInfo();
+        displayPaymentInfo();
+        const count = displayLineItems();
+        displayStatistics(count);
+        showSuccess();
       }
 
-      function beautifyXml(xml) {
-        const PADDING = '  ';
-        const reg = /(>)(<)(\/*)/g;
-        let formatted = '';
-        let pad = 0;
+      /* ==============================================================
+         14. FILE HANDLING
+         ============================================================== */
 
-        xml = xml.replace(reg, '$1\r\n$2$3');
-        xml.split('\r\n').forEach(node => {
-          let indent = 0;
-          if (node.match(/.+<\/\w[^>]*>$/)) {
-            indent = 0;
-          } else if (node.match(/^<\/\w/)) {
-            if (pad !== 0) pad -= 1;
-          } else if (node.match(/^<\w[^>]*[^\/]>.*$/)) {
-            indent = 1;
+      async function handleFile(file) {
+        resetUI();
+        showLoading();
+
+        try {
+          if (file.type === "application/pdf") {
+            originalPdfBlob = file;
+            const xmlContent = await extractXmlFromPdf(file);
+            if (xmlContent) {
+              originalXmlBlob = new Blob([xmlContent], { type: "application/xml" });
+              parseXML(xmlContent);
+            } else {
+              showError(L().noFileFound);
+            }
+          } else if (file.name.toLowerCase().endsWith(".xml")) {
+            originalXmlBlob = file;
+            parseXML(await file.text());
+          } else {
+            showError(L().unsupportedFormat);
           }
+        } catch (err) {
+          showError(`${L().processingError}${err.message}`);
+          console.error(err);
+        } finally {
+          hideLoading();
+        }
+      }
 
-          formatted += PADDING.repeat(pad) + node.trim() + '\r\n';
-          pad += indent;
+      /* ==============================================================
+         15. EVENT LISTENERS
+         ============================================================== */
+
+      // Language toggle
+      $("langDe").addEventListener("click", () => setLanguage("de"));
+      $("langEn").addEventListener("click", () => setLanguage("en"));
+
+      // Drop zone
+      dom.dropZone.addEventListener("click", () => dom.fileInput.click());
+
+      dom.dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dom.dropZone.classList.add("dragover");
+      });
+
+      dom.dropZone.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        dom.dropZone.classList.remove("dragover");
+      });
+
+      dom.dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dom.dropZone.classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      });
+
+      dom.fileInput.addEventListener("change", () => {
+        const file = dom.fileInput.files[0];
+        if (file) handleFile(file);
+      });
+
+      // Sample invoice
+      if (dom.loadSampleBtn) {
+        dom.loadSampleBtn.addEventListener("click", async () => {
+          try {
+            resetUI();
+            showLoading();
+            const resp = await fetch("https://simonwaldherr.github.io/InvoiceInspector/RE-2025-0815.pdf");
+            if (!resp.ok) throw new Error("HTTP " + resp.status);
+            const blob = await resp.blob();
+            await handleFile(new File([blob], "RE-2025-0815.pdf", { type: "application/pdf" }));
+          } catch (e) {
+            console.error("Sample invoice load failed", e);
+            showError(L().sampleLoadError + e.message);
+          } finally {
+            hideLoading();
+            dom.loadSampleBtn.classList.add("hidden");
+          }
         });
-
-        return formatted;
       }
 
-      function downloadBlob(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
+      /* ==============================================================
+         16. INITIALISE
+         ============================================================== */
 
-      function getCurrencySymbol(code) {
-        const symbols = {
-          'EUR': '€',
-          'USD': '$',
-          'GBP': '£',
-          'CHF': 'CHF',
-          // Weitere Währungen können hier hinzugefügt werden
-        };
-        return symbols[code] || code;
-      }
-
-      function formatCurrency(amount, currencySymbol) {
-        const formattedAmount = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        switch(currencySymbol) {
-          case 'CHF':
-            return `${formattedAmount} ${currencySymbol}`;
-          case '€':
-            return `${formattedAmount} ${currencySymbol}`;
-          case '$':
-            return `${currencySymbol}${formattedAmount}`;
-          case '£':
-            return `${currencySymbol}${formattedAmount}`;
-          default:
-            return `${formattedAmount} ${currencySymbol}`;
-        }
-      }
-
-      function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      }
+      initLanguage();
 
     })();
   </script>
