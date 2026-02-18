@@ -1546,19 +1546,10 @@
             }
 
             if (dom.closeQrModal) {
-              const closeModal = () => {
+              dom.closeQrModal.onclick = () => {
                 dom.qrModal.classList.remove("visible");
                 dom.qrModal.setAttribute("aria-hidden", "true");
               };
-              
-              dom.closeQrModal.onclick = closeModal;
-              
-              // Add keyboard support: close modal on Escape key
-              document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape" && dom.qrModal.classList.contains("visible")) {
-                  closeModal();
-                }
-              });
             }
           });
         } catch (error) {
@@ -1681,6 +1672,14 @@
       // Language toggle
       $("langDe").addEventListener("click", () => setLanguage("de"));
       $("langEn").addEventListener("click", () => setLanguage("en"));
+
+      // Modal keyboard support: close on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && dom.qrModal && dom.qrModal.classList.contains("visible")) {
+          dom.qrModal.classList.remove("visible");
+          dom.qrModal.setAttribute("aria-hidden", "true");
+        }
+      });
 
       // Drop zone
       dom.dropZone.addEventListener("click", () => dom.fileInput.click());
