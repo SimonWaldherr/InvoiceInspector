@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" id="html-root">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Client-side web viewer for electronic invoices with support for ZUGFeRD, XRechnung, EN 16931 and other standards. 100% privacy-focused, no data transmission to servers." />
+  <meta name="theme-color" content="#007BFF" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0099ff" media="(prefers-color-scheme: dark)" />
   <title>ZUGFeRD / XRechnung / EN16931 E-Rechnungs-Reader inkl. PDF-Extraktion</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js" integrity="sha512-yh1pUBc2i3Ht9/gRI3z/K5n/qPXdCLLJD8az7BIOYH1fqSqHhVPq5gLzfFVLKpI0CxVHr3xPSGMlqcNq0Cq3w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" integrity="sha512-FdBY5KhFqKLIa63SDG1HS8H6gKm+jGsuNLN8D0FfZKiUKAMTYnlCIJsHBCxmvPBCqt0aZaQYGe9xKIvgZ4uIpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <style>
     /* ================================================================
@@ -418,6 +421,21 @@
     }
 
     /* ================================================================
+       Accessibility
+       ================================================================ */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ================================================================
        Responsive
        ================================================================ */
     @media (max-width: 768px) {
@@ -436,8 +454,8 @@
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h1 data-i18n="mainTitle">E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion</h1>
     <div class="language-switcher">
-      <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
-      <button id="langEn" class="lang-btn">🇺🇸 EN</button>
+      <button id="langDe" class="lang-btn active" aria-label="Switch to German language">🇩🇪 DE</button>
+      <button id="langEn" class="lang-btn" aria-label="Switch to English language">🇺🇸 EN</button>
     </div>
   </div>
 
@@ -456,11 +474,12 @@
   <div class="drop-zone" id="dropZone">
     <p data-i18n="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
     <p data-i18n="supportedFormatsText" style="font-size: 0.9em; color: var(--color-muted); margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
-    <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display: none;" />
+    <label for="invoiceFile" class="visually-hidden">Upload invoice file</label>
+    <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display: none;" aria-label="Upload invoice file (ZUGFeRD PDF, XRechnung XML, EN16931 XML)" />
   </div>
 
   <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-    <button id="loadSampleBtn" type="button" class="sample-btn" data-i18n="loadSample">🧪 Beispiel-Rechnung laden</button>
+    <button id="loadSampleBtn" type="button" class="sample-btn" data-i18n="loadSample" aria-label="Load sample invoice for testing">🧪 Beispiel-Rechnung laden</button>
   </div>
 
   <!-- ============================================================
@@ -504,10 +523,10 @@
        Download Buttons
        ============================================================ -->
   <div class="download-buttons hidden" id="downloadButtons">
-    <button id="downloadXml" data-i18n="downloadXml">📄 XML speichern</button>
-    <button id="downloadPdf" data-i18n="downloadPdf">📋 PDF speichern</button>
-    <button id="downloadJson" data-i18n="downloadJson">📊 JSON Export</button>
-    <button id="downloadCsv" data-i18n="downloadCsv">📈 CSV Export</button>
+    <button id="downloadXml" data-i18n="downloadXml" aria-label="Download invoice as XML file">📄 XML speichern</button>
+    <button id="downloadPdf" data-i18n="downloadPdf" aria-label="Download invoice as PDF file">📋 PDF speichern</button>
+    <button id="downloadJson" data-i18n="downloadJson" aria-label="Export invoice data as JSON file">📊 JSON Export</button>
+    <button id="downloadCsv" data-i18n="downloadCsv" aria-label="Export invoice data as CSV file">📈 CSV Export</button>
   </div>
 
   <!-- ============================================================
@@ -560,8 +579,8 @@
 
       <!-- EPC QR Code buttons -->
       <div style="margin-top: 10px;">
-        <button id="showQrBtn" type="button" class="sample-btn hidden">QR-Code anzeigen</button>
-        <button id="downloadQrBtn" type="button" class="sample-btn hidden" style="margin-left: 8px;">QR-Code speichern</button>
+        <button id="showQrBtn" type="button" class="sample-btn hidden" aria-label="Show QR code for SEPA payment">QR-Code anzeigen</button>
+        <button id="downloadQrBtn" type="button" class="sample-btn hidden" style="margin-left: 8px;" aria-label="Download QR code as PNG image">QR-Code speichern</button>
       </div>
     </section>
   </div>
@@ -569,9 +588,9 @@
   <!-- ============================================================
        QR Modal
        ============================================================ -->
-  <div id="qrModal" class="qr-modal" role="dialog" aria-hidden="true">
+  <div id="qrModal" class="qr-modal" role="dialog" aria-hidden="true" aria-labelledby="qrCodeTitle">
     <div class="qr-modal-content">
-      <h3 data-i18n="qrCodeTitle">📱 QR-Code für Überweisung</h3>
+      <h3 id="qrCodeTitle" data-i18n="qrCodeTitle">📱 QR-Code für Überweisung</h3>
       <div class="qr-code-container"></div>
       <div class="qr-info">
         <div id="qrCodeInfo">
@@ -579,8 +598,8 @@
           <span data-i18n="qrCodeDetails">EPC-QR-Code (Girocode) nach europäischem Standard</span>
         </div>
         <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
-          <button id="modalDownloadQrBtn" type="button" class="sample-btn">QR-Code speichern</button>
-          <button id="closeQrModal" type="button" class="sample-btn">Schließen</button>
+          <button id="modalDownloadQrBtn" type="button" class="sample-btn" aria-label="Download QR code as PNG image">QR-Code speichern</button>
+          <button id="closeQrModal" type="button" class="sample-btn" aria-label="Close QR code modal">Schließen</button>
         </div>
       </div>
     </div>
@@ -1061,6 +1080,13 @@
       function setLanguage(lang) {
         currentLanguage = lang;
         try { localStorage.setItem("lang", lang); } catch (_) { /* ignored */ }
+        
+        // Update HTML lang attribute dynamically
+        const htmlRoot = document.getElementById("html-root");
+        if (htmlRoot) {
+          htmlRoot.setAttribute("lang", lang);
+        }
+        
         applyLanguage();
       }
 
@@ -1520,10 +1546,19 @@
             }
 
             if (dom.closeQrModal) {
-              dom.closeQrModal.onclick = () => {
+              const closeModal = () => {
                 dom.qrModal.classList.remove("visible");
                 dom.qrModal.setAttribute("aria-hidden", "true");
               };
+              
+              dom.closeQrModal.onclick = closeModal;
+              
+              // Add keyboard support: close modal on Escape key
+              document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && dom.qrModal.classList.contains("visible")) {
+                  closeModal();
+                }
+              });
             }
           });
         } catch (error) {
