@@ -1,643 +1,156 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZUGFeRD / XRechnung / EN16931 E-Rechnungs-Reader inkl. PDF-Extraktion</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InvoiceInspector</title>
+
+  <!-- Pinned CDN libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" crossorigin="anonymous"></script>
 
   <style>
-    /* ================================================================
-       CSS Custom Properties — single source for theming (light/dark)
-       ================================================================ */
-    :root {
-      --color-bg: #f7f7f7;
-      --color-text: #333;
-      --color-heading: #333;
-      --color-accent: #007BFF;
-      --color-accent-hover: #0056b3;
-      --color-card-bg: #fff;
-      --color-card-border: #ccc;
-      --color-card-shadow: rgba(0, 0, 0, 0.1);
-      --color-input-bg: #fff;
-      --color-input-border: #aaa;
-      --color-table-header-bg: #f0f0f0;
-      --color-pre-bg: #f9f9f9;
-      --color-pre-border: #ccc;
-      --color-tag: #666;
-      --color-error-bg: #ffe6e6;
-      --color-error-text: red;
-      --color-success-bg: #d4edda;
-      --color-success-text: #155724;
-      --color-success-border: #c3e6cb;
-      --color-stat-bg: #f8f9fa;
-      --color-stat-border: #dee2e6;
-      --color-stat-heading: #495057;
-      --color-qr-info: #666;
-      --color-qr-info-strong: #333;
-      --color-dragover-bg: #f0f8ff;
-      --color-dragover-border: #007BFF;
-      --color-lang-bg: #fff;
-      --color-lang-text: #007BFF;
-      --color-lang-border: #007BFF;
-      --color-lang-hover-bg: #f0f8ff;
-      --color-muted: #666;
+    :root{
+      --bg:#f7f7f7; --text:#333; --card:#fff; --border:#ccc; --shadow:rgba(0,0,0,.1);
+      --accent:#007BFF; --accent2:#0056b3; --muted:#666;
+      --pre:#f9f9f9; --preb:#ccc; --thead:#f0f0f0;
+      --okbg:#d4edda; --ok:#155724; --okb:#c3e6cb;
+      --errbg:#ffe6e6; --err:red;
+      --dragbg:#f0f8ff; --dragb:#007BFF;
     }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --color-bg: #1a1a1a;
-        --color-text: #e0e0e0;
-        --color-heading: #e0e0e0;
-        --color-accent: #0099ff;
-        --color-accent-hover: #007acc;
-        --color-card-bg: #2d2d2d;
-        --color-card-border: #444;
-        --color-card-shadow: rgba(0, 0, 0, 0.3);
-        --color-input-bg: #2d2d2d;
-        --color-input-border: #555;
-        --color-table-header-bg: #383838;
-        --color-pre-bg: #1e1e1e;
-        --color-pre-border: #555;
-        --color-tag: #adb5bd;
-        --color-error-bg: #4a1a1a;
-        --color-error-text: #ff9999;
-        --color-success-bg: #155724;
-        --color-success-text: #b8e6b8;
-        --color-success-border: #28a745;
-        --color-stat-bg: #343a40;
-        --color-stat-border: #495057;
-        --color-stat-heading: #adb5bd;
-        --color-qr-info: #adb5bd;
-        --color-qr-info-strong: #fff;
-        --color-dragover-bg: #1a3a5a;
-        --color-dragover-border: #0099ff;
-        --color-lang-bg: #2d2d2d;
-        --color-lang-text: #0099ff;
-        --color-lang-border: #0099ff;
-        --color-lang-hover-bg: #1a3a5a;
-        --color-muted: #adb5bd;
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#1a1a1a; --text:#e0e0e0; --card:#2d2d2d; --border:#444; --shadow:rgba(0,0,0,.3);
+        --accent:#0099ff; --accent2:#007acc; --muted:#adb5bd;
+        --pre:#1e1e1e; --preb:#555; --thead:#383838;
+        --okbg:#155724; --ok:#b8e6b8; --okb:#28a745;
+        --errbg:#4a1a1a; --err:#ff9999;
+        --dragbg:#1a3a5a; --dragb:#0099ff;
       }
     }
+    body{font-family:Arial,sans-serif;margin:20px;line-height:1.6;background:var(--bg);color:var(--text)}
+    h1{margin:0; font-size:1.8em}
+    h2{margin:.2em 0 .6em}
+    section,details{background:var(--card);padding:16px;margin:12px 0;border:1px solid var(--border);border-radius:6px;box-shadow:0 2px 4px var(--shadow)}
+    :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
-    /* ================================================================
-       Base & Typography
-       ================================================================ */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      line-height: 1.6;
-      background: var(--color-bg);
-      color: var(--color-text);
-    }
+    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .langs{display:flex;gap:6px;flex-wrap:wrap}
+    .lang-btn{padding:7px 12px;border-radius:16px;border:2px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer;font-weight:700}
+    .lang-btn.active{background:var(--accent);color:#fff}
+    .lang-btn:hover{background:var(--dragbg);color:var(--accent2)}
 
-    h1, h2 { margin-bottom: 0.5em; }
+    .drop{border:2px dashed var(--border);border-radius:6px;padding:28px;text-align:center;background:var(--card);cursor:pointer}
+    .drop.dragover{border-color:var(--dragb);background:var(--dragbg)}
+    .muted{color:var(--muted);font-size:.92em}
+    .hidden{display:none}
+    .ok{background:var(--okbg);color:var(--ok);border:1px solid var(--okb);padding:10px;border-radius:6px}
+    .err{background:var(--errbg);color:var(--err);padding:10px;border-radius:6px}
+    .warn{background:var(--thead);border:1px solid var(--border);padding:10px;border-radius:6px}
+    .warn ul{margin:0;padding-left:18px}
 
-    h1 {
-      font-size: 2em;
-      margin-top: 0;
-      color: var(--color-heading);
-      flex: 1;
-    }
+    .loading{display:inline-block;width:18px;height:18px;border:3px solid var(--border);border-top:3px solid var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin-right:8px}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
-    /* ================================================================
-       Language Switcher
-       ================================================================ */
-    .language-switcher { display: flex; gap: 5px; }
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid var(--border);padding:8px;vertical-align:top}
+    th{background:var(--thead);text-align:left}
+    .table-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--border)}
+    .btns{text-align:center;margin:10px 0}
+    .btn{margin:5px;padding:10px 16px;border:none;border-radius:6px;background:var(--accent);color:#fff;cursor:pointer}
+    .btn:hover{background:var(--accent2)}
+    .pill{padding:7px 12px;border-radius:16px;border:1px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer}
+    .pill:hover{background:var(--dragbg);color:var(--accent2)}
+    .small{padding:6px 10px;border-radius:14px;border:1px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer;font-size:.9em}
+    .small:hover{background:var(--dragbg);color:var(--accent2)}
+    .dup{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:16px;border:1px solid var(--border);background:var(--errbg);color:var(--err);font-size:.85em}
 
-    .lang-btn {
-      padding: 8px 15px;
-      border: 2px solid var(--color-lang-border);
-      background: var(--color-lang-bg);
-      color: var(--color-lang-text);
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9em;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
+    pre{background:var(--pre);border:1px solid var(--preb);border-radius:6px;padding:10px;max-height:380px;overflow:auto;white-space:pre-wrap}
 
-    .lang-btn:hover {
-      background: var(--color-lang-hover-bg);
-      transform: scale(1.05);
-    }
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:1200px){.grid{grid-template-columns:1fr 1fr}}
 
-    .lang-btn.active {
-      background: var(--color-accent);
-      color: #fff;
-    }
-
-    /* ================================================================
-       Cards (description, sections, details)
-       ================================================================ */
-    .description, section, details {
-      background: var(--color-card-bg);
-      padding: 20px;
-      margin-bottom: 16px;
-      border-radius: 5px;
-      border: 1px solid var(--color-card-border);
-      box-shadow: 0 2px 4px var(--color-card-shadow);
-    }
-
-    /* ================================================================
-       Drop Zone
-       ================================================================ */
-    .drop-zone {
-      border: 2px dashed var(--color-input-border);
-      border-radius: 5px;
-      padding: 40px;
-      text-align: center;
-      color: var(--color-text);
-      background: var(--color-card-bg);
-      margin-bottom: 20px;
-      transition: border-color 0.3s, background-color 0.3s;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .drop-zone.dragover {
-      border-color: var(--color-dragover-border);
-      background-color: var(--color-dragover-bg);
-    }
-
-    .drop-zone p { margin: 0; font-size: 1.1em; }
-
-    /* ================================================================
-       Utility
-       ================================================================ */
-    .hidden { display: none; }
-
-    /* ================================================================
-       Tables
-       ================================================================ */
-    table { border-collapse: collapse; width: 100%; }
-
-    table th, table td {
-      border: 1px solid var(--color-card-border);
-      padding: 8px;
-      vertical-align: top;
-    }
-
-    table th {
-      background: var(--color-table-header-bg);
-      text-align: left;
-      width: 12.5%;
-      color: var(--color-text);
-    }
-
-    .table-container {
-      overflow-x: auto;
-      border-radius: 5px;
-      border: 1px solid var(--color-card-border);
-    }
-
-    .zugferd-tag {
-      font-size: 0.75em;
-      color: var(--color-tag);
-      margin-left: 4px;
-      opacity: 0.8;
-    }
-
-    /* ================================================================
-       Feedback: Errors & Success
-       ================================================================ */
-    .error {
-      color: var(--color-error-text);
-      background-color: var(--color-error-bg);
-      padding: 10px;
-      border-radius: 5px;
-    }
-
-    .success {
-      color: var(--color-success-text);
-      background-color: var(--color-success-bg);
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid var(--color-success-border);
-      margin-bottom: 20px;
-    }
-
-    /* ================================================================
-       Buttons
-       ================================================================ */
-    .download-buttons {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .download-buttons button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 1em;
-      cursor: pointer;
-      border: none;
-      border-radius: 5px;
-      background-color: var(--color-accent);
-      color: white;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-
-    .download-buttons button:hover {
-      background-color: var(--color-accent-hover);
-      transform: scale(1.05);
-    }
-
-    .sample-btn {
-      padding: 8px 16px;
-      border-radius: 20px;
-      border: 1px solid var(--color-accent);
-      background-color: var(--color-card-bg);
-      color: var(--color-accent);
-      font-size: 0.95em;
-      cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s, color 0.3s;
-    }
-
-    .sample-btn:hover {
-      background-color: var(--color-dragover-bg);
-      color: var(--color-accent-hover);
-      transform: translateY(-1px);
-    }
-
-    .copy-btn {
-      padding: 3px 8px;
-      border: 1px solid var(--color-card-border);
-      border-radius: 4px;
-      background: var(--color-table-header-bg);
-      cursor: pointer;
-    }
-
-    .copy-btn:hover { background: var(--color-stat-bg); }
-
-    /* ================================================================
-       Code / XML Viewer
-       ================================================================ */
-    details summary { cursor: pointer; font-weight: bold; }
-
-    pre {
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      max-height: 400px;
-      overflow: auto;
-      background-color: var(--color-pre-bg);
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid var(--color-pre-border);
-      color: var(--color-text);
-    }
-
-    /* ================================================================
-       Loading Spinner
-       ================================================================ */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid var(--color-card-border);
-      border-top: 3px solid var(--color-accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* ================================================================
-       Statistics Cards
-       ================================================================ */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: var(--color-stat-bg);
-      padding: 15px;
-      border-radius: 5px;
-      border: 1px solid var(--color-stat-border);
-      text-align: center;
-    }
-
-    .stat-card h3 {
-      margin: 0 0 10px 0;
-      font-size: 1.2em;
-      color: var(--color-stat-heading);
-    }
-
-    .stat-card .value {
-      font-size: 1.5em;
-      font-weight: bold;
-      color: var(--color-accent);
-    }
-
-    /* ================================================================
-       Section Grid (side-by-side on wide screens)
-       ================================================================ */
-    .section-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    @media (min-width: 1400px) {
-      .section-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    .section-grid > section { margin-bottom: 0; }
-
-    /* ================================================================
-       EPC QR Code
-       ================================================================ */
-    .qr-section {
-      background: var(--color-stat-bg);
-      border: 1px solid var(--color-stat-border);
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-      text-align: center;
-    }
-
-    .qr-section h3 {
-      margin: 0 0 15px 0;
-      color: var(--color-stat-heading);
-      font-size: 1.2em;
-    }
-
-    .qr-code-container {
-      display: inline-block;
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      margin-bottom: 15px;
-    }
-
-    .qr-info {
-      font-size: 0.9em;
-      color: var(--color-qr-info);
-      line-height: 1.4;
-    }
-
-    .qr-info strong { color: var(--color-qr-info-strong); }
-
-    /* QR Modal */
-    .qr-modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      padding: 20px;
-    }
-
-    .qr-modal.visible { display: flex; }
-
-    .qr-modal-content {
-      background: var(--color-card-bg);
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-      text-align: center;
-    }
-
-    .qr-modal-content .qr-code-container {
-      display: block;
-      margin: 0 auto 12px auto;
-    }
-
-    /* ================================================================
-       Responsive
-       ================================================================ */
-    @media (max-width: 768px) {
-      table th, table td { font-size: 0.9em; }
-      .drop-zone { padding: 20px; }
-      .download-buttons button { width: 100%; margin: 10px 0; }
-      .stats-grid { grid-template-columns: 1fr; }
-    }
+    /* modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px}
+    .modal.visible{display:flex}
+    .modal-box{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.2);padding:16px;max-width:560px;width:100%;text-align:center}
+    .qrbox{display:inline-block;background:#fff;padding:12px;border-radius:10px;border:1px solid #ddd;margin:10px 0}
+    textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+    input[type="search"], select{padding:10px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text)}
   </style>
 </head>
 <body>
 
-  <!-- ============================================================
-       Header with title & language switcher
-       ============================================================ -->
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h1 data-i18n="mainTitle">E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion</h1>
-    <div class="language-switcher">
+  <div class="top">
+    <h1 data-i18n="mainTitle">InvoiceInspector</h1>
+    <div class="langs" aria-label="Language switcher">
       <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
       <button id="langEn" class="lang-btn">🇺🇸 EN</button>
+      <button id="langFr" class="lang-btn">🇫🇷 FR</button>
+      <button id="langIt" class="lang-btn">🇮🇹 IT</button>
     </div>
   </div>
 
-  <!-- ============================================================
-       Description
-       ============================================================ -->
-  <section class="description">
+  <section>
     <h2 data-i18n="descriptionTitle">Beschreibung</h2>
-    <p data-i18n="descriptionText">Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.</p>
-    <p data-i18n-html="disclaimerText"><strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.</p>
+    <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur-X PDFs an.</p>
+    <p data-i18n-html="disclaimerText"><strong>Hinweis:</strong> Verarbeitung lokal im Browser. Keine Uploads. Optional lokale Sammlung.</p>
+    <p class="muted" data-i18n="shortcutHint">Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute</p>
   </section>
 
-  <!-- ============================================================
-       Drop Zone
-       ============================================================ -->
-  <div class="drop-zone" id="dropZone">
-    <p data-i18n="dropZoneText">📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.</p>
-    <p data-i18n="supportedFormatsText" style="font-size: 0.9em; color: var(--color-muted); margin-top: 10px;">Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML</p>
-    <input type="file" id="invoiceFile" accept=".xml,.pdf,application/pdf" style="display: none;" />
+  <div id="dropZone" class="drop" role="button" tabindex="0" aria-label="Datei auswählen oder hier ablegen">
+    <p data-i18n="dropZoneText">📄 Datei hierher ziehen & fallen lassen oder klicken</p>
+    <p class="muted" data-i18n="supportedFormatsText">Unterstützt: PDF (ZUGFeRD/Factur-X), XML (XRechnung/EN16931)</p>
+    <input id="fileInput" type="file" accept=".xml,.pdf,application/pdf" multiple class="hidden">
   </div>
 
-  <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-    <button id="loadSampleBtn" type="button" class="sample-btn" data-i18n="loadSample">🧪 Beispiel-Rechnung laden</button>
+  <div class="btns">
+    <button id="loadSample" class="pill" type="button" data-i18n="loadSample">🧪 Beispiel laden</button>
   </div>
 
-  <!-- ============================================================
-       Loading & Success Feedback
-       ============================================================ -->
-  <div id="loadingSection" class="hidden" style="text-align: center; padding: 20px;">
-    <div class="loading"></div>
-    <span data-i18n="loadingText">Verarbeitung läuft...</span>
-  </div>
-
-  <div id="successSection" class="success hidden">
-    <span data-i18n="successText">✅ Rechnung erfolgreich verarbeitet!</span>
-  </div>
-
-  <!-- ============================================================
-       Statistics
-       ============================================================ -->
-  <section id="statsSection" class="hidden">
-    <h2 data-i18n="statistics">📊 Statistiken</h2>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3 data-i18n="statPositions">Positionen</h3>
-        <div class="value" id="statLineItems">0</div>
-      </div>
-      <div class="stat-card">
-        <h3 data-i18n="statNet">Nettosumme</h3>
-        <div class="value" id="statNetAmount">0 €</div>
-      </div>
-      <div class="stat-card">
-        <h3 data-i18n="statTax">Steuern</h3>
-        <div class="value" id="statTaxAmount">0 €</div>
-      </div>
-      <div class="stat-card">
-        <h3 data-i18n="statGross">Bruttosumme</h3>
-        <div class="value" id="statGrossAmount">0 €</div>
-      </div>
+  <section id="collectionSection">
+    <h2 data-i18n="collectionTitle">🗂️ Rechnungssammlung (optional)</h2>
+    <div class="controls">
+      <label for="collectionEnabled" class="muted" style="display:flex;gap:8px;align-items:center">
+        <input id="collectionEnabled" type="checkbox" aria-describedby="collectionHint">
+        <span data-i18n="collectionEnableLabel">Rechnungen lokal merken</span>
+      </label>
+      <span id="collectionHint" class="muted" data-i18n="collectionEnableHint">Nur im Browser (IndexedDB/LocalStorage). Löschbar.</span>
     </div>
-  </section>
 
-  <!-- ============================================================
-       Download Buttons
-       ============================================================ -->
-  <div class="download-buttons hidden" id="downloadButtons">
-    <button id="downloadXml" data-i18n="downloadXml">📄 XML speichern</button>
-    <button id="downloadPdf" data-i18n="downloadPdf">📋 PDF speichern</button>
-    <button id="downloadJson" data-i18n="downloadJson">📊 JSON Export</button>
-    <button id="downloadCsv" data-i18n="downloadCsv">📈 CSV Export</button>
-  </div>
+    <div id="collectionControls" class="controls hidden">
+      <input id="collectionSearch" type="search" placeholder="Suche…">
+      <select id="collectionStatusFilter" aria-label="Status filter"></select>
+      <label class="muted" style="display:flex;gap:8px;align-items:center">
+        <input id="collectionTodayOnly" type="checkbox">
+        <span data-i18n="collectionTodayOnly">nur heute</span>
+      </label>
 
-  <!-- ============================================================
-       XML Viewer
-       ============================================================ -->
-  <details id="xmlViewer" class="hidden">
-    <summary data-i18n="xmlViewerSummary">XML anzeigen</summary>
-    <pre id="originalXml"></pre>
-  </details>
-
-  <!-- ============================================================
-       Error Section
-       ============================================================ -->
-  <section id="errorSection" class="error hidden"></section>
-
-  <!-- ============================================================
-       Invoice & Payment Info (side-by-side grid)
-       ============================================================ -->
-  <div class="section-grid" id="invoicePaymentGrid">
-    <section id="headerSection" class="hidden">
-      <h2 data-i18n="invoiceInfo">📋 Rechnungsinformationen</h2>
-      <div class="table-container">
-        <table>
-          <tr><th data-i18n="invNumber" data-bt="BT-1">Rechnungsnummer</th><td id="invNumber"></td></tr>
-          <tr><th data-i18n="invType" data-bt="BT-3">Rechnungstyp</th><td id="invType"></td></tr>
-          <tr><th data-i18n="invDate" data-bt="BT-2">Rechnungsdatum</th><td id="invDate"></td></tr>
-          <tr><th data-i18n="invDueDate" data-bt="BT-9">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
-          <tr><th data-i18n="invOrderNumber" data-bt="BT-13">Bestellnummer</th><td id="invOrderNumber"></td></tr>
-          <tr><th data-i18n="invNote" data-bt="BT-22">Notiz</th><td id="invNote"></td></tr>
-        </table>
-      </div>
-    </section>
-
-    <section id="paymentSection" class="hidden">
-      <h2 data-i18n="paymentInfo">💳 Zahlungsinformationen</h2>
-      <div class="table-container">
-        <table>
-          <tr><th data-i18n="currency" data-bt="BT-5">Währung</th><td id="currency"></td></tr>
-          <tr><th data-i18n="paymentType" data-bt="BT-82">Zahlungsart</th><td id="paymentType"></td></tr>
-          <tr><th data-i18n="paymentTerms" data-bt="BT-20">Zahlungsziel</th><td id="paymentTerms"></td></tr>
-          <tr><th data-i18n="iban" data-bt="BT-84">IBAN</th><td id="iban"></td></tr>
-          <tr><th data-i18n="bic" data-bt="BT-86">BIC</th><td id="bic"></td></tr>
-          <tr><th data-i18n="accountHolder" data-bt="BT-85">Kontoinhaber</th><td id="accountHolder"></td></tr>
-          <tr><th data-i18n="netAmount" data-bt="BT-106">Gesamt netto</th><td id="netAmount"></td></tr>
-          <tr><th data-i18n="taxAmount" data-bt="BT-110">Steuerbetrag</th><td id="taxAmount"></td></tr>
-          <tr><th data-i18n="grossAmount" data-bt="BT-112">Gesamt brutto</th><td id="grossAmount"></td></tr>
-          <tr><th data-i18n="dueAmount" data-bt="BT-115">Fälliger Betrag</th><td id="dueAmount"></td></tr>
-        </table>
-      </div>
-
-      <!-- EPC QR Code buttons -->
-      <div style="margin-top: 10px;">
-        <button id="showQrBtn" type="button" class="sample-btn hidden">QR-Code anzeigen</button>
-        <button id="downloadQrBtn" type="button" class="sample-btn hidden" style="margin-left: 8px;">QR-Code speichern</button>
-      </div>
-    </section>
-  </div>
-
-  <!-- ============================================================
-       QR Modal
-       ============================================================ -->
-  <div id="qrModal" class="qr-modal" role="dialog" aria-hidden="true">
-    <div class="qr-modal-content">
-      <h3 data-i18n="qrCodeTitle">📱 QR-Code für Überweisung</h3>
-      <div class="qr-code-container"></div>
-      <div class="qr-info">
-        <div id="qrCodeInfo">
-          <strong data-i18n="qrCodeInfoTitle">Zum Bezahlen einfach QR-Code mit Banking-App scannen</strong><br>
-          <span data-i18n="qrCodeDetails">EPC-QR-Code (Girocode) nach europäischem Standard</span>
-        </div>
-        <div style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
-          <button id="modalDownloadQrBtn" type="button" class="sample-btn">QR-Code speichern</button>
-          <button id="closeQrModal" type="button" class="sample-btn">Schließen</button>
-        </div>
-      </div>
+      <button id="exportTodayJson" class="pill" type="button" data-i18n="exportTodayJson">JSON heute</button>
+      <button id="exportAllJson" class="pill" type="button" data-i18n="exportAllJson">JSON alle</button>
+      <button id="exportTodayCsv" class="pill" type="button" data-i18n="exportTodayCsv">CSV heute</button>
+      <button id="exportAllCsv" class="pill" type="button" data-i18n="exportAllCsv">CSV alle</button>
+      <button id="clearCollection" class="pill" type="button" data-i18n="clearCollection">Sammlung löschen</button>
     </div>
-  </div>
 
-  <!-- ============================================================
-       Seller & Buyer Info (side-by-side grid)
-       ============================================================ -->
-  <div class="section-grid" id="sellerBuyerGrid">
-    <section id="sellerSection" class="hidden">
-      <h2 data-i18n="sellerInfo">🏢 Verkäufer / Rechnungssteller</h2>
-      <div class="table-container">
-        <table>
-          <tr><th data-i18n="sellerName" data-bt="BT-27">Name</th><td id="sellerName"></td></tr>
-          <tr><th data-i18n="sellerAddress" data-bt="BT-35, BT-36, BT-38, BT-37, BT-39, BT-40">Adresse</th><td id="sellerAddress"></td></tr>
-          <tr><th data-i18n="sellerEmail" data-bt="BT-43">E-Mail</th><td id="sellerEmail"></td></tr>
-          <tr><th data-i18n="sellerPhone" data-bt="BT-42">Telefon</th><td id="sellerPhone"></td></tr>
-          <tr><th data-i18n="sellerTaxID" data-bt="BT-31, BT-32">Steuer-ID</th><td id="sellerTaxID"></td></tr>
-          <tr><th data-i18n="sellerRegister" data-bt="BT-33">Handelsregister</th><td id="sellerRegister"></td></tr>
-        </table>
-      </div>
-    </section>
+    <div id="collectionEmpty" class="muted hidden" data-i18n="collectionEmpty">Keine lokal gespeicherten Rechnungen.</div>
 
-    <section id="buyerSection" class="hidden">
-      <h2 data-i18n="buyerInfo">👤 Käufer / Rechnungsempfänger</h2>
-      <div class="table-container">
-        <table>
-          <tr><th data-i18n="buyerName" data-bt="BT-44">Name</th><td id="buyerName"></td></tr>
-          <tr><th data-i18n="buyerAddress" data-bt="BT-50, BT-53, BT-52, BT-54, BT-55">Adresse</th><td id="buyerAddress"></td></tr>
-          <tr><th data-i18n="buyerAddress2" data-bt="BT-51">Adresszusatz</th><td id="buyerAddress2"></td></tr>
-          <tr><th data-i18n="buyerEmail" data-bt="BT-58">E-Mail</th><td id="buyerEmail"></td></tr>
-          <tr><th data-i18n="buyerPhone" data-bt="BT-57">Telefon</th><td id="buyerPhone"></td></tr>
-          <tr><th data-i18n="buyerTaxID" data-bt="BT-48">Steuer-ID</th><td id="buyerTaxID"></td></tr>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <!-- ============================================================
-       Line Items
-       ============================================================ -->
-  <section id="lineItemsSection" class="hidden">
-    <h2 data-i18n="lineItems">📦 Positionen</h2>
-    <div class="table-container">
-      <table id="lineItemsTable">
+    <div id="collectionTableWrap" class="table-wrap hidden">
+      <table id="collectionTable">
+        <caption class="sr-only" data-i18n="collectionTableCaption">Lokale Rechnungsliste</caption>
         <thead>
           <tr>
-            <th data-i18n="posNr" data-bt="BT-126">Pos.-Nr.</th>
-            <th data-i18n="productName" data-bt="BT-153">Produktname</th>
-            <th data-i18n="description" data-bt="BT-154">Beschreibung</th>
-            <th data-i18n="notes">Notiz</th>
-            <th data-i18n="quantity" data-bt="BT-129">Menge</th>
-            <th data-i18n="unit" data-bt="BT-130">Einheit</th>
-            <th data-i18n="unitPrice">Einzelpreis</th>
-            <th data-i18n="lineNet">Zeilen-Netto</th>
-            <th data-i18n="taxRate">Steuersatz</th>
-            <th data-i18n="lineGross">Zeilenbrutto</th>
+            <th scope="col" data-i18n="colLoadedAt">Geladen</th>
+            <th scope="col" data-i18n="colInvNo">Nr.</th>
+            <th scope="col" data-i18n="colInvDate">Datum</th>
+            <th scope="col" data-i18n="colSeller">Verkäufer</th>
+            <th scope="col" data-i18n="colGross">Brutto</th>
+            <th scope="col" data-i18n="colStatus">Status</th>
+            <th scope="col" data-i18n="colComment">Kommentar</th>
+            <th scope="col" data-i18n="colActions">Aktionen</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -645,1060 +158,1536 @@
     </div>
   </section>
 
-  <!-- ============================================================
-       Application Script
-       ============================================================ -->
-  <script>
-    (function () {
-      "use strict";
+  <section id="warningsSection" class="warn hidden" aria-live="polite" aria-atomic="true">
+    <h2 data-i18n="warningsTitle">⚠️ Hinweise</h2>
+    <ul id="warningsList"></ul>
+  </section>
 
-      /* ==============================================================
-         1. CONFIGURATION & CONSTANTS
-         ============================================================== */
+  <div id="loading" class="hidden" role="status" aria-live="polite" aria-atomic="true">
+    <div class="loading"></div><span data-i18n="loadingText">Verarbeitung läuft…</span>
+  </div>
 
-      // PDF.js worker
-      if (window.pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js";
-      }
+  <div id="success" class="ok hidden" role="status" aria-live="polite" aria-atomic="true">
+    <span data-i18n="successText">✅ Rechnung verarbeitet!</span>
+  </div>
 
-      // XML namespace resolver for ZUGFeRD / CrossIndustryInvoice
-      const XML_NAMESPACES = {
-        rsm: "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100",
-        ram: "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100",
-        udt: "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100",
+  <section id="error" class="err hidden" role="alert" aria-live="assertive" aria-atomic="true"></section>
+
+  <div class="btns hidden" id="downloadButtons">
+    <button id="btnXml" class="btn" data-i18n="downloadXml">📄 XML</button>
+    <button id="btnPdf" class="btn" data-i18n="downloadPdf">📋 PDF</button>
+    <button id="btnJson" class="btn" data-i18n="downloadJson">📊 JSON</button>
+    <button id="btnCsv" class="btn" data-i18n="downloadCsv">📈 CSV</button>
+  </div>
+
+  <details id="xmlViewer" class="hidden">
+    <summary data-i18n="xmlViewerSummary">XML anzeigen</summary>
+    <pre id="xmlPre"></pre>
+  </details>
+
+  <div class="grid">
+    <section id="headerSection" class="hidden">
+      <h2 data-i18n="invoiceInfo">📋 Rechnungsinformationen</h2>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only" data-i18n="invoiceHeaderCaption">Rechnungs-Kopf</caption>
+          <tr><th scope="row" data-i18n="invNumber">Rechnungsnummer</th><td id="invNumber"></td></tr>
+          <tr><th scope="row" data-i18n="invDate">Rechnungsdatum</th><td id="invDate"></td></tr>
+          <tr><th scope="row" data-i18n="invDueDate">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
+          <tr><th scope="row" data-i18n="invOrderNumber">Bestellnummer</th><td id="invOrderNumber"></td></tr>
+          <tr><th scope="row" data-i18n="invNote">Notiz</th><td id="invNote"></td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section id="paymentSection" class="hidden">
+      <h2 data-i18n="paymentInfo">💳 Zahlungsinformationen</h2>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only" data-i18n="paymentCaption">Zahlungsdaten</caption>
+          <tr><th scope="row" data-i18n="currency">Währung</th><td id="currency"></td></tr>
+          <tr><th scope="row" data-i18n="paymentType">Zahlungsart</th><td id="paymentType"></td></tr>
+          <tr><th scope="row" data-i18n="paymentTerms">Zahlungsziel</th><td id="paymentTerms"></td></tr>
+          <tr><th scope="row" data-i18n="iban">IBAN</th><td id="iban"></td></tr>
+          <tr><th scope="row" data-i18n="bic">BIC</th><td id="bic"></td></tr>
+          <tr><th scope="row" data-i18n="accountHolder">Kontoinhaber</th><td id="accountHolder"></td></tr>
+          <tr><th scope="row" data-i18n="netAmount">Gesamt netto</th><td id="netAmount"></td></tr>
+          <tr><th scope="row" data-i18n="taxAmount">Steuerbetrag</th><td id="taxAmount"></td></tr>
+          <tr><th scope="row" data-i18n="grossAmount">Gesamt brutto</th><td id="grossAmount"></td></tr>
+          <tr><th scope="row" data-i18n="dueAmount">Fälliger Betrag</th><td id="dueAmount"></td></tr>
+        </table>
+      </div>
+
+      <div style="margin-top:10px">
+        <button id="showQr" class="pill hidden" type="button" data-i18n="showQr">QR anzeigen</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section id="sellerSection" class="hidden">
+      <h2 data-i18n="sellerInfo">🏢 Verkäufer</h2>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only" data-i18n="sellerCaption">Verkäuferdaten</caption>
+          <tr><th scope="row" data-i18n="sellerName">Name</th><td id="sellerName"></td></tr>
+          <tr><th scope="row" data-i18n="sellerAddress">Adresse</th><td id="sellerAddress"></td></tr>
+          <tr><th scope="row" data-i18n="sellerEmail">E-Mail</th><td id="sellerEmail"></td></tr>
+          <tr><th scope="row" data-i18n="sellerPhone">Telefon</th><td id="sellerPhone"></td></tr>
+          <tr><th scope="row" data-i18n="sellerTaxID">Steuer-ID</th><td id="sellerTaxID"></td></tr>
+          <tr><th scope="row" data-i18n="sellerRegister">Register</th><td id="sellerRegister"></td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section id="buyerSection" class="hidden">
+      <h2 data-i18n="buyerInfo">👤 Käufer</h2>
+      <div class="table-wrap">
+        <table>
+          <caption class="sr-only" data-i18n="buyerCaption">Käuferdaten</caption>
+          <tr><th scope="row" data-i18n="buyerName">Name</th><td id="buyerName"></td></tr>
+          <tr><th scope="row" data-i18n="buyerAddress">Adresse</th><td id="buyerAddress"></td></tr>
+          <tr><th scope="row" data-i18n="buyerAddress2">Zusatz</th><td id="buyerAddress2"></td></tr>
+          <tr><th scope="row" data-i18n="buyerEmail">E-Mail</th><td id="buyerEmail"></td></tr>
+          <tr><th scope="row" data-i18n="buyerPhone">Telefon</th><td id="buyerPhone"></td></tr>
+          <tr><th scope="row" data-i18n="buyerTaxID">Steuer-ID</th><td id="buyerTaxID"></td></tr>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section id="lineItemsSection" class="hidden">
+    <h2 data-i18n="lineItems">📦 Positionen</h2>
+    <div class="table-wrap">
+      <table id="lineItemsTable">
+        <caption class="sr-only" data-i18n="positionsCaption">Positionen</caption>
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="posNr">Pos.</th>
+            <th scope="col" data-i18n="productName">Produkt</th>
+            <th scope="col" data-i18n="description">Beschreibung</th>
+            <th scope="col" data-i18n="notes">Notiz</th>
+            <th scope="col" data-i18n="quantity">Menge</th>
+            <th scope="col" data-i18n="unit">Einheit</th>
+            <th scope="col" data-i18n="unitPrice">Preis</th>
+            <th scope="col" data-i18n="lineNet">Netto</th>
+            <th scope="col" data-i18n="taxRate">Steuer</th>
+            <th scope="col" data-i18n="lineGross">Brutto</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- QR Modal -->
+  <div id="qrModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true">
+    <div class="modal-box">
+      <h2 data-i18n="qrCodeTitle">📱 QR-Code</h2>
+      <div class="qrbox" id="qrCanvasWrap"></div>
+      <div class="muted">
+        <strong data-i18n="qrCodeInfoTitle">Scannen zum Bezahlen</strong><br>
+        <span data-i18n="qrCodeDetails">EPC QR Code</span>
+      </div>
+      <div class="controls" style="justify-content:center">
+        <button id="qrSave" class="pill" type="button" data-i18n="saveQr">QR speichern</button>
+        <button id="qrClose" class="pill" type="button" data-i18n="close">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comment Modal -->
+  <div id="textModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true">
+    <div class="modal-box" style="text-align:left">
+      <h2 id="textModalTitle">📝 Kommentar</h2>
+      <textarea id="textModalTextarea" rows="7"></textarea>
+      <div class="controls" style="justify-content:center">
+        <button id="textModalSave" class="pill" type="button" data-i18n="save">Speichern</button>
+        <button id="textModalClose" class="pill" type="button" data-i18n="close">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  // PDF.js worker
+  if (window.pdfjsLib?.GlobalWorkerOptions) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js";
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  // Namespaces (CII/CrossIndustryInvoice)
+  const XML_NS = {
+    rsm: "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100",
+    ram: "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100",
+    udt: "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100",
+  };
+  const nsResolver = (p) => XML_NS[p] || null;
+
+  const UNIT = {
+    C62:{de:"Stück",en:"Piece",fr:"Pièce",it:"Pezzo"},
+    HUR:{de:"Stunde",en:"Hour",fr:"Heure",it:"Ora"},
+    DAY:{de:"Tag",en:"Day",fr:"Jour",it:"Giorno"},
+    MON:{de:"Monat",en:"Month",fr:"Mois",it:"Mese"},
+    ANN:{de:"Jahr",en:"Year",fr:"An",it:"Anno"},
+    KGM:{de:"Kilogramm",en:"Kilogram",fr:"Kilogramme",it:"Chilogrammo"},
+    LTR:{de:"Liter",en:"Litre",fr:"Litre",it:"Litro"},
+    ZZ:{de:"Pauschale",en:"Lump sum",fr:"Forfait",it:"Forfait"},
+  };
+  const CUR = {EUR:"€",USD:"$",GBP:"£",CHF:"CHF"};
+
+  const PAYTYPE = {
+    de:{30:"Überweisung",58:"SEPA-Überweisung",59:"SEPA-Lastschrift",49:"Lastschrift",48:"Kartenzahlung",10:"Barzahlung"},
+    en:{30:"Credit transfer",58:"SEPA Credit Transfer",59:"SEPA Direct Debit",49:"Direct debit",48:"Card payment",10:"Cash"},
+    fr:{30:"Virement",58:"Virement SEPA",59:"Prélèvement SEPA",49:"Prélèvement",48:"Paiement par carte",10:"Espèces"},
+    it:{30:"Bonifico",58:"Bonifico SEPA",59:"Addebito SEPA",49:"Addebito diretto",48:"Carta",10:"Contanti"},
+  };
+
+  const LABELS = {
+    de:{
+      mainTitle:"E‑Rechnungs‑Reader (ZUGFeRD / XRechnung / EN16931)",
+      descriptionTitle:"Beschreibung",
+      descriptionText:"Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur‑X PDFs an. Eingebettete XMLs in PDFs werden extrahiert.",
+      disclaimerText:"<strong>Hinweis:</strong> Verarbeitung vollständig im Browser. Keine Uploads. Optional kann eine lokale Rechnungssammlung aktiviert werden (IndexedDB/LocalStorage), die jederzeit löschbar ist. Keine Gewähr.",
+      shortcutHint:"Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute",
+      dropZoneText:"📄 Datei hierher ziehen & fallen lassen oder klicken",
+      supportedFormatsText:"Unterstützt: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      loadSample:"🧪 Beispiel laden",
+      loadingText:"Verarbeitung läuft…",
+      successText:"✅ Rechnung verarbeitet!",
+      warningsTitle:"⚠️ Hinweise",
+      warningsInvalidIban:"IBAN wirkt ungültig (Prüfsumme).",
+      warningsTotalsMismatch:"Summen wirken inkonsistent (Positionssumme vs. Netto).",
+      warningsUbl:"UBL-Rechnung erkannt: Anzeige von XML, Mapping (noch) nicht vollständig.",
+      downloadXml:"📄 XML speichern",
+      downloadPdf:"📋 PDF speichern",
+      downloadJson:"📊 JSON Export",
+      downloadCsv:"📈 CSV Export",
+      xmlViewerSummary:"XML anzeigen",
+      invoiceInfo:"📋 Rechnungsinformationen",
+      paymentInfo:"💳 Zahlungsinformationen",
+      sellerInfo:"🏢 Verkäufer",
+      buyerInfo:"👤 Käufer",
+      lineItems:"📦 Positionen",
+      invoiceHeaderCaption:"Rechnungs-Kopf",
+      paymentCaption:"Zahlungsdaten",
+      sellerCaption:"Verkäuferdaten",
+      buyerCaption:"Käuferdaten",
+      positionsCaption:"Positionen",
+      invNumber:"Rechnungsnummer",
+      invDate:"Rechnungsdatum",
+      invDueDate:"Fälligkeitsdatum",
+      invOrderNumber:"Bestellnummer",
+      invNote:"Notiz",
+      currency:"Währung",
+      paymentType:"Zahlungsart",
+      paymentTerms:"Zahlungsziel",
+      iban:"IBAN",
+      bic:"BIC",
+      accountHolder:"Kontoinhaber",
+      netAmount:"Gesamt netto",
+      taxAmount:"Steuerbetrag",
+      grossAmount:"Gesamt brutto",
+      dueAmount:"Fälliger Betrag",
+      sellerName:"Name",
+      sellerAddress:"Adresse",
+      sellerEmail:"E‑Mail",
+      sellerPhone:"Telefon",
+      sellerTaxID:"Steuer-ID",
+      sellerRegister:"Register",
+      buyerName:"Name",
+      buyerAddress:"Adresse",
+      buyerAddress2:"Zusatz",
+      buyerEmail:"E‑Mail",
+      buyerPhone:"Telefon",
+      buyerTaxID:"Steuer-ID",
+      posNr:"Pos.",
+      productName:"Produkt",
+      description:"Beschreibung",
+      notes:"Notiz",
+      quantity:"Menge",
+      unit:"Einheit",
+      unitPrice:"Preis",
+      lineNet:"Netto",
+      taxRate:"Steuer",
+      lineGross:"Brutto",
+      noFileFound:"Keine XML-Datei im PDF gefunden.",
+      unsupportedFormat:"Dateiformat nicht unterstützt.",
+      invalidXml:"Ungültige XML-Datei.",
+      pdfNotAvailable:"Original-PDF ist nicht verfügbar.",
+      processingError:"Fehler beim Verarbeiten: ",
+      noPositionsToExport:"Keine Positionen verfügbar.",
+      // collection
+      collectionTitle:"🗂️ Rechnungssammlung (optional)",
+      collectionEnableLabel:"Rechnungen lokal merken",
+      collectionEnableHint:"Nur im Browser (IndexedDB/LocalStorage). Löschbar.",
+      collectionTodayOnly:"nur heute",
+      collectionEmpty:"Keine lokal gespeicherten Rechnungen.",
+      collectionTableCaption:"Lokale Rechnungsliste",
+      exportTodayJson:"JSON heute",
+      exportAllJson:"JSON alle",
+      exportTodayCsv:"CSV heute",
+      exportAllCsv:"CSV alle",
+      clearCollection:"Sammlung löschen",
+      colLoadedAt:"Geladen",
+      colInvNo:"Nr.",
+      colInvDate:"Datum",
+      colSeller:"Verkäufer",
+      colGross:"Brutto",
+      colStatus:"Status",
+      colComment:"Kommentar",
+      colActions:"Aktionen",
+      status_all:"Alle Status",
+      status_open:"offen",
+      status_checked:"geprüft",
+      status_unclear:"unklar",
+      status_done:"erledigt",
+      status_pay:"bezahlen",
+      status_paid:"bezahlt",
+      status_claim:"reklamieren",
+      status_claimed:"reklamiert",
+      status_cancelled:"storniert",
+      dupHint:"Duplikat",
+      btnOpen:"Öffnen",
+      btnDelete:"Löschen",
+      btnComment:"Kommentar",
+      confirmDeleteOne:"Diese Rechnung löschen?",
+      confirmClearAll:"Sammlung wirklich komplett löschen?",
+      // modal
+      qrCodeTitle:"📱 QR-Code für Überweisung",
+      qrCodeInfoTitle:"Zum Bezahlen scannen",
+      qrCodeDetails:"EPC‑QR‑Code (Girocode) Standard",
+      saveQr:"QR speichern",
+      showQr:"QR anzeigen",
+      save:"Speichern",
+      close:"Schließen",
+      copy:"Kopieren",
+      copied:"Kopiert!",
+    },
+    en:{
+      mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / EN16931)",
+      descriptionTitle:"Description",
+      descriptionText:"View e-invoices (XML) and ZUGFeRD/Factur‑X PDFs. Embedded XML is extracted.",
+      disclaimerText:"<strong>Note:</strong> Fully local in your browser. No uploads. Optional local collection (IndexedDB/LocalStorage), deletable anytime. No warranty.",
+      shortcutHint:"Tip: Ctrl/⌘+O open file · Ctrl/⌘+F search · Ctrl/⌘+E export today",
+      dropZoneText:"📄 Drop a file here or click to select",
+      supportedFormatsText:"Supported: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      loadSample:"🧪 Load sample",
+      loadingText:"Processing…",
+      successText:"✅ Invoice processed!",
+      warningsTitle:"⚠️ Notices",
+      warningsInvalidIban:"IBAN looks invalid (checksum).",
+      warningsTotalsMismatch:"Totals look inconsistent (lines vs. net).",
+      warningsUbl:"UBL invoice detected: XML shown, mapping not fully supported yet.",
+      downloadXml:"📄 Save XML",
+      downloadPdf:"📋 Save PDF",
+      downloadJson:"📊 JSON export",
+      downloadCsv:"📈 CSV export",
+      xmlViewerSummary:"Show XML",
+      invoiceInfo:"📋 Invoice info",
+      paymentInfo:"💳 Payment info",
+      sellerInfo:"🏢 Seller",
+      buyerInfo:"👤 Buyer",
+      lineItems:"📦 Line items",
+      invoiceHeaderCaption:"Invoice header",
+      paymentCaption:"Payment data",
+      sellerCaption:"Seller details",
+      buyerCaption:"Buyer details",
+      positionsCaption:"Line items",
+      invNumber:"Invoice number",
+      invDate:"Invoice date",
+      invDueDate:"Due date",
+      invOrderNumber:"Order number",
+      invNote:"Note",
+      currency:"Currency",
+      paymentType:"Payment type",
+      paymentTerms:"Payment terms",
+      iban:"IBAN",
+      bic:"BIC",
+      accountHolder:"Account holder",
+      netAmount:"Net total",
+      taxAmount:"Tax total",
+      grossAmount:"Gross total",
+      dueAmount:"Amount due",
+      sellerName:"Name",
+      sellerAddress:"Address",
+      sellerEmail:"Email",
+      sellerPhone:"Phone",
+      sellerTaxID:"Tax ID",
+      sellerRegister:"Register",
+      buyerName:"Name",
+      buyerAddress:"Address",
+      buyerAddress2:"Line 2",
+      buyerEmail:"Email",
+      buyerPhone:"Phone",
+      buyerTaxID:"Tax ID",
+      posNr:"No.",
+      productName:"Product",
+      description:"Description",
+      notes:"Notes",
+      quantity:"Qty",
+      unit:"Unit",
+      unitPrice:"Unit price",
+      lineNet:"Line net",
+      taxRate:"Tax",
+      lineGross:"Line gross",
+      noFileFound:"No XML found in PDF.",
+      unsupportedFormat:"Unsupported file type.",
+      invalidXml:"Invalid XML.",
+      pdfNotAvailable:"Original PDF not available.",
+      processingError:"Processing error: ",
+      noPositionsToExport:"No line items available.",
+      collectionTitle:"🗂️ Invoice collection (optional)",
+      collectionEnableLabel:"Remember invoices locally",
+      collectionEnableHint:"Browser-only (IndexedDB/LocalStorage). Deletable anytime.",
+      collectionTodayOnly:"today only",
+      collectionEmpty:"No locally saved invoices.",
+      collectionTableCaption:"Local invoice list",
+      exportTodayJson:"JSON today",
+      exportAllJson:"JSON all",
+      exportTodayCsv:"CSV today",
+      exportAllCsv:"CSV all",
+      clearCollection:"Clear collection",
+      colLoadedAt:"Loaded",
+      colInvNo:"No.",
+      colInvDate:"Date",
+      colSeller:"Seller",
+      colGross:"Gross",
+      colStatus:"Status",
+      colComment:"Comment",
+      colActions:"Actions",
+      status_all:"All statuses",
+      status_open:"open",
+      status_checked:"checked",
+      status_unclear:"unclear",
+      status_done:"done",
+      status_pay:"to pay",
+      status_paid:"paid",
+      status_claim:"complain",
+      status_claimed:"complained",
+      status_cancelled:"cancelled",
+      dupHint:"Duplicate",
+      btnOpen:"Open",
+      btnDelete:"Delete",
+      btnComment:"Comment",
+      confirmDeleteOne:"Delete this invoice?",
+      confirmClearAll:"Clear the whole collection?",
+      qrCodeTitle:"📱 QR Code (payment)",
+      qrCodeInfoTitle:"Scan to pay",
+      qrCodeDetails:"EPC QR Code (Girocode)",
+      saveQr:"Save QR",
+      showQr:"Show QR",
+      save:"Save",
+      close:"Close",
+      copy:"Copy",
+      copied:"Copied!",
+    },
+    fr:{
+      mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / EN16931)",
+      descriptionTitle:"Description",
+      descriptionText:"Afficher des factures (XML) et des PDF ZUGFeRD/Factur‑X. Le XML intégré est extrait.",
+      disclaimerText:"<strong>Remarque :</strong> Traitement local dans le navigateur. Aucun téléversement. Option : collection locale (IndexedDB/LocalStorage), supprimable. Aucune garantie.",
+      shortcutHint:"Astuce : Ctrl/⌘+O ouvrir · Ctrl/⌘+F rechercher · Ctrl/⌘+E export aujourd’hui",
+      dropZoneText:"📄 Déposez un fichier ici ou cliquez pour sélectionner",
+      supportedFormatsText:"Formats : PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      loadSample:"🧪 Charger un exemple",
+      loadingText:"Traitement…",
+      successText:"✅ Facture traitée !",
+      warningsTitle:"⚠️ Remarques",
+      warningsInvalidIban:"L’IBAN semble invalide (checksum).",
+      warningsTotalsMismatch:"Totaux incohérents (lignes vs net).",
+      warningsUbl:"Facture UBL détectée : XML affiché, mapping pas encore complet.",
+      downloadXml:"📄 Enregistrer XML",
+      downloadPdf:"📋 Enregistrer PDF",
+      downloadJson:"📊 Export JSON",
+      downloadCsv:"📈 Export CSV",
+      xmlViewerSummary:"Afficher le XML",
+      invoiceInfo:"📋 Infos facture",
+      paymentInfo:"💳 Paiement",
+      sellerInfo:"🏢 Vendeur",
+      buyerInfo:"👤 Acheteur",
+      lineItems:"📦 Lignes",
+      invoiceHeaderCaption:"En-tête",
+      paymentCaption:"Paiement",
+      sellerCaption:"Vendeur",
+      buyerCaption:"Acheteur",
+      positionsCaption:"Lignes",
+      invNumber:"N° facture",
+      invDate:"Date",
+      invDueDate:"Échéance",
+      invOrderNumber:"N° commande",
+      invNote:"Note",
+      currency:"Devise",
+      paymentType:"Type de paiement",
+      paymentTerms:"Conditions",
+      iban:"IBAN",
+      bic:"BIC",
+      accountHolder:"Titulaire",
+      netAmount:"Total net",
+      taxAmount:"Taxes",
+      grossAmount:"Total brut",
+      dueAmount:"Montant dû",
+      sellerName:"Nom",
+      sellerAddress:"Adresse",
+      sellerEmail:"E‑mail",
+      sellerPhone:"Téléphone",
+      sellerTaxID:"ID TVA",
+      sellerRegister:"Registre",
+      buyerName:"Nom",
+      buyerAddress:"Adresse",
+      buyerAddress2:"Complément",
+      buyerEmail:"E‑mail",
+      buyerPhone:"Téléphone",
+      buyerTaxID:"ID TVA",
+      posNr:"N°",
+      productName:"Produit",
+      description:"Description",
+      notes:"Note",
+      quantity:"Qté",
+      unit:"Unité",
+      unitPrice:"Prix unit.",
+      lineNet:"Net ligne",
+      taxRate:"TVA",
+      lineGross:"Brut ligne",
+      noFileFound:"Aucun XML trouvé dans le PDF.",
+      unsupportedFormat:"Format non pris en charge.",
+      invalidXml:"XML invalide.",
+      pdfNotAvailable:"PDF indisponible.",
+      processingError:"Erreur : ",
+      noPositionsToExport:"Aucune ligne.",
+      collectionTitle:"🗂️ Collection (optionnel)",
+      collectionEnableLabel:"Mémoriser localement",
+      collectionEnableHint:"Navigateur uniquement (IndexedDB/LocalStorage). Suppression possible.",
+      collectionTodayOnly:"aujourd’hui seulement",
+      collectionEmpty:"Aucune facture enregistrée.",
+      collectionTableCaption:"Liste locale",
+      exportTodayJson:"JSON aujourd’hui",
+      exportAllJson:"JSON toutes",
+      exportTodayCsv:"CSV aujourd’hui",
+      exportAllCsv:"CSV toutes",
+      clearCollection:"Vider la collection",
+      colLoadedAt:"Chargée",
+      colInvNo:"N°",
+      colInvDate:"Date",
+      colSeller:"Vendeur",
+      colGross:"Brut",
+      colStatus:"Statut",
+      colComment:"Commentaire",
+      colActions:"Actions",
+      status_all:"Tous statuts",
+      status_open:"ouvert",
+      status_checked:"vérifié",
+      status_unclear:"à clarifier",
+      status_done:"terminé",
+      status_pay:"à payer",
+      status_paid:"payé",
+      status_claim:"réclamer",
+      status_claimed:"réclamé",
+      status_cancelled:"annulé",
+      dupHint:"Doublon",
+      btnOpen:"Ouvrir",
+      btnDelete:"Supprimer",
+      btnComment:"Commentaire",
+      confirmDeleteOne:"Supprimer cette facture ?",
+      confirmClearAll:"Vider toute la collection ?",
+      qrCodeTitle:"📱 QR Code (paiement)",
+      qrCodeInfoTitle:"Scanner pour payer",
+      qrCodeDetails:"EPC QR Code (Girocode)",
+      saveQr:"Enregistrer QR",
+      showQr:"Afficher QR",
+      save:"Enregistrer",
+      close:"Fermer",
+      copy:"Copier",
+      copied:"Copié !",
+    },
+    it:{
+      mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / EN16931)",
+      descriptionTitle:"Descrizione",
+      descriptionText:"Visualizza fatture (XML) e PDF ZUGFeRD/Factur‑X. L’XML incorporato viene estratto.",
+      disclaimerText:"<strong>Nota:</strong> Elaborazione locale nel browser. Nessun upload. Opzione: raccolta locale (IndexedDB/LocalStorage), eliminabile. Nessuna garanzia.",
+      shortcutHint:"Suggerimento: Ctrl/⌘+O apri · Ctrl/⌘+F cerca · Ctrl/⌘+E export oggi",
+      dropZoneText:"📄 Trascina un file qui o fai clic per selezionare",
+      supportedFormatsText:"Formati: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      loadSample:"🧪 Carica esempio",
+      loadingText:"Elaborazione…",
+      successText:"✅ Fattura elaborata!",
+      warningsTitle:"⚠️ Avvisi",
+      warningsInvalidIban:"L’IBAN sembra non valido (checksum).",
+      warningsTotalsMismatch:"Totali incoerenti (righe vs netto).",
+      warningsUbl:"Rilevata fattura UBL: XML mostrato, mapping non ancora completo.",
+      downloadXml:"📄 Salva XML",
+      downloadPdf:"📋 Salva PDF",
+      downloadJson:"📊 Export JSON",
+      downloadCsv:"📈 Export CSV",
+      xmlViewerSummary:"Mostra XML",
+      invoiceInfo:"📋 Info fattura",
+      paymentInfo:"💳 Pagamento",
+      sellerInfo:"🏢 Venditore",
+      buyerInfo:"👤 Acquirente",
+      lineItems:"📦 Righe",
+      invoiceHeaderCaption:"Intestazione",
+      paymentCaption:"Pagamento",
+      sellerCaption:"Venditore",
+      buyerCaption:"Acquirente",
+      positionsCaption:"Righe",
+      invNumber:"Numero fattura",
+      invDate:"Data",
+      invDueDate:"Scadenza",
+      invOrderNumber:"Numero ordine",
+      invNote:"Nota",
+      currency:"Valuta",
+      paymentType:"Tipo pagamento",
+      paymentTerms:"Termini",
+      iban:"IBAN",
+      bic:"BIC",
+      accountHolder:"Intestatario",
+      netAmount:"Totale netto",
+      taxAmount:"Imposte",
+      grossAmount:"Totale lordo",
+      dueAmount:"Importo dovuto",
+      sellerName:"Nome",
+      sellerAddress:"Indirizzo",
+      sellerEmail:"Email",
+      sellerPhone:"Telefono",
+      sellerTaxID:"ID fiscale",
+      sellerRegister:"Registro",
+      buyerName:"Nome",
+      buyerAddress:"Indirizzo",
+      buyerAddress2:"Extra",
+      buyerEmail:"Email",
+      buyerPhone:"Telefono",
+      buyerTaxID:"ID fiscale",
+      posNr:"N.",
+      productName:"Prodotto",
+      description:"Descrizione",
+      notes:"Nota",
+      quantity:"Qtà",
+      unit:"Unità",
+      unitPrice:"Prezzo unit.",
+      lineNet:"Netto riga",
+      taxRate:"IVA",
+      lineGross:"Lordo riga",
+      noFileFound:"Nessun XML nel PDF.",
+      unsupportedFormat:"Formato non supportato.",
+      invalidXml:"XML non valido.",
+      pdfNotAvailable:"PDF non disponibile.",
+      processingError:"Errore: ",
+      noPositionsToExport:"Nessuna riga.",
+      collectionTitle:"🗂️ Raccolta (opzionale)",
+      collectionEnableLabel:"Memorizza localmente",
+      collectionEnableHint:"Solo nel browser (IndexedDB/LocalStorage). Eliminabile.",
+      collectionTodayOnly:"solo oggi",
+      collectionEmpty:"Nessuna fattura salvata.",
+      collectionTableCaption:"Elenco locale",
+      exportTodayJson:"JSON oggi",
+      exportAllJson:"JSON tutte",
+      exportTodayCsv:"CSV oggi",
+      exportAllCsv:"CSV tutte",
+      clearCollection:"Svuota raccolta",
+      colLoadedAt:"Caricata",
+      colInvNo:"N.",
+      colInvDate:"Data",
+      colSeller:"Venditore",
+      colGross:"Lordo",
+      colStatus:"Stato",
+      colComment:"Commento",
+      colActions:"Azioni",
+      status_all:"Tutti stati",
+      status_open:"aperto",
+      status_checked:"verificato",
+      status_unclear:"da chiarire",
+      status_done:"fatto",
+      status_pay:"da pagare",
+      status_paid:"pagato",
+      status_claim:"contestare",
+      status_claimed:"contestato",
+      status_cancelled:"annullato",
+      dupHint:"Duplicato",
+      btnOpen:"Apri",
+      btnDelete:"Elimina",
+      btnComment:"Commento",
+      confirmDeleteOne:"Eliminare questa fattura?",
+      confirmClearAll:"Svuotare tutta la raccolta?",
+      qrCodeTitle:"📱 QR Code (pagamento)",
+      qrCodeInfoTitle:"Scansiona per pagare",
+      qrCodeDetails:"EPC QR Code (Girocode)",
+      saveQr:"Salva QR",
+      showQr:"Mostra QR",
+      save:"Salva",
+      close:"Chiudi",
+      copy:"Copia",
+      copied:"Copiato!",
+    }
+  };
+
+  const STATUS_KEYS = ["open","checked","unclear","done","pay","paid","claim","claimed","cancelled"];
+
+  // DOM
+  const dom = {
+    dropZone: $("dropZone"),
+    fileInput: $("fileInput"),
+    loadSample: $("loadSample"),
+    loading: $("loading"),
+    success: $("success"),
+    error: $("error"),
+    downloadButtons: $("downloadButtons"),
+    btnXml: $("btnXml"),
+    btnPdf: $("btnPdf"),
+    btnJson: $("btnJson"),
+    btnCsv: $("btnCsv"),
+    xmlViewer: $("xmlViewer"),
+    xmlPre: $("xmlPre"),
+    warningsSection: $("warningsSection"),
+    warningsList: $("warningsList"),
+    headerSection: $("headerSection"),
+    paymentSection: $("paymentSection"),
+    sellerSection: $("sellerSection"),
+    buyerSection: $("buyerSection"),
+    lineItemsSection: $("lineItemsSection"),
+    lineItemsTable: $("lineItemsTable"),
+    // fields
+    invNumber:$("invNumber"), invDate:$("invDate"), invDueDate:$("invDueDate"), invOrderNumber:$("invOrderNumber"), invNote:$("invNote"),
+    currency:$("currency"), paymentType:$("paymentType"), paymentTerms:$("paymentTerms"), iban:$("iban"), bic:$("bic"), accountHolder:$("accountHolder"),
+    netAmount:$("netAmount"), taxAmount:$("taxAmount"), grossAmount:$("grossAmount"), dueAmount:$("dueAmount"),
+    sellerName:$("sellerName"), sellerAddress:$("sellerAddress"), sellerEmail:$("sellerEmail"), sellerPhone:$("sellerPhone"), sellerTaxID:$("sellerTaxID"), sellerRegister:$("sellerRegister"),
+    buyerName:$("buyerName"), buyerAddress:$("buyerAddress"), buyerAddress2:$("buyerAddress2"), buyerEmail:$("buyerEmail"), buyerPhone:$("buyerPhone"), buyerTaxID:$("buyerTaxID"),
+    // collection
+    collectionEnabled:$("collectionEnabled"),
+    collectionControls:$("collectionControls"),
+    collectionSearch:$("collectionSearch"),
+    collectionStatusFilter:$("collectionStatusFilter"),
+    collectionTodayOnly:$("collectionTodayOnly"),
+    collectionEmpty:$("collectionEmpty"),
+    collectionTableWrap:$("collectionTableWrap"),
+    collectionTable:$("collectionTable"),
+    exportTodayJson:$("exportTodayJson"),
+    exportAllJson:$("exportAllJson"),
+    exportTodayCsv:$("exportTodayCsv"),
+    exportAllCsv:$("exportAllCsv"),
+    clearCollection:$("clearCollection"),
+    // modals
+    showQr:$("showQr"),
+    qrModal:$("qrModal"),
+    qrCanvasWrap:$("qrCanvasWrap"),
+    qrSave:$("qrSave"),
+    qrClose:$("qrClose"),
+    textModal:$("textModal"),
+    textModalTitle:$("textModalTitle"),
+    textModalTextarea:$("textModalTextarea"),
+    textModalSave:$("textModalSave"),
+    textModalClose:$("textModalClose"),
+  };
+
+  // state
+  let lang = "de";
+  let xmlDoc = null;
+  let originalPdfBlob = null;
+  let originalXmlBlob = null;
+  let invoiceData = {};
+  let warnings = [];
+
+  // helpers
+  const L = () => LABELS[lang] || LABELS.de;
+
+  function setLang(newLang){
+    lang = newLang;
+    try{ localStorage.setItem("invoiceInspector.lang", lang); }catch(_){}
+    document.documentElement.setAttribute("lang", lang);
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const k = el.getAttribute("data-i18n");
+      if (L()[k] != null) el.textContent = L()[k];
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach(el=>{
+      const k = el.getAttribute("data-i18n-html");
+      if (L()[k] != null) el.innerHTML = L()[k];
+    });
+    document.title = L().mainTitle;
+    dom.dropZone.setAttribute("aria-label", L().dropZoneText);
+    dom.collectionSearch.placeholder = (lang==="de")?"Suche…":(lang==="fr")?"Recherche…":(lang==="it")?"Cerca…":"Search…";
+    // active btn
+    document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+    (lang==="de"?$("langDe"):lang==="fr"?$("langFr"):lang==="it"?$("langIt"):$("langEn")).classList.add("active");
+
+    buildStatusFilterOptions();
+    renderCollection();
+  }
+
+  function show(el){ el.classList.remove("hidden"); }
+  function hide(el){ el.classList.add("hidden"); }
+  function showLoading(){ show(dom.loading); }
+  function hideLoading(){ hide(dom.loading); }
+  function showSuccess(){ show(dom.success); setTimeout(()=>hide(dom.success), 2200); }
+  function showError(msg){ dom.error.textContent = msg; show(dom.error); }
+  function clearError(){ dom.error.textContent=""; hide(dom.error); }
+
+  function resetView(){
+    warnings=[]; renderWarnings();
+    clearError();
+    hide(dom.downloadButtons);
+    hide(dom.xmlViewer);
+    hide(dom.headerSection); hide(dom.paymentSection); hide(dom.sellerSection); hide(dom.buyerSection); hide(dom.lineItemsSection);
+    dom.xmlPre.textContent="";
+    dom.lineItemsTable.querySelector("tbody").innerHTML="";
+    Object.values(dom).forEach(v=>{}); // noop
+    originalPdfBlob=null; originalXmlBlob=null; xmlDoc=null; invoiceData={};
+    // close modals
+    closeModal(dom.qrModal);
+    closeModal(dom.textModal);
+    dom.qrCanvasWrap.innerHTML="";
+    hide(dom.showQr);
+  }
+
+  function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s??""; return d.innerHTML; }
+  function formatDate(s){
+    if (!s) return "";
+    if (/^\d{8}$/.test(s)) return `${s.slice(6,8)}.${s.slice(4,6)}.${s.slice(0,4)}`;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)){ const [y,m,d]=s.split("-"); return `${d}.${m}.${y}`; }
+    return s;
+  }
+  function getCurSym(c){ return CUR[c] || c || "€"; }
+  function fmtMoney(v, sym){ if (v==null || v==="") return ""; const n=parseFloat(v); if (Number.isNaN(n)) return String(v); const t=n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); return (sym==="$"||sym==="£")?`${sym}${t}`:`${t} ${sym}`; }
+  function getUnit(code){ if(!code) return ""; const e=UNIT[code.toUpperCase()]; const name=e ? (e[lang]||e.en||e.de) : code; return `${name} (${code.toUpperCase()})`; }
+  function payTypeName(code){ const d=PAYTYPE[lang]||PAYTYPE.en||{}; return d[code] || (lang==="de"?`Unbekannt (${code})`:`Unknown (${code})`); }
+
+  // IBAN checksum
+  function isValidIBAN(iban){
+    if(!iban) return false;
+    const s=iban.replace(/\s+/g,"").toUpperCase();
+    if(!/^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$/.test(s)) return false;
+    const r=s.slice(4)+s.slice(0,4);
+    const e=r.replace(/[A-Z]/g,c=>(c.charCodeAt(0)-55).toString());
+    let rem=0;
+    for(let i=0;i<e.length;i+=7){ rem=parseInt(String(rem)+e.substr(i,7),10)%97; }
+    return rem===1;
+  }
+
+  function csvDelimiter(){ return (lang==="en") ? "," : ";"; }
+  function csvNum(v){
+    if(v==null || v==="") return "";
+    const s=String(v);
+    if(lang==="en") return s;
+    return s.replace(/(\d)\.(\d)/g,"$1,$2");
+  }
+
+  function addWarning(msgKey){
+    warnings.push(L()[msgKey] || msgKey);
+  }
+  function renderWarnings(){
+    dom.warningsList.innerHTML="";
+    if(!warnings.length){ hide(dom.warningsSection); return; }
+    warnings.forEach(w=>{ const li=document.createElement("li"); li.textContent=w; dom.warningsList.appendChild(li); });
+    show(dom.warningsSection);
+  }
+
+  // XPath helpers
+  function xp1(ctx, path){
+    return xmlDoc.evaluate(path, ctx, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  }
+  function xps(ctx, path){
+    const r=xmlDoc.evaluate(path, ctx, nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    return Array.from({length:r.snapshotLength}, (_,i)=>r.snapshotItem(i));
+  }
+
+  // Detect UBL
+  function isUbl(doc){
+    const root=doc.documentElement;
+    if(!root) return false;
+    const name=(root.localName||root.nodeName||"").toLowerCase();
+    const ns=(root.namespaceURI||"").toLowerCase();
+    return name==="invoice" && ns.includes("oasis") && ns.includes("ubl");
+  }
+
+  function beautifyXml(xml){
+    const IND="  ";
+    let out="", depth=0;
+    xml.replace(/(>)(<)(\/*)/g,"$1\n$2$3").split("\n").forEach(line=>{
+      let delta=0;
+      if(line.match(/.+<\/\w[^>]*>$/)) delta=0;
+      else if(line.match(/^<\/\w/)){ if(depth>0) depth--; }
+      else if(line.match(/^<\w[^>]*[^/]>.*$/)) delta=1;
+      out += IND.repeat(depth) + line.trim() + "\n";
+      depth += delta;
+    });
+    return out;
+  }
+
+  // PDF -> XML attachment
+  async function extractXmlFromPdf(file){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
+    const att = await pdf.getAttachments();
+    if(!att) return null;
+    for(const [name,a] of Object.entries(att)){
+      if(name.toLowerCase().endsWith(".xml")) return new TextDecoder("utf-8").decode(a.content);
+    }
+    return null;
+  }
+
+  // Modals (ARIA focus trap)
+  let lastFocus=null;
+  function focusables(modal){ return Array.from(modal.querySelectorAll("button,[href],input,textarea,select,[tabindex]:not([tabindex='-1'])")).filter(x=>!x.disabled); }
+  function openModal(modal, focusEl){
+    lastFocus=document.activeElement;
+    modal.classList.add("visible");
+    modal.setAttribute("aria-hidden","false");
+    modal.setAttribute("aria-modal","true");
+    (focusEl || focusables(modal)[0])?.focus?.();
+  }
+  function closeModal(modal){
+    modal.classList.remove("visible");
+    modal.setAttribute("aria-hidden","true");
+    try{ lastFocus?.focus?.(); }catch(_){}
+  }
+  function trapFocus(modal, e){
+    if(!modal.classList.contains("visible")) return;
+    if(e.key!=="Tab") return;
+    const f=focusables(modal); if(!f.length) return;
+    const first=f[0], last=f[f.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  }
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape"){
+      if(dom.qrModal.classList.contains("visible")) closeModal(dom.qrModal);
+      if(dom.textModal.classList.contains("visible")) closeModal(dom.textModal);
+    }
+    trapFocus(dom.qrModal,e);
+    trapFocus(dom.textModal,e);
+  });
+
+  // Local collection (IndexedDB + fallback)
+  const DB = {name:"invoiceInspector",version:1,store:"invoices"};
+  const LS = {enabled:"invoiceInspector.collectionEnabled", legacy:"invoiceInspector.legacyInvoices"};
+
+  function uuid(){
+    return (crypto?.randomUUID) ? crypto.randomUUID() : ("id-"+Math.random().toString(16).slice(2)+"-"+Date.now());
+  }
+  function enabled(){ try{return localStorage.getItem(LS.enabled)==="1"}catch(_){return false} }
+  function setEnabled(v){ try{localStorage.setItem(LS.enabled, v?"1":"0")}catch(_){} }
+
+  function openDb(){
+    return new Promise((resolve)=>{
+      if(!("indexedDB" in window)) return resolve(null);
+      const req=indexedDB.open(DB.name, DB.version);
+      req.onupgradeneeded=(ev)=>{
+        const db=ev.target.result;
+        if(!db.objectStoreNames.contains(DB.store)){
+          const st=db.createObjectStore(DB.store,{keyPath:"id"});
+          st.createIndex("loadedAt","meta.loadedAt",{unique:false});
+        }
       };
-
-      const nsResolver = (prefix) => XML_NAMESPACES[prefix] || null;
-
-      // UNECE Rec 20 unit code mapping (DE / EN)
-      const UNIT_CODE_MAP = {
-        C62: { de: "Stück",        en: "Piece" },
-        HUR: { de: "Stunde",       en: "Hour" },
-        DAY: { de: "Tag",          en: "Day" },
-        MON: { de: "Monat",        en: "Month" },
-        ANN: { de: "Jahr",         en: "Year" },
-        KGM: { de: "Kilogramm",    en: "Kilogram" },
-        GRM: { de: "Gramm",        en: "Gram" },
-        TNE: { de: "Tonne",        en: "Tonne" },
-        MTR: { de: "Meter",        en: "Metre" },
-        CMT: { de: "Zentimeter",   en: "Centimetre" },
-        MTK: { de: "Quadratmeter", en: "Square metre" },
-        MTQ: { de: "Kubikmeter",   en: "Cubic metre" },
-        LTR: { de: "Liter",        en: "Litre" },
-        MIN: { de: "Minute",       en: "Minute" },
-        P1:  { de: "Prozent",      en: "Percent" },
-        PR:  { de: "Paar",         en: "Pair" },
-        PA:  { de: "Paket",        en: "Package" },
-        CT:  { de: "Karton",       en: "Carton" },
-        PAL: { de: "Palette",      en: "Pallet" },
-        ZZ:  { de: "Pauschale",    en: "Lump sum" },
-      };
-
-      // Currency symbols
-      const CURRENCY_SYMBOLS = {
-        EUR: "€", USD: "$", GBP: "£", CHF: "CHF",
-      };
-
-      // Payment type codes (UNTDID 4461)
-      const PAYMENT_TYPES = {
-        de: {
-          1: "Instrumentenbasierte Zahlung", 10: "Barzahlung", 20: "Scheck",
-          30: "Überweisung", 31: "Abbuchung", 42: "Zahlung an ein Bankkonto",
-          48: "Kartenzahlung", 49: "Lastschrift", 58: "SEPA-Überweisung",
-          59: "SEPA-Lastschrift",
-        },
-        en: {
-          1: "Instrument-based payment", 10: "Cash payment", 20: "Cheque",
-          30: "Credit transfer", 31: "Debit transfer", 42: "Payment to a bank account",
-          48: "Card payment", 49: "Direct debit", 58: "SEPA Credit Transfer",
-          59: "SEPA Direct Debit",
-        },
-      };
-
-      /* ==============================================================
-         2. INTERNATIONALISATION (i18n)
-         ============================================================== */
-
-      const LABELS = {
-        de: {
-          mainTitle: "E-Rechnungs-Reader (ZUGFeRD, XRechnung, EN16931) mit PDF-Extraktion",
-          descriptionTitle: "Beschreibung",
-          descriptionText: "Dieses Tool ermöglicht das Anzeigen von elektronischen Rechnungen im XML-Format sowie ZUGFeRD-PDF/A-3-Dateien. Die eingebettete XML-Datei in ZUGFeRD-PDFs wird automatisch extrahiert und die Rechnungsdaten werden strukturiert dargestellt.",
-          disclaimerText: '<strong>Hinweis:</strong> Dieses Tool verarbeitet elektronische Rechnungen (z. B. ZUGFeRD, XRechnung) vollständig clientseitig im Browser. Die Dateien werden nicht hochgeladen oder gespeichert.<br/>Es wird keine Gewähr für die Richtigkeit, Vollständigkeit oder Rechtskonformität der angezeigten Daten übernommen. Jegliche Haftung für Schäden oder Verluste, die aus der Nutzung resultieren, ist ausgeschlossen. Die Verantwortung für die korrekte Verarbeitung und Prüfung der Daten liegt beim Nutzer.',
-          projectRelationText: 'Dieses Projekt gehört zusammen mit dem <a href="https://github.com/SimonWaldherr/InvoiceGenerator" target="_blank" rel="noopener noreferrer">InvoiceGenerator</a>. Den ZUGFeRD-Invoice-Rechnungsgenerator kannst du hier testen: <a href="https://simonwaldherr.github.io/InvoiceGenerator/" target="_blank" rel="noopener noreferrer">https://simonwaldherr.github.io/InvoiceGenerator/</a>',
-          dropZoneText: "📄 Datei hierher ziehen und fallen lassen oder klicken, um eine Datei auszuwählen.",
-          supportedFormatsText: "Unterstützte Formate: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
-          loadingText: "Verarbeitung läuft...",
-          successText: "✅ Rechnung erfolgreich verarbeitet!",
-          // Table headers
-          posNr: "Pos.-Nr.", productName: "Produktname", description: "Beschreibung",
-          notes: "Notiz", quantity: "Menge", unit: "Einheit", unitPrice: "Einzelpreis",
-          lineNet: "Zeilen-Netto", taxRate: "Steuersatz", lineGross: "Zeilenbrutto",
-          // Section titles
-          xmlViewerSummary: "XML anzeigen",
-          invoiceInfo: "📋 Rechnungsinformationen",
-          sellerInfo: "🏢 Verkäufer / Rechnungssteller",
-          buyerInfo: "👤 Käufer / Rechnungsempfänger",
-          paymentInfo: "💳 Zahlungsinformationen",
-          lineItems: "📦 Positionen",
-          statistics: "📊 Statistiken",
-          // Buttons
-          downloadXml: "📄 XML speichern", downloadPdf: "📋 PDF speichern",
-          downloadJson: "📊 JSON Export", downloadCsv: "📈 CSV Export",
-          // Field labels
-          invNumber: "Rechnungsnummer", invType: "Rechnungstyp",
-          invDate: "Rechnungsdatum", invDueDate: "Fälligkeitsdatum",
-          invOrderNumber: "Bestellnummer", invNote: "Notiz",
-          sellerName: "Name", sellerAddress: "Adresse",
-          sellerEmail: "E-Mail", sellerPhone: "Telefon",
-          sellerTaxID: "Steuer-ID", sellerRegister: "Handelsregister",
-          buyerName: "Name", buyerAddress: "Adresse",
-          buyerAddress2: "Adresszusatz", buyerEmail: "E-Mail",
-          buyerPhone: "Telefon", buyerTaxID: "Steuer-ID",
-          currency: "Währung", paymentType: "Zahlungsart",
-          paymentTerms: "Zahlungsziel", iban: "IBAN", bic: "BIC",
-          accountHolder: "Kontoinhaber", netAmount: "Gesamt netto",
-          taxAmount: "Steuerbetrag", grossAmount: "Gesamt brutto",
-          dueAmount: "Fälliger Betrag",
-          // Stats
-          statPositions: "Positionen", statNet: "Nettosumme",
-          statTax: "Steuern", statGross: "Bruttosumme",
-          // Errors
-          noFileFound: "Keine XML-Datei im PDF gefunden.",
-          unsupportedFormat: "Dateiformat nicht unterstützt. Bitte eine PDF (ZUGFeRD) oder XML-Datei hochladen.",
-          invalidXml: "Die extrahierte Datei ist keine gültige XML-Rechnung.",
-          pdfNotAvailable: "Original-PDF ist nicht verfügbar.",
-          processingError: "Fehler beim Verarbeiten der Datei: ",
-          noPositionsToExport: "Keine Positionen zum Exportieren verfügbar.",
-          // QR
-          qrCodeTitle: "📱 QR-Code für Überweisung",
-          qrCodeInfoTitle: "Zum Bezahlen einfach QR-Code mit Banking-App scannen",
-          qrCodeDetails: "EPC-QR-Code (Girocode) nach europäischem Standard",
-          // Misc
-          loadSample: "🧪 Beispiel-Rechnung laden",
-          copy: "Kopieren", copied: "Kopiert!",
-          showQr: "QR-Code anzeigen", saveQr: "QR-Code speichern",
-          close: "Schließen",
-          sampleLoadError: "Beispiel-Rechnung konnte nicht geladen werden: ",
-        },
-        en: {
-          mainTitle: "Electronic Invoice Reader (ZUGFeRD, XRechnung, EN16931) with PDF Extraction",
-          descriptionTitle: "Description",
-          descriptionText: "This tool allows viewing electronic invoices in XML format as well as ZUGFeRD PDF/A-3 files. The embedded XML file in ZUGFeRD PDFs is automatically extracted and the invoice data is displayed in a structured format.",
-          disclaimerText: '<strong>Note:</strong> This tool processes electronic invoices (e.g. ZUGFeRD, XRechnung) completely client-side in the browser. Files are not uploaded or stored.<br/>No warranty is given for the accuracy, completeness or legal compliance of the displayed data. Any liability for damage or loss resulting from use is excluded. The responsibility for correct processing and verification of data lies with the user.',
-          projectRelationText: 'This project belongs together with the <a href="https://github.com/SimonWaldherr/InvoiceGenerator" target="_blank" rel="noopener noreferrer">InvoiceGenerator</a>. You can test the ZUGFeRD invoice generator here: <a href="https://simonwaldherr.github.io/InvoiceGenerator/" target="_blank" rel="noopener noreferrer">https://simonwaldherr.github.io/InvoiceGenerator/</a>',
-          dropZoneText: "📄 Drag and drop a file here or click to select a file.",
-          supportedFormatsText: "Supported formats: ZUGFeRD PDF, XRechnung XML, EN16931 XML",
-          loadingText: "Processing...",
-          successText: "✅ Invoice processed successfully!",
-          posNr: "No.", productName: "Product Name", description: "Description",
-          notes: "Notes", quantity: "Quantity", unit: "Unit", unitPrice: "Unit Price",
-          lineNet: "Line Net", taxRate: "Tax Rate", lineGross: "Line Gross",
-          xmlViewerSummary: "Show XML",
-          invoiceInfo: "📋 Invoice Information",
-          sellerInfo: "🏢 Seller / Issuer",
-          buyerInfo: "👤 Buyer / Recipient",
-          paymentInfo: "💳 Payment Information",
-          lineItems: "📦 Line Items",
-          statistics: "📊 Statistics",
-          downloadXml: "📄 Save XML", downloadPdf: "📋 Save PDF",
-          downloadJson: "📊 JSON Export", downloadCsv: "📈 CSV Export",
-          invNumber: "Invoice Number", invType: "Invoice Type",
-          invDate: "Invoice Date", invDueDate: "Due Date",
-          invOrderNumber: "Order Number", invNote: "Note",
-          sellerName: "Name", sellerAddress: "Address",
-          sellerEmail: "Email", sellerPhone: "Phone",
-          sellerTaxID: "Tax ID", sellerRegister: "Commercial Register",
-          buyerName: "Name", buyerAddress: "Address",
-          buyerAddress2: "Address line 2", buyerEmail: "Email",
-          buyerPhone: "Phone", buyerTaxID: "Tax ID",
-          currency: "Currency", paymentType: "Payment Type",
-          paymentTerms: "Payment Terms", iban: "IBAN", bic: "BIC",
-          accountHolder: "Account Holder", netAmount: "Total Net",
-          taxAmount: "Tax Amount", grossAmount: "Total Gross",
-          dueAmount: "Amount Due",
-          statPositions: "Line Items", statNet: "Net Total",
-          statTax: "Taxes", statGross: "Gross Total",
-          noFileFound: "No XML file found in the PDF.",
-          unsupportedFormat: "Unsupported file format. Please upload a PDF (ZUGFeRD) or XML file.",
-          invalidXml: "The extracted file is not a valid XML invoice.",
-          pdfNotAvailable: "Original PDF is not available.",
-          processingError: "Error processing the file: ",
-          noPositionsToExport: "No line items available for export.",
-          qrCodeTitle: "📱 QR Code for Payment",
-          qrCodeInfoTitle: "Simply scan QR code with your banking app to pay",
-          qrCodeDetails: "EPC QR Code (Girocode) according to European standard",
-          loadSample: "🧪 Load sample invoice",
-          copy: "Copy", copied: "Copied!",
-          showQr: "Show QR Code", saveQr: "Save QR Code",
-          close: "Close",
-          sampleLoadError: "Sample invoice could not be loaded: ",
-        },
-      };
-
-      /* ==============================================================
-         3. APPLICATION STATE
-         ============================================================== */
-
-      let currentLanguage = "de";
-      let xmlDoc = null;
-      let originalPdfBlob = null;
-      let originalXmlBlob = null;
-      let invoiceData = {};
-
-      /** Shortcut for current labels */
-      const L = () => LABELS[currentLanguage] || LABELS.de;
-
-      /* ==============================================================
-         4. DOM REFERENCES (cached once)
-         ============================================================== */
-
-      const $ = (id) => document.getElementById(id);
-      const dom = {
-        dropZone:        $("dropZone"),
-        fileInput:       $("invoiceFile"),
-        loadSampleBtn:   $("loadSampleBtn"),
-        loadingSection:  $("loadingSection"),
-        successSection:  $("successSection"),
-        errorSection:    $("errorSection"),
-        statsSection:    $("statsSection"),
-        headerSection:   $("headerSection"),
-        sellerSection:   $("sellerSection"),
-        buyerSection:    $("buyerSection"),
-        paymentSection:  $("paymentSection"),
-        lineItemsSection:$("lineItemsSection"),
-        xmlViewer:       $("xmlViewer"),
-        originalXml:     $("originalXml"),
-        downloadButtons: $("downloadButtons"),
-        lineItemsTable:  $("lineItemsTable"),
-        qrModal:         $("qrModal"),
-        showQrBtn:       $("showQrBtn"),
-        downloadQrBtn:   $("downloadQrBtn"),
-        modalDownloadQr: $("modalDownloadQrBtn"),
-        closeQrModal:    $("closeQrModal"),
-      };
-
-      const CONTENT_SECTIONS = [
-        dom.headerSection, dom.sellerSection, dom.buyerSection,
-        dom.paymentSection, dom.lineItemsSection, dom.xmlViewer,
-        dom.downloadButtons, dom.statsSection,
-      ];
-
-      /* ==============================================================
-         5. PURE UTILITY FUNCTIONS
-         ============================================================== */
-
-      /** Validate IBAN checksum (ISO 13616 mod-97) */
-      function isValidIBAN(iban) {
-        if (!iban) return false;
-        const cleaned = iban.replace(/\s+/g, "").toUpperCase();
-        if (!/^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$/.test(cleaned)) return false;
-        const rearranged = cleaned.slice(4) + cleaned.slice(0, 4);
-        const expanded = rearranged.replace(/[A-Z]/g, (c) => (c.charCodeAt(0) - 55).toString());
-        let remainder = 0;
-        for (let i = 0; i < expanded.length; i += 7) {
-          remainder = parseInt(remainder.toString() + expanded.substr(i, 7), 10) % 97;
-        }
-        return remainder === 1;
-      }
-
-      /** Format IBAN in groups of 4 for readability */
-      function formatIBAN(iban) {
-        return iban.replace(/\s+/g, "").replace(/(.{4})/g, "$1 ").trim();
-      }
-
-      /** Get readable unit name for a UNECE Rec 20 code */
-      function getUnitDisplay(code) {
-        if (!code) return "";
-        const normalized = code.trim().toUpperCase();
-        const entry = UNIT_CODE_MAP[normalized];
-        if (!entry) return normalized;
-        return `${entry[currentLanguage] || entry.de} (${normalized})`;
-      }
-
-      /** Map currency code to symbol */
-      function getCurrencySymbol(code) {
-        return CURRENCY_SYMBOLS[code] || code;
-      }
-
-      /** Format a numeric amount with currency symbol */
-      function formatCurrency(amount, symbol) {
-        const formatted = parseFloat(amount).toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-        if (symbol === "$" || symbol === "£") return `${symbol}${formatted}`;
-        return `${formatted} ${symbol}`;
-      }
-
-      /** Look up payment type name by UNTDID 4461 code */
-      function getPaymentTypeName(code) {
-        const dict = PAYMENT_TYPES[currentLanguage] || PAYMENT_TYPES.de;
-        const fallback = currentLanguage === "en" ? `Unknown (${code})` : `Unbekannt (${code})`;
-        return dict[code] || fallback;
-      }
-
-      /** Format ZUGFeRD date strings (YYYYMMDD or YYYY-MM-DD) → DD.MM.YYYY */
-      function formatDate(str) {
-        if (/^\d{8}$/.test(str)) return `${str.slice(6, 8)}.${str.slice(4, 6)}.${str.slice(0, 4)}`;
-        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-          const [y, m, d] = str.split("-");
-          return `${d}.${m}.${y}`;
-        }
-        return str;
-      }
-
-      /** Escape HTML entities */
-      function escapeHtml(text) {
-        const div = document.createElement("div");
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      /** Truncate string to a maximum length */
-      function truncate(str, max) {
-        return str.length <= max ? str : str.substring(0, max);
-      }
-
-      /** Pretty-print XML */
-      function beautifyXml(xml) {
-        const INDENT = "  ";
-        let formatted = "";
-        let depth = 0;
-
-        xml.replace(/(>)(<)(\/*)/g, "$1\r\n$2$3")
-          .split("\r\n")
-          .forEach((node) => {
-            let delta = 0;
-            if (node.match(/.+<\/\w[^>]*>$/)) {
-              delta = 0; // self-closing or inline
-            } else if (node.match(/^<\/\w/)) {
-              if (depth > 0) depth--;
-            } else if (node.match(/^<\w[^>]*[^/]>.*$/)) {
-              delta = 1; // opening tag
-            }
-            formatted += INDENT.repeat(depth) + node.trim() + "\r\n";
-            depth += delta;
-          });
-
-        return formatted;
-      }
-
-      /** Trigger download of a Blob */
-      function downloadBlob(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = Object.assign(document.createElement("a"), {
-          href: url, download: filename, style: "display:none",
-        });
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-
-      /* ==============================================================
-         6. XPath HELPERS
-         ============================================================== */
-
-      function xpathNode(ctx, xpath) {
-        return xmlDoc.evaluate(xpath, ctx, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-      }
-
-      function xpathNodes(ctx, xpath) {
-        const result = xmlDoc.evaluate(xpath, ctx, nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        return Array.from({ length: result.snapshotLength }, (_, i) => result.snapshotItem(i));
-      }
-
-      /* ==============================================================
-         7. i18n — DATA-ATTRIBUTE DRIVEN LANGUAGE SWITCHING
-         ============================================================== */
-
-      /**
-       * Update all elements with data-i18n / data-i18n-html attributes,
-       * then re-apply BT tags from data-bt attributes.
-       */
-      function applyLanguage() {
-        const labels = L();
-
-        // Text content translations
-        document.querySelectorAll("[data-i18n]").forEach((el) => {
-          const key = el.getAttribute("data-i18n");
-          if (labels[key] != null) el.textContent = labels[key];
-        });
-
-        // HTML translations (for elements needing rich content)
-        document.querySelectorAll("[data-i18n-html]").forEach((el) => {
-          const key = el.getAttribute("data-i18n-html");
-          if (labels[key] != null) el.innerHTML = labels[key];
-        });
-
-        // Re-apply ZUGFeRD BT code tags
-        document.querySelectorAll("[data-bt]").forEach((el) => {
-          const existing = el.querySelector(".zugferd-tag");
-          if (existing) existing.remove();
-          const tag = document.createElement("span");
-          tag.className = "zugferd-tag";
-          tag.textContent = ` (${el.getAttribute("data-bt")})`;
-          el.appendChild(tag);
-        });
-
-        // QR button labels (not data-i18n since they might be hidden/dynamic)
-        if (dom.showQrBtn) dom.showQrBtn.textContent = labels.showQr;
-        if (dom.downloadQrBtn) dom.downloadQrBtn.textContent = labels.saveQr;
-        if (dom.modalDownloadQr) dom.modalDownloadQr.textContent = labels.saveQr;
-        const closeBtn = dom.closeQrModal;
-        if (closeBtn) closeBtn.textContent = labels.close;
-
-        // Language toggle buttons
-        document.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("active"));
-        $(currentLanguage === "de" ? "langDe" : "langEn").classList.add("active");
-
-        // Page title
-        document.title = labels.mainTitle;
-      }
-
-      function setLanguage(lang) {
-        currentLanguage = lang;
-        try { localStorage.setItem("lang", lang); } catch (_) { /* ignored */ }
-        applyLanguage();
-      }
-
-      function initLanguage() {
-        let saved = null;
-        try { saved = localStorage.getItem("lang"); } catch (_) { /* ignored */ }
-        const browserLang = (navigator.language || navigator.userLanguage || "en");
-        setLanguage(saved || (browserLang.startsWith("de") ? "de" : "en"));
-      }
-
-      /* ==============================================================
-         8. UI HELPERS — SHOW / HIDE / RESET
-         ============================================================== */
-
-      function showLoading() { dom.loadingSection.classList.remove("hidden"); }
-      function hideLoading() { dom.loadingSection.classList.add("hidden"); }
-
-      function showSuccess() {
-        dom.successSection.classList.remove("hidden");
-        setTimeout(() => dom.successSection.classList.add("hidden"), 3000);
-      }
-
-      function showError(msg) {
-        dom.errorSection.textContent = msg;
-        dom.errorSection.classList.remove("hidden");
-      }
-
-      /** Attach a one-click copy button next to a table cell's text */
-      function attachCopyButton(cellId) {
-        const cell = $(cellId);
-        if (!cell || cell.querySelector(".copy-btn")) return;
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "copy-btn";
-        btn.style.marginLeft = "8px";
-        btn.style.fontSize = "0.85em";
-        btn.textContent = L().copy;
-        btn.addEventListener("click", async () => {
-          try {
-            await navigator.clipboard.writeText(cell.firstChild?.textContent?.trim() || "");
-            const prev = btn.textContent;
-            btn.textContent = L().copied;
-            setTimeout(() => { btn.textContent = prev; }, 1200);
-          } catch (e) {
-            console.error("Clipboard failed", e);
-          }
-        });
-        cell.appendChild(btn);
-      }
-
-      /** Set a cell's text and store a value in invoiceData */
-      function setField(cellId, value, dataPath) {
-        if (value == null || value === "") return;
-        const cell = $(cellId);
-        if (cell) cell.textContent = value;
-        if (dataPath) {
-          const parts = dataPath.split(".");
-          let obj = invoiceData;
-          for (let i = 0; i < parts.length - 1; i++) {
-            if (!obj[parts[i]]) obj[parts[i]] = {};
-            obj = obj[parts[i]];
-          }
-          obj[parts[parts.length - 1]] = value;
-        }
-      }
-
-      function resetUI() {
-        dom.errorSection.textContent = "";
-        dom.errorSection.classList.add("hidden");
-        dom.successSection.classList.add("hidden");
-
-        CONTENT_SECTIONS.forEach((s) => s.classList.add("hidden"));
-
-        // Reset QR modal
-        if (dom.qrModal) {
-          dom.qrModal.classList.remove("visible");
-          dom.qrModal.setAttribute("aria-hidden", "true");
-          const container = dom.qrModal.querySelector(".qr-code-container");
-          if (container) container.innerHTML = "";
-          if (dom.modalDownloadQr) dom.modalDownloadQr.onclick = null;
-        }
-        if (dom.showQrBtn) dom.showQrBtn.classList.add("hidden");
-        if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
-
-        // Clear table cells
-        document.querySelectorAll(
-          "#headerSection td, #sellerSection td, #buyerSection td, #paymentSection td"
-        ).forEach((td) => (td.textContent = ""));
-
-        dom.originalXml.textContent = "";
-        dom.lineItemsTable.querySelector("tbody").innerHTML = "";
-
-        invoiceData = {};
-      }
-
-      /* ==============================================================
-         9. PDF XML EXTRACTION
-         ============================================================== */
-
-      async function extractXmlFromPdf(file) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-        const attachments = await pdf.getAttachments();
-        if (!attachments) return null;
-
-        for (const [filename, attachment] of Object.entries(attachments)) {
-          if (filename.toLowerCase().endsWith(".xml")) {
-            return new TextDecoder("utf-8").decode(attachment.content);
-          }
-        }
-        return null;
-      }
-
-      /* ==============================================================
-         10. INVOICE DATA EXTRACTION & DISPLAY
-         ============================================================== */
-
-      function displayInvoiceInfo() {
-        const invNumber   = xpathNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:ID");
-        const invType     = xpathNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:TypeCode");
-        const invDateNode = xpathNode(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString");
-        const invDueNode  = xpathNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:DueDateDateTime/udt:DateTimeString");
-        const invOrder    = xpathNode(xmlDoc, "//ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID");
-        const invNotes    = xpathNodes(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:Content");
-
-        invoiceData.header = {};
-
-        if (invNumber) {
-          setField("invNumber", invNumber.textContent.trim(), "header.number");
-          attachCopyButton("invNumber");
-        }
-        if (invType)     setField("invType", invType.textContent.trim(), "header.type");
-        if (invDateNode) setField("invDate", formatDate(invDateNode.textContent.trim()), "header.date");
-        if (invDueNode)  setField("invDueDate", formatDate(invDueNode.textContent.trim()), "header.dueDate");
-        if (invOrder)    setField("invOrderNumber", invOrder.textContent.trim(), "header.orderNumber");
-
-        if (invNotes.length > 0) {
-          const notes = invNotes.map((n) => n.textContent.trim()).join("\n");
-          setField("invNote", notes, "header.notes");
-        }
-
-        dom.headerSection.classList.remove("hidden");
-      }
-
-      function displayPartyInfo(partyXPath, sectionEl, fieldMappings) {
-        const dataKey = sectionEl === dom.sellerSection ? "seller" : "buyer";
-        invoiceData[dataKey] = {};
-
-        fieldMappings.forEach(({ cellId, xpath, dataField, formatter }) => {
-          const node = xpathNode(xmlDoc, xpath);
-          if (node) {
-            const val = formatter ? formatter(node.textContent.trim()) : node.textContent.trim();
-            setField(cellId, val, `${dataKey}.${dataField}`);
-          }
-        });
-
-        sectionEl.classList.remove("hidden");
-      }
-
-      function displaySellerInfo() {
-        invoiceData.seller = {};
-
-        // Name
-        const sellerName = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:Name");
-        if (sellerName) setField("sellerName", sellerName.textContent.trim(), "seller.name");
-
-        // Address (composite)
-        const street  = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne");
-        const city    = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CityName");
-        const zip     = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
-        const country = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID");
-        const address = [
-          street?.textContent.trim(),
-          (zip && city) ? `${zip.textContent.trim()} ${city.textContent.trim()}` : null,
-          country?.textContent.trim(),
-        ].filter(Boolean).join(", ");
-        if (address) setField("sellerAddress", address, "seller.address");
-
-        // Contact
-        const email = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
-        const phone = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
-        if (email) setField("sellerEmail", email.textContent.trim(), "seller.email");
-        if (phone) setField("sellerPhone", phone.textContent.trim(), "seller.phone");
-
-        // Tax
-        const taxVA = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
-        const taxFC = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
-        const taxInfo = [
-          taxVA ? `VA: ${taxVA.textContent.trim()}` : null,
-          taxFC ? `FC: ${taxFC.textContent.trim()}` : null,
-        ].filter(Boolean).join("\n");
-        if (taxInfo) setField("sellerTaxID", taxInfo, "seller.taxId");
-
-        // Register
-        const register = xpathNode(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID");
-        if (register) setField("sellerRegister", register.textContent.trim(), "seller.register");
-
-        dom.sellerSection.classList.remove("hidden");
-      }
-
-      function displayBuyerInfo() {
-        invoiceData.buyer = {};
-
-        const buyerName = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:Name");
-        if (buyerName) setField("buyerName", buyerName.textContent.trim(), "buyer.name");
-
-        const street  = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne");
-        const line2   = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineTwo");
-        const city    = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CityName");
-        const zip     = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode");
-        const country = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID");
-
-        const address = [
-          street?.textContent.trim(),
-          (zip && city) ? `${zip.textContent.trim()} ${city.textContent.trim()}` : null,
-          country?.textContent.trim(),
-        ].filter(Boolean).join(", ");
-        if (address)  setField("buyerAddress", address, "buyer.address");
-        if (line2)    setField("buyerAddress2", line2.textContent.trim(), "buyer.address2");
-
-        const email = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID");
-        const phone = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber");
-        if (email) setField("buyerEmail", email.textContent.trim(), "buyer.email");
-        if (phone) setField("buyerPhone", phone.textContent.trim(), "buyer.phone");
-
-        const taxVA = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']");
-        const taxFC = xpathNode(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']");
-        const taxInfo = [
-          taxVA ? `VA: ${taxVA.textContent.trim()}` : null,
-          taxFC ? `FC: ${taxFC.textContent.trim()}` : null,
-        ].filter(Boolean).join("\n");
-        if (taxInfo) setField("buyerTaxID", taxInfo, "buyer.taxId");
-
-        dom.buyerSection.classList.remove("hidden");
-      }
-
-      function displayPaymentInfo() {
-        const paymentMeans = xpathNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementPaymentMeans");
-        const paymentTerms = xpathNode(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:Description");
-        let currencySymbol = "€";
-
-        invoiceData.payment = {};
-
-        if (paymentMeans) {
-          // Currency
-          const currencyNode = xpathNode(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:InvoiceCurrencyCode");
-          let currencyCode = "EUR";
-          if (currencyNode) {
-            currencyCode = currencyNode.textContent.trim();
-            setField("currency", currencyCode, "payment.currency");
-            currencySymbol = getCurrencySymbol(currencyCode);
-          }
-
-          // Payment type
-          const typeCode = xpathNode(paymentMeans, ".//ram:TypeCode");
-          if (typeCode) {
-            const typeName = getPaymentTypeName(typeCode.textContent.trim());
-            setField("paymentType", typeName, "payment.type");
-          }
-
-          // IBAN
-          const ibanNode = xpathNode(paymentMeans,
-            ".//ram:PayerPartyCreditorFinancialAccount/ram:IBANID | .//ram:PayeePartyCreditorFinancialAccount/ram:IBANID");
-          if (ibanNode) {
-            const rawIban = ibanNode.textContent.trim();
-            setField("iban", formatIBAN(rawIban), "payment.iban");
-            invoiceData.payment.iban = rawIban; // store raw value for QR code
-            if (!isValidIBAN(rawIban)) console.warn("Invalid IBAN detected");
-            attachCopyButton("iban");
-          }
-
-          // BIC
-          const bicNode = xpathNode(paymentMeans,
-            ".//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID | .//ram:PayeePartyCreditorFinancialInstitution/ram:BICID");
-          if (bicNode) {
-            setField("bic", bicNode.textContent.trim(), "payment.bic");
-            attachCopyButton("bic");
-          }
-
-          // Account holder
-          const holderNode = xpathNode(paymentMeans, ".//ram:PayeePartyCreditorFinancialAccount/ram:AccountName");
-          if (holderNode) setField("accountHolder", holderNode.textContent.trim(), "payment.accountHolder");
-        }
-
-        // Payment terms
-        if (paymentTerms) setField("paymentTerms", paymentTerms.textContent.trim(), "payment.terms");
-
-        // Monetary summation
-        const summation = xpathNode(xmlDoc,
-          "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementMonetarySummation | " +
-          "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation");
-
-        if (summation) {
-          const amounts = [
-            { xpath: ".//ram:LineTotalAmount",   cellId: "netAmount",   key: "netAmount" },
-            { xpath: ".//ram:TaxTotalAmount",     cellId: "taxAmount",   key: "taxAmount" },
-            { xpath: ".//ram:GrandTotalAmount",   cellId: "grossAmount", key: "grossAmount" },
-            { xpath: ".//ram:DuePayableAmount",   cellId: "dueAmount",   key: "dueAmount" },
-          ];
-
-          amounts.forEach(({ xpath, cellId, key }) => {
-            const node = xpathNode(summation, xpath);
-            if (node) {
-              const raw = node.textContent.trim();
-              setField(cellId, formatCurrency(raw, currencySymbol));
-              invoiceData.payment[key] = parseFloat(raw);
-            }
-          });
-        }
-
-        dom.paymentSection.classList.remove("hidden");
-        generateEPCQRCode(invoiceData.payment);
-      }
-
-      function displayLineItems() {
-        const items = xpathNodes(xmlDoc, "//ram:IncludedSupplyChainTradeLineItem");
-        const tbody = dom.lineItemsTable.querySelector("tbody");
-        const currencyCode = $("currency")?.textContent?.trim() || "EUR";
-        const symbol = getCurrencySymbol(currencyCode);
-        let totalNet = 0;
-
-        invoiceData.lineItems = [];
-
-        items.forEach((item, index) => {
-          const lineID      = xpathNode(item, "./ram:AssociatedDocumentLineDocument/ram:LineID")?.textContent.trim() || String(index + 1);
-          const productNote = xpathNode(item, "./ram:AssociatedDocumentLineDocument/ram:IncludedNote/ram:Content")?.textContent.trim() || "";
-          const productName = xpathNode(item, "./ram:SpecifiedTradeProduct/ram:Name")?.textContent.trim() || "";
-          const productDesc = xpathNode(item, "./ram:SpecifiedTradeProduct/ram:Description")?.textContent.trim() || "";
-          const qtyEl       = xpathNode(item, "./ram:SpecifiedLineTradeDelivery/ram:BilledQuantity");
-          const quantity     = parseFloat(qtyEl?.textContent.trim() || "0");
-          const unitCode     = qtyEl?.getAttribute("unitCode") || "";
-          const unitDisplay  = getUnitDisplay(unitCode);
-          const unitPrice    = parseFloat(xpathNode(item, "./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount")?.textContent.trim() || "0");
-          const taxRate      = parseFloat(xpathNode(item, "./ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent")?.textContent.trim() || "0");
-          const lineNet      = unitPrice * quantity;
-          const lineGross    = lineNet + lineNet * (taxRate / 100);
-
-          totalNet += lineNet;
-
-          invoiceData.lineItems.push({
-            position: lineID, productName, description: productDesc,
-            notes: productNote, quantity, unitCode, unit: unitDisplay,
-            unitPrice, lineNet, taxRate, lineGross,
-          });
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${escapeHtml(lineID)}</td>
-            <td>${escapeHtml(productName)}</td>
-            <td>${escapeHtml(productDesc)}</td>
-            <td>${escapeHtml(productNote)}</td>
-            <td>${escapeHtml(quantity.toFixed(2))}</td>
-            <td>${escapeHtml(unitDisplay)}</td>
-            <td>${formatCurrency(unitPrice.toFixed(2), symbol)}</td>
-            <td>${formatCurrency(lineNet.toFixed(2), symbol)}</td>
-            <td>${escapeHtml(taxRate.toFixed(2))}%</td>
-            <td>${formatCurrency(lineGross.toFixed(2), symbol)}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        if (items.length > 0) {
-          const net = $("netAmount");
-          if (!net.textContent) net.textContent = formatCurrency(totalNet.toFixed(2), symbol);
-          dom.lineItemsSection.classList.remove("hidden");
-        }
-
-        return items.length;
-      }
-
-      function displayStatistics(count) {
-        $("statLineItems").textContent  = count;
-        $("statNetAmount").textContent  = $("netAmount").textContent  || "0 €";
-        $("statTaxAmount").textContent  = $("taxAmount").textContent  || "0 €";
-        $("statGrossAmount").textContent = $("grossAmount").textContent || "0 €";
-        dom.statsSection.classList.remove("hidden");
-      }
-
-      /* ==============================================================
-         11. EPC QR CODE GENERATION
-         ============================================================== */
-
-      function generateEPCQRCode(paymentData) {
-        const modalContainer = dom.qrModal?.querySelector(".qr-code-container");
-
-        if (!paymentData?.iban || (!paymentData.grossAmount && !paymentData.dueAmount)) {
-          if (dom.showQrBtn)     dom.showQrBtn.classList.add("hidden");
-          if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
-          if (dom.qrModal) {
-            dom.qrModal.classList.remove("visible");
-            dom.qrModal.setAttribute("aria-hidden", "true");
-            if (modalContainer) modalContainer.innerHTML = "";
-          }
-          return;
-        }
-
-        try {
-          if (modalContainer) modalContainer.innerHTML = "";
-
-          // Build EPC069-12 payload
-          let amount = paymentData.grossAmount || paymentData.dueAmount || 0;
-          if (amount > 999999999.99) amount = 999999999.99;
-
-          const prefix = currentLanguage === "en" ? "Invoice" : "Rechnung";
-          const epcPayload = [
-            "BCD",                                          // Service Tag
-            "002",                                          // Version
-            "1",                                            // Charset (UTF-8)
-            "SCT",                                          // SEPA Credit Transfer
-            paymentData.bic || "",                           // BIC
-            truncate(invoiceData.seller?.name || "", 70),   // Beneficiary
-            paymentData.iban.replace(/\s/g, ""),            // IBAN
-            `EUR${amount.toFixed(2)}`,                      // Amount
-            "",                                             // Purpose
-            "",                                             // Structured reference
-            truncate(`${prefix} ${invoiceData.header?.number || ""}`.trim(), 140),
-            "",                                             // Beneficiary info
-          ].join("\n");
-
-          const canvas = document.createElement("canvas");
-          if (modalContainer) modalContainer.appendChild(canvas);
-
-          QRCode.toCanvas(canvas, epcPayload, {
-            width: 200, height: 200,
-            color: { dark: "#000000", light: "#FFFFFF" },
-            errorCorrectionLevel: "M",
-          }, (error) => {
-            if (error) {
-              console.error("EPC QR Code generation failed:", error);
-              if (dom.showQrBtn) dom.showQrBtn.classList.add("hidden");
-              return;
-            }
-
-            // Show "open modal" button
-            if (dom.showQrBtn) {
-              dom.showQrBtn.classList.remove("hidden");
-              dom.showQrBtn.onclick = () => {
-                dom.qrModal.classList.add("visible");
-                dom.qrModal.setAttribute("aria-hidden", "false");
-              };
-            }
-
-            // Keep inline download hidden; use modal download
-            if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
-
-            if (dom.modalDownloadQr) {
-              dom.modalDownloadQr.onclick = () => {
-                try {
-                  const link = document.createElement("a");
-                  link.href = canvas.toDataURL("image/png");
-                  link.download = `epc_qrcode_${invoiceData.header?.number || "invoice"}.png`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                } catch (e) { console.error("QR download failed", e); }
-              };
-            }
-
-            if (dom.closeQrModal) {
-              dom.closeQrModal.onclick = () => {
-                dom.qrModal.classList.remove("visible");
-                dom.qrModal.setAttribute("aria-hidden", "true");
-              };
-            }
-          });
-        } catch (error) {
-          console.error("EPC QR Code generation failed:", error);
-          if (dom.showQrBtn) dom.showQrBtn.classList.add("hidden");
-          if (dom.downloadQrBtn) dom.downloadQrBtn.classList.add("hidden");
-        }
-      }
-
-      /* ==============================================================
-         12. EXPORT — JSON & CSV
-         ============================================================== */
-
-      function downloadInvoiceAsJson() {
-        const blob = new Blob([JSON.stringify(invoiceData, null, 2)], { type: "application/json" });
-        downloadBlob(blob, `invoice_${invoiceData.header?.number || "unknown"}.json`);
-      }
-
-      function downloadInvoiceAsCsv() {
-        const labels = L();
-        if (!invoiceData.lineItems?.length) {
-          alert(labels.noPositionsToExport);
-          return;
-        }
-
-        const headers = [
-          labels.posNr, labels.productName, labels.description, labels.notes,
-          labels.quantity, labels.unit, labels.unitPrice, labels.lineNet,
-          labels.taxRate, labels.lineGross,
-        ];
-
-        const rows = invoiceData.lineItems.map((item) => [
-          `"${item.position}"`, `"${item.productName}"`,
-          `"${item.description}"`, `"${item.notes}"`,
-          item.quantity, `"${item.unit}"`,
-          item.unitPrice.toFixed(2), item.lineNet.toFixed(2),
-          item.taxRate.toFixed(2), item.lineGross.toFixed(2),
-        ].join(","));
-
-        const csv = [headers.join(","), ...rows].join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        downloadBlob(blob, `invoice_${invoiceData.header?.number || "unknown"}_positions.csv`);
-      }
-
-      /* ==============================================================
-         13. MAIN PARSING PIPELINE
-         ============================================================== */
-
-      function parseXML(xmlString) {
-        const parser = new DOMParser();
-        xmlDoc = parser.parseFromString(xmlString, "application/xml");
-
-        if (xmlDoc.querySelector("parsererror")) {
-          showError(L().invalidXml);
-          return;
-        }
-
-        // Show raw XML
-        dom.originalXml.textContent = beautifyXml(xmlString);
-        dom.xmlViewer.classList.remove("hidden");
-
-        // Configure download buttons
-        if (originalXmlBlob || originalPdfBlob) {
-          dom.downloadButtons.classList.remove("hidden");
-          $("downloadXml").onclick = () => downloadBlob(originalXmlBlob, "invoice.xml");
-          $("downloadPdf").onclick = () => {
-            if (originalPdfBlob) downloadBlob(originalPdfBlob, "invoice.pdf");
-            else showError(L().pdfNotAvailable);
-          };
-          $("downloadJson").onclick = downloadInvoiceAsJson;
-          $("downloadCsv").onclick = downloadInvoiceAsCsv;
-        }
-
-        // Extract & display all sections
-        displayInvoiceInfo();
-        displaySellerInfo();
-        displayBuyerInfo();
-        displayPaymentInfo();
-        const count = displayLineItems();
-        displayStatistics(count);
-        showSuccess();
-      }
-
-      /* ==============================================================
-         14. FILE HANDLING
-         ============================================================== */
-
-      async function handleFile(file) {
-        resetUI();
-        showLoading();
-
-        try {
-          if (file.type === "application/pdf") {
-            originalPdfBlob = file;
-            const xmlContent = await extractXmlFromPdf(file);
-            if (xmlContent) {
-              originalXmlBlob = new Blob([xmlContent], { type: "application/xml" });
-              parseXML(xmlContent);
-            } else {
-              showError(L().noFileFound);
-            }
-          } else if (file.name.toLowerCase().endsWith(".xml")) {
-            originalXmlBlob = file;
-            parseXML(await file.text());
-          } else {
-            showError(L().unsupportedFormat);
-          }
-        } catch (err) {
-          showError(`${L().processingError}${err.message}`);
-          console.error(err);
-        } finally {
-          hideLoading();
-        }
-      }
-
-      /* ==============================================================
-         15. EVENT LISTENERS
-         ============================================================== */
-
-      // Language toggle
-      $("langDe").addEventListener("click", () => setLanguage("de"));
-      $("langEn").addEventListener("click", () => setLanguage("en"));
-
-      // Drop zone
-      dom.dropZone.addEventListener("click", () => dom.fileInput.click());
-
-      dom.dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dom.dropZone.classList.add("dragover");
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>resolve(null);
+    });
+  }
+  async function dbPut(inv){
+    const db=await openDb(); if(!db) return false;
+    return new Promise((resolve)=>{
+      const tx=db.transaction(DB.store,"readwrite");
+      tx.objectStore(DB.store).put(inv);
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=()=>resolve(false);
+    });
+  }
+  async function dbGetAll(){
+    const db=await openDb(); if(!db) return null;
+    return new Promise((resolve)=>{
+      const tx=db.transaction(DB.store,"readonly");
+      const req=tx.objectStore(DB.store).getAll();
+      req.onsuccess=()=>resolve(req.result||[]);
+      req.onerror=()=>resolve([]);
+    });
+  }
+  async function dbDel(id){
+    const db=await openDb(); if(!db) return false;
+    return new Promise((resolve)=>{
+      const tx=db.transaction(DB.store,"readwrite");
+      tx.objectStore(DB.store).delete(id);
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=()=>resolve(false);
+    });
+  }
+  async function dbClear(){
+    const db=await openDb(); if(!db) return false;
+    return new Promise((resolve)=>{
+      const tx=db.transaction(DB.store,"readwrite");
+      tx.objectStore(DB.store).clear();
+      tx.oncomplete=()=>resolve(true);
+      tx.onerror=()=>resolve(false);
+    });
+  }
+  function lsLoad(){ try{const raw=localStorage.getItem(LS.legacy); return raw?JSON.parse(raw):[]}catch(_){return []} }
+  function lsSave(list){ try{localStorage.setItem(LS.legacy, JSON.stringify(list))}catch(_){} }
+
+  function dayKey(d){ const dt=(d instanceof Date)?d:new Date(d); return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+  function isToday(iso){ return dayKey(iso)===dayKey(new Date()); }
+  function dedupeKey(inv){
+    const no=(inv?.header?.number||"").trim().toLowerCase();
+    const seller=(inv?.seller?.name||"").trim().toLowerCase();
+    const date=(inv?.header?.date||"").trim();
+    const gross=String(inv?.payment?.grossAmount ?? inv?.payment?.dueAmount ?? "");
+    return [no,seller,date,gross].join("|");
+  }
+  function getStatusLabel(k){ return L()["status_"+k]||k; }
+
+  function buildStatusFilterOptions(){
+    const sel=dom.collectionStatusFilter;
+    const cur=sel.value||"all";
+    sel.innerHTML="";
+    const oAll=document.createElement("option"); oAll.value="all"; oAll.textContent=L().status_all; sel.appendChild(oAll);
+    STATUS_KEYS.forEach(k=>{ const o=document.createElement("option"); o.value=k; o.textContent=getStatusLabel(k); sel.appendChild(o); });
+    sel.value=cur;
+  }
+
+  function buildStatusSelect(current, onChange){
+    const sel=document.createElement("select");
+    STATUS_KEYS.forEach(k=>{ const o=document.createElement("option"); o.value=k; o.textContent=getStatusLabel(k); sel.appendChild(o); });
+    sel.value=current||"open";
+    sel.addEventListener("change",()=>onChange(sel.value));
+    return sel;
+  }
+
+  function normalizeForStorage(inv, file){
+    const x=JSON.parse(JSON.stringify(inv||{}));
+    x.id = x.id || uuid();
+    x.meta = x.meta || {};
+    x.meta.loadedAt = x.meta.loadedAt || new Date().toISOString();
+    x.meta.filename = file?.name || x.meta.filename || "";
+    x.user = x.user || {status:"open", comment:""};
+    x.user.status = x.user.status || "open";
+    x.dedupeKey = dedupeKey(x);
+    x.duplicateOf = x.duplicateOf || null;
+    return x;
+  }
+
+  async function allInvoices(){
+    const fromDb = await dbGetAll();
+    if(fromDb) return fromDb.sort((a,b)=>String(b?.meta?.loadedAt||"").localeCompare(String(a?.meta?.loadedAt||"")));
+    return lsLoad();
+  }
+
+  function filterInvoices(list){
+    const q=(dom.collectionSearch.value||"").trim().toLowerCase();
+    const st=dom.collectionStatusFilter.value||"all";
+    const today=!!dom.collectionTodayOnly.checked;
+    return list.filter(inv=>{
+      if(today && !isToday(inv?.meta?.loadedAt)) return false;
+      if(st!=="all" && (inv?.user?.status||"open")!==st) return false;
+      if(!q) return true;
+      const hay=[inv?.header?.number,inv?.header?.date,inv?.seller?.name,inv?.buyer?.name,inv?.meta?.filename].filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  async function renderCollection(){
+    dom.collectionEnabled.checked = enabled();
+    dom.collectionControls.classList.toggle("hidden", !enabled());
+    const list = enabled() ? await allInvoices() : [];
+    const filtered = enabled() ? filterInvoices(list) : [];
+    dom.collectionEmpty.classList.toggle("hidden", !enabled() || filtered.length>0);
+    dom.collectionTableWrap.classList.toggle("hidden", !enabled() || filtered.length===0);
+    const tb=dom.collectionTable.querySelector("tbody");
+    tb.innerHTML="";
+    filtered.forEach(inv=>{
+      const tr=document.createElement("tr");
+      const loaded=new Date(inv.meta.loadedAt||Date.now()).toLocaleString();
+      const invNo=inv?.header?.number||"";
+      const invDate=inv?.header?.date||"";
+      const seller=inv?.seller?.name||"";
+      const gross=(inv?.payment?.grossAmount ?? inv?.payment?.dueAmount);
+      const sym=getCurSym(inv?.payment?.currency||"EUR");
+      const grossTxt=(gross!=null && gross!=="") ? fmtMoney(gross,sym) : "";
+      tr.innerHTML = `
+        <td>${escapeHtml(loaded)}</td>
+        <td>${escapeHtml(invNo)}${inv.duplicateOf?` <span class="dup">${escapeHtml(L().dupHint)}</span>`:""}</td>
+        <td>${escapeHtml(invDate)}</td>
+        <td>${escapeHtml(seller)}</td>
+        <td>${escapeHtml(grossTxt)}</td>
+        <td class="st"></td>
+        <td class="cm"></td>
+        <td class="ac"></td>
+      `;
+
+      tr.querySelector(".st").appendChild(buildStatusSelect(inv?.user?.status||"open", async (newStatus)=>{
+        inv.user=inv.user||{}; inv.user.status=newStatus;
+        const ok=await dbPut(inv);
+        if(!ok){ const l=lsLoad(); const i=l.findIndex(x=>x.id===inv.id); if(i>=0){ l[i].user=l[i].user||{}; l[i].user.status=newStatus; lsSave(l); } }
+        renderCollection();
+      }));
+
+      const cbtn=document.createElement("button");
+      cbtn.type="button"; cbtn.className="small"; cbtn.textContent=L().btnComment;
+      cbtn.onclick=()=>openTextModal(inv);
+      tr.querySelector(".cm").appendChild(cbtn);
+
+      const openBtn=document.createElement("button");
+      openBtn.type="button"; openBtn.className="small"; openBtn.textContent=L().btnOpen;
+      openBtn.onclick=()=>renderInvoiceFromSaved(inv);
+
+      const delBtn=document.createElement("button");
+      delBtn.type="button"; delBtn.className="small"; delBtn.style.marginLeft="6px"; delBtn.textContent=L().btnDelete;
+      delBtn.onclick=()=>{ if(confirm(L().confirmDeleteOne)) deleteInvoice(inv.id); };
+
+      tr.querySelector(".ac").appendChild(openBtn);
+      tr.querySelector(".ac").appendChild(delBtn);
+
+      tb.appendChild(tr);
+    });
+  }
+
+  async function deleteInvoice(id){
+    const ok=await dbDel(id);
+    if(!ok){ lsSave(lsLoad().filter(x=>x.id!==id)); }
+    renderCollection();
+  }
+
+  async function clearAll(){
+    const ok=await dbClear();
+    if(!ok) lsSave([]);
+    renderCollection();
+  }
+
+  async function addToCollection(inv, file){
+    if(!enabled()) return;
+    const x=normalizeForStorage(inv, file);
+    const all=await allInvoices();
+    const existing=all.find(i=>i.dedupeKey===x.dedupeKey);
+    if(existing) x.duplicateOf = existing.id;
+    const ok=await dbPut(x);
+    if(!ok){ const l=lsLoad(); l.unshift(x); lsSave(l); }
+    renderCollection();
+  }
+
+  async function exportCollection(scope, fmt){
+    if(!enabled()) return;
+    const all=await allInvoices();
+    const list = (scope==="today") ? all.filter(x=>isToday(x?.meta?.loadedAt)) : all;
+    if(fmt==="json"){
+      downloadBlob(new Blob([JSON.stringify(list,null,2)],{type:"application/json"}), `invoice_collection_${scope}_${dayKey(new Date())}.json`);
+      return;
+    }
+    // CSV: one row per line item (header+positions)
+    const sep=csvDelimiter();
+    const headers=["loaded_at","status","comment","invoice_number","invoice_date","due_date","order_number","seller_name","buyer_name","currency","net_total","tax_total","gross_total","due_total","pos","product_name","description","notes","qty","unit","unit_price","line_net","tax_rate","line_gross"];
+    const esc=(v)=> `"${String(v??"").replace(/"/g,'""')}"`;
+    const rows=[];
+    list.forEach(inv=>{
+      const meta=inv.meta||{}, user=inv.user||{}, h=inv.header||{}, s=inv.seller||{}, b=inv.buyer||{}, p=inv.payment||{};
+      const base=[meta.loadedAt||"", user.status||"open", user.comment||"", h.number||"", h.date||"", h.dueDate||"", h.orderNumber||"", s.name||"", b.name||"", p.currency||"", csvNum(p.netAmount??""), csvNum(p.taxAmount??""), csvNum(p.grossAmount??""), csvNum(p.dueAmount??"")];
+      const items=(inv.lineItems && inv.lineItems.length)?inv.lineItems:[null];
+      items.forEach(li=>{
+        const row=base.concat(li?[li.position??"", li.productName??"", li.description??"", li.notes??"", csvNum(li.quantity??""), li.unit??"", csvNum(li.unitPrice??""), csvNum(li.lineNet??""), csvNum(li.taxRate??""), csvNum(li.lineGross??"")]:["","","","","","","","","",""]);
+        rows.push(row.map(esc).join(sep));
       });
+    });
+    const csv=[headers.join(sep), ...rows].join("\n");
+    downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8;"}), `invoice_collection_${scope}_${dayKey(new Date())}.csv`);
+  }
 
-      dom.dropZone.addEventListener("dragleave", (e) => {
-        e.preventDefault();
-        dom.dropZone.classList.remove("dragover");
+  function openTextModal(inv){
+    dom.textModalTitle.textContent = "📝 " + L().btnComment;
+    dom.textModalTextarea.value = inv?.user?.comment || "";
+    openModal(dom.textModal, dom.textModalTextarea);
+
+    dom.textModalSave.onclick = async () => {
+      const txt = dom.textModalTextarea.value || "";
+      closeModal(dom.textModal);
+      inv.user=inv.user||{}; inv.user.comment=txt;
+      const ok=await dbPut(inv);
+      if(!ok){ const l=lsLoad(); const i=l.findIndex(x=>x.id===inv.id); if(i>=0){ l[i].user=l[i].user||{}; l[i].user.comment=txt; lsSave(l); } }
+      renderCollection();
+    };
+    dom.textModalClose.onclick = () => closeModal(dom.textModal);
+  }
+
+  // Invoice rendering from saved collection
+  function renderInvoiceFromSaved(inv){
+    resetView();
+    invoiceData = JSON.parse(JSON.stringify(inv||{}));
+    fillFromInvoiceData(invoiceData);
+    // downloads: only JSON/CSV (no original source)
+    show(dom.downloadButtons);
+    dom.btnXml.onclick=()=>showError(L().pdfNotAvailable);
+    dom.btnPdf.onclick=()=>showError(L().pdfNotAvailable);
+    dom.btnJson.onclick=downloadInvoiceJson;
+    dom.btnCsv.onclick=downloadInvoiceCsv;
+    showSuccess();
+  }
+
+  function downloadBlob(blob, name){
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download=name; a.style.display="none";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadInvoiceJson(){
+    downloadBlob(new Blob([JSON.stringify(invoiceData,null,2)],{type:"application/json"}), `invoice_${invoiceData?.header?.number||"unknown"}.json`);
+  }
+  function downloadInvoiceCsv(){
+    const items=invoiceData.lineItems||[];
+    if(!items.length){ alert(L().noPositionsToExport); return; }
+    const sep=csvDelimiter();
+    const esc=(v)=> `"${String(v??"").replace(/"/g,'""')}"`;
+    const headers=[L().posNr,L().productName,L().description,L().notes,L().quantity,L().unit,L().unitPrice,L().lineNet,L().taxRate,L().lineGross].map(esc).join(sep);
+    const rows=items.map(li=>[
+      esc(li.position), esc(li.productName), esc(li.description), esc(li.notes),
+      esc(csvNum(li.quantity)), esc(li.unit),
+      esc(csvNum(li.unitPrice)), esc(csvNum(li.lineNet)),
+      esc(csvNum(li.taxRate)), esc(csvNum(li.lineGross)),
+    ].join(sep));
+    downloadBlob(new Blob([[headers,...rows].join("\n")],{type:"text/csv;charset=utf-8;"}), `invoice_${invoiceData?.header?.number||"unknown"}_positions.csv`);
+  }
+
+  // Parse XML and display
+  function parseXml(xmlStr){
+    const parser=new DOMParser();
+    xmlDoc=parser.parseFromString(xmlStr,"application/xml");
+    if(xmlDoc.querySelector("parsererror")){ showError(L().invalidXml); return; }
+
+    // xml viewer always
+    dom.xmlPre.textContent = beautifyXml(xmlStr);
+    show(dom.xmlViewer);
+
+    // downloads
+    show(dom.downloadButtons);
+    dom.btnXml.onclick=()=>downloadBlob(originalXmlBlob || new Blob([xmlStr],{type:"application/xml"}), "invoice.xml");
+    dom.btnPdf.onclick=()=>originalPdfBlob ? downloadBlob(originalPdfBlob,"invoice.pdf") : showError(L().pdfNotAvailable);
+    dom.btnJson.onclick=downloadInvoiceJson;
+    dom.btnCsv.onclick=downloadInvoiceCsv;
+
+    // UBL detection
+    if(isUbl(xmlDoc)){
+      addWarning("warningsUbl");
+      renderWarnings();
+      showSuccess();
+      return;
+    }
+
+    // CII mapping
+    invoiceData = {header:{},seller:{},buyer:{},payment:{},lineItems:[]};
+
+    const invNo = xp1(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:ID")?.textContent?.trim() || "";
+    const invDateRaw = xp1(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString")?.textContent?.trim() || "";
+    const dueRaw = xp1(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:DueDateDateTime/udt:DateTimeString")?.textContent?.trim() || "";
+    const orderNo = xp1(xmlDoc, "//ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID")?.textContent?.trim() || "";
+    const notes = xps(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:Content").map(n=>n.textContent.trim()).join("\n");
+
+    invoiceData.header.number = invNo;
+    invoiceData.header.date = formatDate(invDateRaw);
+    invoiceData.header.dueDate = formatDate(dueRaw);
+    invoiceData.header.orderNumber = orderNo;
+    invoiceData.header.notes = notes;
+
+    // seller
+    const sName = xp1(xmlDoc, "//ram:SellerTradeParty/ram:Name")?.textContent?.trim() || "";
+    const sStreet = xp1(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:LineOne")?.textContent?.trim() || "";
+    const sZip = xp1(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode")?.textContent?.trim() || "";
+    const sCity = xp1(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CityName")?.textContent?.trim() || "";
+    const sCountry = xp1(xmlDoc, "//ram:SellerTradeParty/ram:PostalTradeAddress/ram:CountryID")?.textContent?.trim() || "";
+    const sEmail = xp1(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID")?.textContent?.trim() || "";
+    const sPhone = xp1(xmlDoc, "//ram:SellerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber")?.textContent?.trim() || "";
+    const sTaxVA = xp1(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']")?.textContent?.trim() || "";
+    const sTaxFC = xp1(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']")?.textContent?.trim() || "";
+    const sReg = xp1(xmlDoc, "//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID")?.textContent?.trim() || "";
+
+    invoiceData.seller.name = sName;
+    invoiceData.seller.address = [sStreet, (sZip||sCity)?`${sZip} ${sCity}`.trim():"", sCountry].filter(Boolean).join(", ");
+    invoiceData.seller.email = sEmail;
+    invoiceData.seller.phone = sPhone;
+    invoiceData.seller.taxId = [sTaxVA?`VA: ${sTaxVA}`:"", sTaxFC?`FC: ${sTaxFC}`:""].filter(Boolean).join("\n");
+    invoiceData.seller.register = sReg;
+
+    // buyer
+    const bName = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:Name")?.textContent?.trim() || "";
+    const bStreet = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne")?.textContent?.trim() || "";
+    const bLine2 = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineTwo")?.textContent?.trim() || "";
+    const bZip = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:PostcodeCode")?.textContent?.trim() || "";
+    const bCity = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CityName")?.textContent?.trim() || "";
+    const bCountry = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:PostalTradeAddress/ram:CountryID")?.textContent?.trim() || "";
+    const bEmail = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID")?.textContent?.trim() || "";
+    const bPhone = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:TelephoneUniversalCommunication/ram:CompleteNumber")?.textContent?.trim() || "";
+    const bTaxVA = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='VA']")?.textContent?.trim() || "";
+    const bTaxFC = xp1(xmlDoc, "//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID[@schemeID='FC']")?.textContent?.trim() || "";
+
+    invoiceData.buyer.name = bName;
+    invoiceData.buyer.address = [bStreet, (bZip||bCity)?`${bZip} ${bCity}`.trim():"", bCountry].filter(Boolean).join(", ");
+    invoiceData.buyer.address2 = bLine2;
+    invoiceData.buyer.email = bEmail;
+    invoiceData.buyer.phone = bPhone;
+    invoiceData.buyer.taxId = [bTaxVA?`VA: ${bTaxVA}`:"", bTaxFC?`FC: ${bTaxFC}`:""].filter(Boolean).join("\n");
+
+    // payment
+    const currency = xp1(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:InvoiceCurrencyCode")?.textContent?.trim() || "EUR";
+    invoiceData.payment.currency = currency;
+    const sym = getCurSym(currency);
+
+    const pm = xp1(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementPaymentMeans");
+    const typeCode = pm ? xp1(pm, ".//ram:TypeCode")?.textContent?.trim() : "";
+    invoiceData.payment.type = typeCode ? payTypeName(typeCode) : "";
+    const terms = xp1(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:Description")?.textContent?.trim() || "";
+    invoiceData.payment.terms = terms;
+
+    const iban = pm ? (xp1(pm, ".//ram:PayerPartyCreditorFinancialAccount/ram:IBANID | .//ram:PayeePartyCreditorFinancialAccount/ram:IBANID")?.textContent?.trim() || "") : "";
+    const bic  = pm ? (xp1(pm, ".//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID | .//ram:PayeePartyCreditorFinancialInstitution/ram:BICID")?.textContent?.trim() || "") : "";
+    const holder = pm ? (xp1(pm, ".//ram:PayeePartyCreditorFinancialAccount/ram:AccountName")?.textContent?.trim() || "") : "";
+
+    invoiceData.payment.iban = iban;
+    invoiceData.payment.bic = bic;
+    invoiceData.payment.accountHolder = holder;
+
+    if(iban && !isValidIBAN(iban)) addWarning("warningsInvalidIban");
+
+    // totals
+    const sum = xp1(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementMonetarySummation | //ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation");
+    const getAmt = (path) => sum ? (xp1(sum, path)?.textContent?.trim() || "") : "";
+    invoiceData.payment.netAmount = parseFloat(getAmt(".//ram:LineTotalAmount")||"") || null;
+    invoiceData.payment.taxAmount = parseFloat(getAmt(".//ram:TaxTotalAmount")||"") || null;
+    invoiceData.payment.grossAmount = parseFloat(getAmt(".//ram:GrandTotalAmount")||"") || null;
+    invoiceData.payment.dueAmount = parseFloat(getAmt(".//ram:DuePayableAmount")||"") || null;
+
+    // items
+    const rows = xps(xmlDoc, "//ram:IncludedSupplyChainTradeLineItem");
+    let sumNetLines = 0;
+    rows.forEach((row,i)=>{
+      const pos = xp1(row, "./ram:AssociatedDocumentLineDocument/ram:LineID")?.textContent?.trim() || String(i+1);
+      const name = xp1(row, "./ram:SpecifiedTradeProduct/ram:Name")?.textContent?.trim() || "";
+      const desc = xp1(row, "./ram:SpecifiedTradeProduct/ram:Description")?.textContent?.trim() || "";
+      const note = xp1(row, "./ram:AssociatedDocumentLineDocument/ram:IncludedNote/ram:Content")?.textContent?.trim() || "";
+      const qtyEl = xp1(row, "./ram:SpecifiedLineTradeDelivery/ram:BilledQuantity");
+      const qty = parseFloat(qtyEl?.textContent?.trim()||"0") || 0;
+      const unitCode = qtyEl?.getAttribute("unitCode") || "";
+      const unit = getUnit(unitCode);
+      const unitPrice = parseFloat(xp1(row, "./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount")?.textContent?.trim()||"0") || 0;
+      const taxRate = parseFloat(xp1(row, "./ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent")?.textContent?.trim()||"0") || 0;
+
+      const lineNet = unitPrice*qty;
+      const lineGross = lineNet + lineNet*(taxRate/100);
+      sumNetLines += lineNet;
+
+      invoiceData.lineItems.push({
+        position:pos, productName:name, description:desc, notes:note,
+        quantity:qty, unitCode, unit, unitPrice:+unitPrice.toFixed(2),
+        lineNet:+lineNet.toFixed(2), taxRate:+taxRate.toFixed(2), lineGross:+lineGross.toFixed(2)
       });
+    });
 
-      dom.dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dom.dropZone.classList.remove("dragover");
-        const file = e.dataTransfer.files[0];
-        if (file) handleFile(file);
+    if (invoiceData.payment.netAmount != null && rows.length){
+      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > 0.02) addWarning("warningsTotalsMismatch");
+    }
+
+    // render
+    fillFromInvoiceData(invoiceData);
+
+    // QR
+    buildQrIfPossible(invoiceData, sym);
+
+    // save to collection (optional)
+    addToCollection(invoiceData, originalXmlBlob || originalPdfBlob);
+
+    renderWarnings();
+    showSuccess();
+  }
+
+  function fillFromInvoiceData(d){
+    // header
+    dom.invNumber.textContent = d.header?.number || "";
+    dom.invDate.textContent = d.header?.date || "";
+    dom.invDueDate.textContent = d.header?.dueDate || "";
+    dom.invOrderNumber.textContent = d.header?.orderNumber || "";
+    dom.invNote.textContent = d.header?.notes || "";
+    show(dom.headerSection);
+
+    // seller
+    dom.sellerName.textContent = d.seller?.name || "";
+    dom.sellerAddress.textContent = d.seller?.address || "";
+    dom.sellerEmail.textContent = d.seller?.email || "";
+    dom.sellerPhone.textContent = d.seller?.phone || "";
+    dom.sellerTaxID.textContent = d.seller?.taxId || "";
+    dom.sellerRegister.textContent = d.seller?.register || "";
+    show(dom.sellerSection);
+
+    // buyer
+    dom.buyerName.textContent = d.buyer?.name || "";
+    dom.buyerAddress.textContent = d.buyer?.address || "";
+    dom.buyerAddress2.textContent = d.buyer?.address2 || "";
+    dom.buyerEmail.textContent = d.buyer?.email || "";
+    dom.buyerPhone.textContent = d.buyer?.phone || "";
+    dom.buyerTaxID.textContent = d.buyer?.taxId || "";
+    show(dom.buyerSection);
+
+    // payment
+    dom.currency.textContent = d.payment?.currency || "";
+    dom.paymentType.textContent = d.payment?.type || "";
+    dom.paymentTerms.textContent = d.payment?.terms || "";
+    dom.iban.textContent = (d.payment?.iban || "").replace(/(.{4})/g,"$1 ").trim();
+    dom.bic.textContent = d.payment?.bic || "";
+    dom.accountHolder.textContent = d.payment?.accountHolder || "";
+    const sym = getCurSym(d.payment?.currency || "EUR");
+    dom.netAmount.textContent = (d.payment?.netAmount!=null) ? fmtMoney(d.payment.netAmount, sym) : "";
+    dom.taxAmount.textContent = (d.payment?.taxAmount!=null) ? fmtMoney(d.payment.taxAmount, sym) : "";
+    dom.grossAmount.textContent = (d.payment?.grossAmount!=null) ? fmtMoney(d.payment.grossAmount, sym) : "";
+    dom.dueAmount.textContent = (d.payment?.dueAmount!=null) ? fmtMoney(d.payment.dueAmount, sym) : "";
+    show(dom.paymentSection);
+
+    // items table
+    const tb=dom.lineItemsTable.querySelector("tbody");
+    tb.innerHTML="";
+    (d.lineItems||[]).forEach(li=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(li.position)}</td>
+        <td>${escapeHtml(li.productName)}</td>
+        <td>${escapeHtml(li.description)}</td>
+        <td>${escapeHtml(li.notes)}</td>
+        <td>${escapeHtml((li.quantity ?? 0).toFixed ? li.quantity.toFixed(2) : li.quantity)}</td>
+        <td>${escapeHtml(li.unit)}</td>
+        <td>${escapeHtml(fmtMoney(li.unitPrice, sym))}</td>
+        <td>${escapeHtml(fmtMoney(li.lineNet, sym))}</td>
+        <td>${escapeHtml(li.taxRate)}%</td>
+        <td>${escapeHtml(fmtMoney(li.lineGross, sym))}</td>
+      `;
+      tb.appendChild(tr);
+    });
+    if((d.lineItems||[]).length) show(dom.lineItemsSection);
+  }
+
+  function buildQrIfPossible(d, sym){
+    const iban = d.payment?.iban;
+    const amount = (d.payment?.grossAmount ?? d.payment?.dueAmount);
+    if(!iban || amount==null){
+      hide(dom.showQr);
+      return;
+    }
+    show(dom.showQr);
+
+    const prefix = (lang==="en")?"Invoice":(lang==="fr")?"Facture":(lang==="it")?"Fattura":"Rechnung";
+    const payload = [
+      "BCD","002","1","SCT",
+      d.payment?.bic || "",
+      (d.seller?.name || "").slice(0,70),
+      iban.replace(/\s/g,""),
+      `EUR${Number(amount).toFixed(2)}`,
+      "","",
+      `${prefix} ${(d.header?.number||"").slice(0,120)}`.trim(),
+      ""
+    ].join("\n");
+
+    dom.showQr.onclick = () => {
+      dom.qrCanvasWrap.innerHTML="";
+      const canvas=document.createElement("canvas");
+      dom.qrCanvasWrap.appendChild(canvas);
+      QRCode.toCanvas(canvas, payload, {width:220, height:220, errorCorrectionLevel:"M"}, (err)=>{
+        if(err){ console.error(err); return; }
+        openModal(dom.qrModal, dom.qrSave);
+        dom.qrSave.onclick = () => {
+          const a=document.createElement("a");
+          a.href=canvas.toDataURL("image/png");
+          a.download=`epc_qrcode_${(d.header?.number||"invoice")}.png`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        };
+        dom.qrClose.onclick = () => closeModal(dom.qrModal);
       });
+    };
+  }
 
-      dom.fileInput.addEventListener("change", () => {
-        const file = dom.fileInput.files[0];
-        if (file) handleFile(file);
-      });
-
-      // Sample invoice
-      if (dom.loadSampleBtn) {
-        dom.loadSampleBtn.addEventListener("click", async () => {
-          try {
-            resetUI();
-            showLoading();
-            const resp = await fetch("https://simonwaldherr.github.io/InvoiceInspector/RE-2025-0815.pdf");
-            if (!resp.ok) throw new Error("HTTP " + resp.status);
-            const blob = await resp.blob();
-            await handleFile(new File([blob], "RE-2025-0815.pdf", { type: "application/pdf" }));
-          } catch (e) {
-            console.error("Sample invoice load failed", e);
-            showError(L().sampleLoadError + e.message);
-          } finally {
-            hideLoading();
-            dom.loadSampleBtn.classList.add("hidden");
-          }
-        });
+  async function handleFile(file){
+    resetView();
+    showLoading();
+    try{
+      if(file.type==="application/pdf"){
+        originalPdfBlob=file;
+        const xml = await extractXmlFromPdf(file);
+        if(!xml){ showError(L().noFileFound); return; }
+        originalXmlBlob = new Blob([xml],{type:"application/xml"});
+        parseXml(xml);
+      } else if(file.name.toLowerCase().endsWith(".xml") || (file.type||"").includes("xml")){
+        originalXmlBlob=file;
+        const txt = await file.text();
+        parseXml(txt);
+      } else {
+        showError(L().unsupportedFormat);
       }
+    } catch(e){
+      showError(L().processingError + (e?.message||String(e)));
+      console.error(e);
+    } finally {
+      hideLoading();
+    }
+  }
 
-      /* ==============================================================
-         16. INITIALISE
-         ============================================================== */
+  // Dropzone events
+  dom.dropZone.addEventListener("click", ()=>dom.fileInput.click());
+  dom.dropZone.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); dom.fileInput.click(); } });
+  dom.dropZone.addEventListener("dragover",(e)=>{ e.preventDefault(); dom.dropZone.classList.add("dragover"); });
+  dom.dropZone.addEventListener("dragleave",(e)=>{ e.preventDefault(); dom.dropZone.classList.remove("dragover"); });
+  dom.dropZone.addEventListener("drop",(e)=>{
+    e.preventDefault(); dom.dropZone.classList.remove("dragover");
+    const files=Array.from(e.dataTransfer.files||[]);
+    (async()=>{ for(const f of files) await handleFile(f); })();
+  });
+  dom.fileInput.addEventListener("change",()=>{
+    const files=Array.from(dom.fileInput.files||[]);
+    (async()=>{ for(const f of files) await handleFile(f); })();
+  });
 
-      initLanguage();
+  // sample
+  dom.loadSample.addEventListener("click", async ()=>{
+    try{
+      resetView(); showLoading();
+      const resp=await fetch("https://simonwaldherr.github.io/InvoiceInspector/RE-2025-0815.pdf");
+      if(!resp.ok) throw new Error("HTTP "+resp.status);
+      const blob=await resp.blob();
+      await handleFile(new File([blob],"RE-2025-0815.pdf",{type:"application/pdf"}));
+      dom.loadSample.classList.add("hidden");
+    } catch(e){
+      showError(L().processingError + (e?.message||String(e)));
+    } finally {
+      hideLoading();
+    }
+  });
 
-    })();
-  </script>
+  // collection events
+  dom.collectionEnabled.addEventListener("change",()=>{ setEnabled(dom.collectionEnabled.checked); renderCollection(); });
+  dom.collectionSearch.addEventListener("input",()=>renderCollection());
+  dom.collectionStatusFilter.addEventListener("change",()=>renderCollection());
+  dom.collectionTodayOnly.addEventListener("change",()=>renderCollection());
+  dom.exportTodayJson.addEventListener("click",()=>exportCollection("today","json"));
+  dom.exportAllJson.addEventListener("click",()=>exportCollection("all","json"));
+  dom.exportTodayCsv.addEventListener("click",()=>exportCollection("today","csv"));
+  dom.exportAllCsv.addEventListener("click",()=>exportCollection("all","csv"));
+  dom.clearCollection.addEventListener("click",()=>{ if(confirm(L().confirmClearAll)) clearAll(); });
+
+  // keyboard shortcuts
+  document.addEventListener("keydown",(e)=>{
+    const mod=e.ctrlKey || e.metaKey;
+    if(!mod) return;
+    const k=(e.key||"").toLowerCase();
+    if(k==="o"){ e.preventDefault(); dom.fileInput.click(); }
+    else if(k==="f" && enabled()){ e.preventDefault(); dom.collectionSearch.focus(); }
+    else if(k==="e" && enabled()){ e.preventDefault(); exportCollection("today","csv"); }
+  });
+
+  // language buttons
+  $("langDe").addEventListener("click",()=>setLang("de"));
+  $("langEn").addEventListener("click",()=>setLang("en"));
+  $("langFr").addEventListener("click",()=>setLang("fr"));
+  $("langIt").addEventListener("click",()=>setLang("it"));
+
+  // init
+  const saved = (()=>{ try{return localStorage.getItem("invoiceInspector.lang")}catch(_){return null} })();
+  const nav = (navigator.language||"en").toLowerCase();
+  const auto = nav.startsWith("de")?"de":nav.startsWith("fr")?"fr":nav.startsWith("it")?"it":"en";
+  setLang(saved || auto);
+
+  buildStatusFilterOptions();
+  renderCollection();
+  dom.collectionEnabled.checked = enabled();
+  dom.collectionControls.classList.toggle("hidden", !enabled());
+})();
+</script>
 </body>
 </html>
