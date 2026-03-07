@@ -5,6 +5,8 @@
 [![GitHub release](https://img.shields.io/github/release/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/stargazers)
 
+Deutsche Version | [English Version](README.en.md)
+
 Ein leichtgewichtiger, clientseitiger Web-Viewer für elektronische Rechnungen mit Unterstützung für ZUGFeRD, XRechnung, EN 16931 und weitere Standards.
 
 InvoiceInspector ist eng mit dem Projekt
@@ -92,9 +94,31 @@ Während ich sehr gerne auf dieses offizielle Tool hinweisen und es ausdrücklic
 - **Hohe Portabilität**: Funktioniert auf jedem Webserver.
 - **Offline-fähig**: Keine externen Ressourcen erforderlich.
 
+## Integration
+
+### Einbettung in ein Web-Portal
+
+Kopieren Sie `index.html` in Ihr Projekt oder stellen Sie die Datei über einen
+beliebigen Webserver bereit. Serverseitige Anforderungen gibt es keine. Für den
+Intranet-Einsatz genügt ein interner Webserver.
+
+### iframe-Einbettung
+
+```html
+<iframe src="https://simonwaldherr.github.io/InvoiceInspector/"
+        width="100%" height="800" title="InvoiceInspector"></iframe>
+```
+
+### Direktlink zur Live-Demo
+
+```
+https://simonwaldherr.github.io/InvoiceInspector/
+```
+
 ## Beitragen
 
 Beiträge in Form von Bugmeldungen, Ideen oder Pull Requests sind willkommen.
+Bitte lesen Sie zuerst die [Beitragsrichtlinien](CONTRIBUTING.md).
 
 ## Lizenz
 
@@ -103,10 +127,13 @@ Dieses Projekt steht unter der [GNU General Public License v2.0](LICENSE).
 ## Links
 
 - **Repository**: [github.com/SimonWaldherr/InvoiceInspector](https://github.com/SimonWaldherr/InvoiceInspector)
+- **OpenCode.de**: [opencode.de – InvoiceInspector](https://gitlab.opencode.de/simonwaldherr/InvoiceInspector)
+- **Live-Demo**: [simonwaldherr.github.io/InvoiceInspector](https://simonwaldherr.github.io/InvoiceInspector/)
 - **Issues**: [GitHub Issues](https://github.com/SimonWaldherr/InvoiceInspector/issues)
 - **Releases**: [GitHub Releases](https://github.com/SimonWaldherr/InvoiceInspector/releases)
 - **ZUGFeRD Standard**: [ferd-net.de](https://www.ferd-net.de/)
 - **XRechnung**: [xeinkauf.de](https://xeinkauf.de/xrechnung/)
+- **EN 16931**: [fnfe-mpe.org](https://fnfe-mpe.org/factur-x/)
 
 ## Autor
 
