@@ -1,7 +1,7 @@
 # InvoiceInspector
 
 [![DOI](https://zenodo.org/badge/900334942.svg)](https://doi.org/10.5281/zenodo.15257729)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 [![GitHub release](https://img.shields.io/github/release/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/stargazers)
 
@@ -94,17 +94,54 @@ While I would very much like to direct attention to this official tool and expli
 - **High portability**: Works on any web server.
 - **Offline capable**: No external resources required.
 
+## Integration
+
+### Embedding in a web portal
+
+Copy `index.html` into your project or serve it from any web server. The file
+has no server-side requirements. For intranet use, host it on your internal
+server.
+
+### iframe embedding
+
+```html
+<iframe src="https://simonwaldherr.github.io/InvoiceInspector/"
+        width="100%" height="800" title="InvoiceInspector"></iframe>
+```
+
+### Direct link to the live demo
+
+```
+https://simonwaldherr.github.io/InvoiceInspector/
+```
+
+### Automated validation (headless)
+
+The tool runs entirely in the browser. For server-side or CI validation of
+e-invoices, use a headless browser (e.g. Playwright / Puppeteer) or pair it
+with a dedicated XML validation library.
+
+## Contributing
+
+Bug reports, feature ideas, and pull requests are welcome. Please open an
+[issue](https://github.com/SimonWaldherr/InvoiceInspector/issues) first for
+larger changes to discuss the approach. See [CONTRIBUTING.md](CONTRIBUTING.md)
+for detailed guidelines.
+
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [GNU General Public License v2.0](LICENSE).
 
 ## Links
 
 - **Repository**: [github.com/SimonWaldherr/InvoiceInspector](https://github.com/SimonWaldherr/InvoiceInspector)
+- **OpenCode.de**: [opencode.de – InvoiceInspector](https://gitlab.opencode.de/simonwaldherr/InvoiceInspector)
+- **Live Demo**: [simonwaldherr.github.io/InvoiceInspector](https://simonwaldherr.github.io/InvoiceInspector/)
 - **Issues**: [GitHub Issues](https://github.com/SimonWaldherr/InvoiceInspector/issues)
 - **Releases**: [GitHub Releases](https://github.com/SimonWaldherr/InvoiceInspector/releases)
 - **ZUGFeRD Standard**: [ferd-net.de](https://www.ferd-net.de/)
 - **XRechnung**: [xeinkauf.de](https://xeinkauf.de/xrechnung/)
+- **EN 16931**: [fnfe-mpe.org](https://fnfe-mpe.org/factur-x/)
 
 ## Author
 
