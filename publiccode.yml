@@ -4,11 +4,13 @@
 
 publiccodeYmlVersion: '0.2'
 name: InvoiceInspector
-url: 'https://github.com/SimonWaldherr/InvoiceInspector'
+applicationSuite: InvoiceInspector
+url: 'https://gitlab.opencode.de/simonwaldherr/InvoiceInspector.git'
 landingURL: 'https://simonwaldherr.github.io/InvoiceInspector/'
-releaseDate: '2026-02-28'
+softwareVersion: 1.4.1
+releaseDate: '2026-03-10'
 developmentStatus: stable
-softwareType: standalone/web
+softwareType: standalone
 platforms:
   - web
 categories:
@@ -20,6 +22,11 @@ maintenance:
       email: opensource@simonwaldherr.de
 legal:
   license: GPL-2.0-only
+  mainCopyrightOwner: Simon Waldherr
+  repoOwner: Simon Waldherr
+intendedAudience:
+  countries:
+    - de
 localisation:
   localisationReady: true
   availableLanguages:
@@ -31,114 +38,91 @@ description:
   de:
     genericName: Rechnungsbetrachter
     shortDescription: >-
-      Web-basierter Viewer/Inspector für elektronische Rechnungen (XRechnung,
-      ZUGFeRD, EN 16931).
-    longDescription: >
+      Web-basierter Viewer und Inspector für elektronische Rechnungen wie
+      XRechnung, ZUGFeRD und EN 16931.
+    longDescription: >-
       InvoiceInspector ist eine browserbasierte Anwendung zum Visualisieren,
-      Validieren und Debuggen elektronischer Rechnungen. Die Software
-      unterstützt gängige Formate wie XRechnung, ZUGFeRD und EN 16931 und
-      richtet sich an Entwickler, Buchhalter und Prüfer, die die strukturierten
-      Daten hinter Rechnungsdokumenten detailliert untersuchen müssen.
-      InvoiceInspector extrahiert und präsentiert zentrale Rechnungsmetadaten
-      (Lieferant- und Empfängerkennungen, Rechnungsnummer und -datum,
-      Positionen, Nettobeträge, Steuern und Summen), zeigt eingebettetes XML
-      oder Anhänge (z. B. PDF/A-3) an und markiert Schemaverletzungen sowie
-      businessbezogene Warnungen. Interaktive Funktionen umfassen feldgenaue
-      Navigation, Suche und Filter, Kopierfunktionen für Identifikatoren, Export
-      der geparsten Metadaten als JSON sowie eine erweiterbare
-      Validierungspipeline für projektspezifische Regeln. InvoiceInspector läuft
-      standardmäßig vollständig im Browser ohne Upload der Dokumente, um
-      Datenschutz zu gewährleisten, kann aber bei Bedarf in CI-Prozesse oder
-      automatisierte Prüfungen integriert werden.
+      Validieren und Analysieren elektronischer Rechnungen. Die Software
+      unterstützt Formate wie XRechnung, ZUGFeRD und EN 16931 und richtet sich
+      an Entwickler, Buchhaltung und Prüfer, die strukturierte Rechnungsdaten im
+      Detail untersuchen möchten. Die Anwendung extrahiert zentrale
+      Rechnungsmetadaten, zeigt eingebettetes XML oder Anhänge wie PDF/A-3 an
+      und markiert Schemafehler sowie fachliche Warnungen. Sie läuft
+      standardmäßig vollständig im Browser ohne Upload der Dokumente und kann
+      bei Bedarf in automatisierte Prüfprozesse integriert werden.
     features:
-      - Visualisierung von ZUGFeRD/Factur-X PDF und XRechnung XML
-      - 100% clientseitige Verarbeitung ohne Upload
-      - Export als XML, PDF, JSON und CSV
-      - Mehrsprachig (DE, EN, FR, IT)
+      - Visualisierung von ZUGFeRD/Factur-X-PDF und XRechnung-XML
+      - 100 % clientseitige Verarbeitung ohne Upload
+      - 'Export als XML, PDF, JSON und CSV'
+      - 'Mehrsprachige Oberfläche (DE, EN, FR, IT)'
       - Dark-Mode-Unterstützung
       - Lokale Rechnungssammlung mit IndexedDB
-      - EPC-QR-Code-Generierung für SEPA-Überweisungen
+      - EPC-QR-Code-Erzeugung für SEPA-Überweisungen
   en:
     genericName: Invoice viewer
     shortDescription: >-
-      Web-based viewer/inspector for electronic invoices (XRechnung, ZUGFeRD, EN
-      16931).
-    longDescription: >
-      InvoiceInspector is a browser-based application for visualizing,
-      validating and debugging electronic invoices. It supports common European
-      e-invoice standards such as XRechnung, ZUGFeRD and EN 16931 and is aimed
-      at developers, billing specialists and auditors who need to inspect the
-      structured data behind invoice documents. The viewer extracts and presents
-      core invoice metadata (supplier and buyer identifiers, invoice number and
-      date, line items, totals and tax breakdowns), shows raw embedded XML or
-      attached PDF/A-3 files when present, and highlights schema validation
-      failures and business-rule warnings. Interactive features include
-      field-level navigation, search and filters, copy-to-clipboard for
-      identifiers, export of parsed metadata to JSON, and an extendable
-      validation pipeline for custom rules. By default the tool runs entirely in
-      the browser without uploading documents, preserving data privacy; it can
-      also be integrated into CI/CD pipelines or automated validation workflows
-      via lightweight interfaces.
+      Web-based viewer and inspector for electronic invoices such as XRechnung,
+      ZUGFeRD and EN 16931.
+    longDescription: >-
+      InvoiceInspector is a browser-based application for visualising,
+      validating and analysing electronic invoices. It supports formats such as
+      XRechnung, ZUGFeRD and EN 16931 and is aimed at developers, accounting
+      teams and auditors who need to inspect structured invoice data in detail.
+      The application extracts key invoice metadata, displays embedded XML or
+      attachments such as PDF/A-3 files, and highlights schema errors as well as
+      business-rule warnings. By default, it runs entirely in the browser
+      without uploading documents and can also be integrated into automated
+      validation workflows.
     features:
       - Visualise ZUGFeRD/Factur-X PDF and XRechnung XML invoices
-      - 100% client-side processing, no upload required
-      - Export as XML, PDF, JSON and CSV
-      - Multilingual interface (DE, EN, FR, IT)
+      - 100% client-side processing without uploads
+      - 'Export as XML, PDF, JSON and CSV'
+      - 'Multilingual interface (DE, EN, FR, IT)'
       - Dark mode support
       - Local invoice collection using IndexedDB
       - EPC QR code generation for SEPA payments
   fr:
     genericName: Visionneuse de factures
     shortDescription: >-
-      Visionneuse/inspecteur web pour factures électroniques (XRechnung,
-      ZUGFeRD, EN 16931).
-    longDescription: >
-      InvoiceInspector est une application accessible depuis le navigateur pour
-      visualiser, valider et déboguer les factures électroniques. Elle prend en
-      charge des standards européens tels que XRechnung, ZUGFeRD et EN 16931 et
-      s'adresse aux équipes techniques, aux services de facturation et aux
-      auditeurs souhaitant examiner les données structurées des documents.
-      L'outil extrait et affiche les métadonnées essentielles (identifiants
-      émetteur/destinataire, numéro et date de facture, lignes, totaux et
-      ventilation des taxes), affiche le XML embarqué ou les pièces jointes (par
-      exemple PDF/A-3) et met en exergue les écarts de schéma ainsi que les
-      avertissements métier. Les fonctions interactives comprennent la
-      navigation par champ, la recherche et les filtres, l'export des données
-      parsées en JSON, et une pipeline de validation extensible pour des règles
-      spécifiques au projet. Par défaut, InvoiceInspector s'exécute côté client
-      pour préserver la confidentialité des données.
+      Visionneuse et inspecteur web pour factures électroniques comme XRechnung,
+      ZUGFeRD et EN 16931.
+    longDescription: >-
+      InvoiceInspector est une application web permettant de visualiser, valider
+      et analyser des factures électroniques. Elle prend en charge des formats
+      tels que XRechnung, ZUGFeRD et EN 16931 et s'adresse aux équipes
+      techniques, aux services comptables et aux auditeurs souhaitant examiner
+      en détail les données structurées des factures. L'application extrait les
+      métadonnées essentielles, affiche le XML embarqué ou des pièces jointes
+      comme des fichiers PDF/A-3, et met en évidence les erreurs de schéma ainsi
+      que les avertissements métier. Par défaut, elle fonctionne entièrement
+      dans le navigateur sans téléversement de documents.
     features:
-      - Visualisation de PDF ZUGFeRD/Factur-X et XML XRechnung
-      - Traitement 100% côté client, sans upload
-      - Export XML, PDF, JSON et CSV
-      - Interface multilingue (DE, EN, FR, IT)
+      - Visualisation de PDF ZUGFeRD/Factur-X et de XML XRechnung
+      - 'Traitement 100 % côté client, sans téléversement'
+      - 'Export XML, PDF, JSON et CSV'
+      - 'Interface multilingue (DE, EN, FR, IT)'
       - Mode sombre
-      - Collection de factures locale via IndexedDB
-      - Génération de QR codes EPC pour paiements SEPA
+      - Collection locale de factures via IndexedDB
+      - Génération de codes QR EPC pour paiements SEPA
   it:
     genericName: Visualizzatore fatture
     shortDescription: >-
-      Viewer/inspector web per fatture elettroniche (XRechnung, ZUGFeRD, EN
-      16931).
-    longDescription: >
-      InvoiceInspector è un'applicazione accessibile via browser per
-      visualizzare, validare e analizzare fatture elettroniche. Supporta
-      standard come XRechnung, ZUGFeRD e EN 16931 e si rivolge a sviluppatori,
-      addetti alla fatturazione e revisori che devono ispezionare i dati
-      strutturati presenti nei documenti. Il viewer estrae e presenta i metadati
-      principali (identificativi di fornitore/cliente, numero e data fattura,
-      righe, totali e dettagli IVA), mostra XML incorporato o allegati PDF/A-3
-      quando disponibili e evidenzia errori di validazione e avvisi di regole
-      aziendali. Le funzionalità interattive includono navigazione per campo,
-      ricerca e filtri, copia degli identificativi, esportazione dei metadati in
-      JSON e una pipeline di validazione estendibile per regole personalizzate.
-      Per impostazione predefinita l'applicazione opera nel browser senza
-      caricare i documenti, riducendo i rischi per la privacy.
+      Viewer e inspector web per fatture elettroniche come XRechnung, ZUGFeRD ed
+      EN 16931.
+    longDescription: >-
+      InvoiceInspector è un'applicazione web per visualizzare, validare e
+      analizzare fatture elettroniche. Supporta formati come XRechnung, ZUGFeRD
+      ed EN 16931 ed è pensata per sviluppatori, uffici contabili e revisori che
+      devono esaminare in dettaglio i dati strutturati delle fatture.
+      L'applicazione estrae i metadati principali, mostra XML incorporato o
+      allegati come PDF/A-3 ed evidenzia errori di schema e avvisi relativi alle
+      regole di business. Per impostazione predefinita funziona interamente nel
+      browser senza caricare documenti.
     features:
       - Visualizzazione di PDF ZUGFeRD/Factur-X e XML XRechnung
       - Elaborazione 100% lato client senza upload
-      - Esportazione in XML, PDF, JSON e CSV
-      - Interfaccia multilingue (DE, EN, FR, IT)
+      - 'Esportazione in XML, PDF, JSON e CSV'
+      - 'Interfaccia multilingue (DE, EN, FR, IT)'
       - Supporto modalità scura
       - Raccolta locale di fatture con IndexedDB
-      - Generazione QR code EPC per pagamenti SEPA
+      - Generazione di codici QR EPC per pagamenti SEPA
