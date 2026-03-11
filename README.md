@@ -1,9 +1,12 @@
 # InvoiceInspector
 
-[![DOI](https://zenodo.org/badge/900334942.svg)](https://doi.org/10.5281/zenodo.15257729)
-[![GitHub License](https://img.shields.io/github/license/SimonWaldherr/InvoiceInspector)](LICENSE)
-[![GitHub release](https://img.shields.io/github/release/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/releases)
-[![GitHub stars](https://img.shields.io/github/stars/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/stargazers)
+[![DOI](https://zenodo.org/badge/900334942.svg)](https://doi.org/10.5281/zenodo.15257729) 
+[![Available on openCode.de](https://img.shields.io/badge/available%20on-openCode.de-blue)](https://gitlab.opencode.de/simonwaldherr/InvoiceInspector) 
+![Digital Sovereignty](https://img.shields.io/badge/digital-sovereignty-blue) 
+[![GitHub License](https://img.shields.io/github/license/SimonWaldherr/InvoiceInspector)](LICENSE) 
+[![GitHub release](https://img.shields.io/github/release/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/releases) 
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/SimonWaldherr?label=sponsor%20me)](https://github.com/sponsors/SimonWaldherr) 
+
 
 Deutsche Version | [English Version](README.en.md)
 
