@@ -101,6 +101,13 @@
     textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text)}
     .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
     input[type="search"], select{padding:10px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}
+    .stat{padding:14px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,var(--card),var(--pre));box-shadow:0 2px 4px var(--shadow)}
+    .stat strong{display:block;font-size:1.4rem;line-height:1.2}
+    .stat span{display:block;color:var(--muted);font-size:.92em;margin-top:4px}
+    .field-value{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+    .field-value span{flex:1;min-width:0}
+    .field-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
   </style>
 </head>
 <body>
@@ -130,6 +137,7 @@
 
   <div class="btns">
     <button id="loadSample" class="pill" type="button" data-i18n="loadSample">🧪 Beispiel laden</button>
+    <button id="restoreLastInvoice" class="pill hidden" type="button" data-i18n="restoreLastInvoice">🕘 Letzte Rechnung öffnen</button>
   </div>
 
   <section id="collectionSection">
@@ -145,6 +153,7 @@
     <div id="collectionControls" class="controls hidden">
       <input id="collectionSearch" type="search" placeholder="Suche…">
       <select id="collectionStatusFilter" aria-label="Status filter"></select>
+      <select id="collectionSort" aria-label="Sortierung"></select>
       <label class="muted" style="display:flex;gap:8px;align-items:center">
         <input id="collectionTodayOnly" type="checkbox">
         <span data-i18n="collectionTodayOnly">nur heute</span>
@@ -155,6 +164,13 @@
       <button id="exportTodayCsv" class="pill" type="button" data-i18n="exportTodayCsv">CSV heute</button>
       <button id="exportAllCsv" class="pill" type="button" data-i18n="exportAllCsv">CSV alle</button>
       <button id="clearCollection" class="pill" type="button" data-i18n="clearCollection">Sammlung löschen</button>
+    </div>
+
+    <div id="collectionStats" class="stats hidden" aria-live="polite">
+      <div class="stat"><strong id="statTotal">0</strong><span data-i18n="statTotal">Rechnungen gesamt</span></div>
+      <div class="stat"><strong id="statToday">0</strong><span data-i18n="statToday">Heute geladen</span></div>
+      <div class="stat"><strong id="statPending">0,00 €</strong><span data-i18n="statPending">Offener Zahlbetrag</span></div>
+      <div class="stat"><strong id="statDuplicates">0</strong><span data-i18n="statDuplicates">Duplikate</span></div>
     </div>
 
     <div id="collectionEmpty" class="muted hidden" data-i18n="collectionEmpty">Keine lokal gespeicherten Rechnungen.</div>
@@ -377,8 +393,10 @@
       dropZoneText:"📄 Datei hierher ziehen & fallen lassen oder klicken",
       supportedFormatsText:"Unterstützt: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Beispiel laden",
+      restoreLastInvoice:"🕘 Letzte Rechnung öffnen",
       loadingText:"Verarbeitung läuft…",
       successText:"✅ Rechnung verarbeitet!",
+      importSummary:"Import abgeschlossen: {done}/{total} Rechnungen verarbeitet.",
       warningsTitle:"⚠️ Hinweise",
       warningsInvalidIban:"IBAN wirkt ungültig (Prüfsumme).",
       warningsTotalsMismatch:"Summen wirken inkonsistent (Positionssumme vs. Netto).",
@@ -453,6 +471,18 @@
       exportTodayCsv:"CSV heute",
       exportAllCsv:"CSV alle",
       clearCollection:"Sammlung löschen",
+      statTotal:"Rechnungen gesamt",
+      statToday:"Heute geladen",
+      statPending:"Offener Zahlbetrag",
+      statDuplicates:"Duplikate",
+      sort_loaded_desc:"Neueste zuerst",
+      sort_loaded_asc:"Älteste zuerst",
+      sort_invoice_desc:"Rechnungsnr. Z-A",
+      sort_invoice_asc:"Rechnungsnr. A-Z",
+      sort_seller_asc:"Verkäufer A-Z",
+      sort_seller_desc:"Verkäufer Z-A",
+      sort_gross_desc:"Brutto hoch-niedrig",
+      sort_gross_asc:"Brutto niedrig-hoch",
       colLoadedAt:"Geladen",
       colInvNo:"Nr.",
       colInvDate:"Datum",
@@ -487,6 +517,7 @@
       close:"Schließen",
       copy:"Kopieren",
       copied:"Kopiert!",
+      lastInvoiceMissing:"Keine letzte Rechnung gespeichert.",
     },
     en:{
       mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / EN16931)",
@@ -497,8 +528,10 @@
       dropZoneText:"📄 Drop a file here or click to select",
       supportedFormatsText:"Supported: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Load sample",
+      restoreLastInvoice:"🕘 Open last invoice",
       loadingText:"Processing…",
       successText:"✅ Invoice processed!",
+      importSummary:"Import complete: {done}/{total} invoices processed.",
       warningsTitle:"⚠️ Notices",
       warningsInvalidIban:"IBAN looks invalid (checksum).",
       warningsTotalsMismatch:"Totals look inconsistent (lines vs. net).",
@@ -572,6 +605,18 @@
       exportTodayCsv:"CSV today",
       exportAllCsv:"CSV all",
       clearCollection:"Clear collection",
+      statTotal:"Invoices total",
+      statToday:"Loaded today",
+      statPending:"Open payment amount",
+      statDuplicates:"Duplicates",
+      sort_loaded_desc:"Newest first",
+      sort_loaded_asc:"Oldest first",
+      sort_invoice_desc:"Invoice no. Z-A",
+      sort_invoice_asc:"Invoice no. A-Z",
+      sort_seller_asc:"Seller A-Z",
+      sort_seller_desc:"Seller Z-A",
+      sort_gross_desc:"Gross high-low",
+      sort_gross_asc:"Gross low-high",
       colLoadedAt:"Loaded",
       colInvNo:"No.",
       colInvDate:"Date",
@@ -605,6 +650,7 @@
       close:"Close",
       copy:"Copy",
       copied:"Copied!",
+      lastInvoiceMissing:"No last invoice stored.",
     },
     fr:{
       mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / EN16931)",
@@ -615,8 +661,10 @@
       dropZoneText:"📄 Déposez un fichier ici ou cliquez pour sélectionner",
       supportedFormatsText:"Formats : PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Charger un exemple",
+      restoreLastInvoice:"🕘 Ouvrir la dernière facture",
       loadingText:"Traitement…",
       successText:"✅ Facture traitée !",
+      importSummary:"Import terminé : {done}/{total} factures traitées.",
       warningsTitle:"⚠️ Remarques",
       warningsInvalidIban:"L’IBAN semble invalide (checksum).",
       warningsTotalsMismatch:"Totaux incohérents (lignes vs net).",
@@ -690,6 +738,18 @@
       exportTodayCsv:"CSV aujourd’hui",
       exportAllCsv:"CSV toutes",
       clearCollection:"Vider la collection",
+      statTotal:"Factures totales",
+      statToday:"Chargées aujourd’hui",
+      statPending:"Montant à payer",
+      statDuplicates:"Doublons",
+      sort_loaded_desc:"Plus récentes d’abord",
+      sort_loaded_asc:"Plus anciennes d’abord",
+      sort_invoice_desc:"N° facture Z-A",
+      sort_invoice_asc:"N° facture A-Z",
+      sort_seller_asc:"Vendeur A-Z",
+      sort_seller_desc:"Vendeur Z-A",
+      sort_gross_desc:"Brut décroissant",
+      sort_gross_asc:"Brut croissant",
       colLoadedAt:"Chargée",
       colInvNo:"N°",
       colInvDate:"Date",
@@ -723,6 +783,7 @@
       close:"Fermer",
       copy:"Copier",
       copied:"Copié !",
+      lastInvoiceMissing:"Aucune dernière facture enregistrée.",
     },
     it:{
       mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / EN16931)",
@@ -733,8 +794,10 @@
       dropZoneText:"📄 Trascina un file qui o fai clic per selezionare",
       supportedFormatsText:"Formati: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Carica esempio",
+      restoreLastInvoice:"🕘 Apri ultima fattura",
       loadingText:"Elaborazione…",
       successText:"✅ Fattura elaborata!",
+      importSummary:"Import completato: {done}/{total} fatture elaborate.",
       warningsTitle:"⚠️ Avvisi",
       warningsInvalidIban:"L’IBAN sembra non valido (checksum).",
       warningsTotalsMismatch:"Totali incoerenti (righe vs netto).",
@@ -808,6 +871,18 @@
       exportTodayCsv:"CSV oggi",
       exportAllCsv:"CSV tutte",
       clearCollection:"Svuota raccolta",
+      statTotal:"Fatture totali",
+      statToday:"Caricate oggi",
+      statPending:"Importo da pagare",
+      statDuplicates:"Duplicati",
+      sort_loaded_desc:"Più recenti prima",
+      sort_loaded_asc:"Più vecchie prima",
+      sort_invoice_desc:"Numero fattura Z-A",
+      sort_invoice_asc:"Numero fattura A-Z",
+      sort_seller_asc:"Venditore A-Z",
+      sort_seller_desc:"Venditore Z-A",
+      sort_gross_desc:"Lordo decrescente",
+      sort_gross_asc:"Lordo crescente",
       colLoadedAt:"Caricata",
       colInvNo:"N.",
       colInvDate:"Data",
@@ -841,6 +916,7 @@
       close:"Chiudi",
       copy:"Copia",
       copied:"Copiato!",
+      lastInvoiceMissing:"Nessuna ultima fattura salvata.",
     }
   };
 
@@ -851,6 +927,7 @@
     dropZone: $("dropZone"),
     fileInput: $("fileInput"),
     loadSample: $("loadSample"),
+    restoreLastInvoice: $("restoreLastInvoice"),
     loading: $("loading"),
     success: $("success"),
     error: $("error"),
@@ -880,10 +957,16 @@
     collectionControls:$("collectionControls"),
     collectionSearch:$("collectionSearch"),
     collectionStatusFilter:$("collectionStatusFilter"),
+    collectionSort:$("collectionSort"),
     collectionTodayOnly:$("collectionTodayOnly"),
+    collectionStats:$("collectionStats"),
     collectionEmpty:$("collectionEmpty"),
     collectionTableWrap:$("collectionTableWrap"),
     collectionTable:$("collectionTable"),
+    statTotal:$("statTotal"),
+    statToday:$("statToday"),
+    statPending:$("statPending"),
+    statDuplicates:$("statDuplicates"),
     exportTodayJson:$("exportTodayJson"),
     exportAllJson:$("exportAllJson"),
     exportTodayCsv:$("exportTodayCsv"),
@@ -933,6 +1016,8 @@
     (lang==="de"?$("langDe"):lang==="fr"?$("langFr"):lang==="it"?$("langIt"):$("langEn")).classList.add("active");
 
     buildStatusFilterOptions();
+    buildSortOptions();
+    updateRestoreLastButton();
     renderCollection();
   }
 
@@ -940,9 +1025,21 @@
   function hide(el){ el.classList.add("hidden"); }
   function showLoading(){ show(dom.loading); }
   function hideLoading(){ hide(dom.loading); }
-  function showSuccess(){ show(dom.success); setTimeout(()=>hide(dom.success), 2200); }
+  function showSuccess(msg){
+    const span = dom.success.querySelector("span");
+    const original = L().successText;
+    span.textContent = msg || original;
+    show(dom.success);
+    setTimeout(()=>{
+      span.textContent = original;
+      hide(dom.success);
+    }, 2200);
+  }
   function showError(msg){ dom.error.textContent = msg; show(dom.error); }
   function clearError(){ dom.error.textContent=""; hide(dom.error); }
+  function tpl(key, vars={}){
+    return String(L()[key] || key).replace(/\{(\w+)\}/g, (_, name) => vars[name] ?? "");
+  }
 
   function resetView(){
     warnings=[]; renderWarnings();
@@ -1081,7 +1178,12 @@
 
   // Local collection (IndexedDB + fallback)
   const DB = {name:"invoiceInspector",version:1,store:"invoices"};
-  const LS = {enabled:"invoiceInspector.collectionEnabled", legacy:"invoiceInspector.legacyInvoices"};
+  const LS = {
+    enabled:"invoiceInspector.collectionEnabled",
+    legacy:"invoiceInspector.legacyInvoices",
+    lastInvoice:"invoiceInspector.lastInvoice",
+    collectionSort:"invoiceInspector.collectionSort"
+  };
 
   function uuid(){
     return (crypto?.randomUUID) ? crypto.randomUUID() : ("id-"+Math.random().toString(16).slice(2)+"-"+Date.now());
@@ -1153,6 +1255,8 @@
     return [no,seller,date,gross].join("|");
   }
   function getStatusLabel(k){ return L()["status_"+k]||k; }
+  function getSortMode(){ try{return localStorage.getItem(LS.collectionSort) || "loaded_desc"}catch(_){return "loaded_desc"} }
+  function setSortMode(v){ try{localStorage.setItem(LS.collectionSort, v)}catch(_){} }
 
   function buildStatusFilterOptions(){
     const sel=dom.collectionStatusFilter;
@@ -1161,6 +1265,113 @@
     const oAll=document.createElement("option"); oAll.value="all"; oAll.textContent=L().status_all; sel.appendChild(oAll);
     STATUS_KEYS.forEach(k=>{ const o=document.createElement("option"); o.value=k; o.textContent=getStatusLabel(k); sel.appendChild(o); });
     sel.value=cur;
+  }
+
+  function buildSortOptions(){
+    const sel=dom.collectionSort;
+    const cur=getSortMode();
+    const items=["loaded_desc","loaded_asc","invoice_asc","invoice_desc","seller_asc","seller_desc","gross_desc","gross_asc"];
+    sel.innerHTML="";
+    items.forEach(k=>{
+      const o=document.createElement("option");
+      o.value=k;
+      o.textContent=L()["sort_"+k] || k;
+      sel.appendChild(o);
+    });
+    sel.value=cur;
+  }
+
+  function sortInvoices(list){
+    const mode=dom.collectionSort?.value || getSortMode();
+    const cmpText=(a,b)=>String(a||"").localeCompare(String(b||""), undefined, {numeric:true, sensitivity:"base"});
+    const cmpNum=(a,b)=>(Number(a)||0)-(Number(b)||0);
+    const sorted=[...list];
+    sorted.sort((a,b)=>{
+      if(mode==="loaded_desc") return String(b?.meta?.loadedAt||"").localeCompare(String(a?.meta?.loadedAt||""));
+      if(mode==="loaded_asc") return String(a?.meta?.loadedAt||"").localeCompare(String(b?.meta?.loadedAt||""));
+      if(mode==="invoice_asc") return cmpText(a?.header?.number,b?.header?.number);
+      if(mode==="invoice_desc") return cmpText(b?.header?.number,a?.header?.number);
+      if(mode==="seller_asc") return cmpText(a?.seller?.name,b?.seller?.name);
+      if(mode==="seller_desc") return cmpText(b?.seller?.name,a?.seller?.name);
+      if(mode==="gross_asc") return cmpNum(a?.payment?.grossAmount ?? a?.payment?.dueAmount, b?.payment?.grossAmount ?? b?.payment?.dueAmount);
+      if(mode==="gross_desc") return cmpNum(b?.payment?.grossAmount ?? b?.payment?.dueAmount, a?.payment?.grossAmount ?? a?.payment?.dueAmount);
+      return 0;
+    });
+    return sorted;
+  }
+
+  function sumPending(list){
+    return list.reduce((sum, inv)=>{
+      const status=inv?.user?.status || "open";
+      if(["paid","done","cancelled","claimed"].includes(status)) return sum;
+      const amount=Number(inv?.payment?.dueAmount ?? inv?.payment?.grossAmount);
+      return Number.isFinite(amount) ? sum + amount : sum;
+    }, 0);
+  }
+
+  function updateCollectionStats(all, filtered){
+    const pending=sumPending(filtered);
+    const source=filtered.length ? filtered : all;
+    const currency=source.find(inv=>inv?.payment?.currency)?.payment?.currency || "EUR";
+    dom.statTotal.textContent=String(all.length);
+    dom.statToday.textContent=String(all.filter(inv=>isToday(inv?.meta?.loadedAt)).length);
+    dom.statPending.textContent=fmtMoney(pending, getCurSym(currency));
+    dom.statDuplicates.textContent=String(all.filter(inv=>inv?.duplicateOf).length);
+    dom.collectionStats.classList.toggle("hidden", !enabled() || all.length===0);
+  }
+
+  function saveLastInvoice(inv){
+    try{ localStorage.setItem(LS.lastInvoice, JSON.stringify(inv)); }catch(_){}
+    updateRestoreLastButton();
+  }
+
+  function loadLastInvoice(){
+    try{
+      const raw=localStorage.getItem(LS.lastInvoice);
+      return raw ? JSON.parse(raw) : null;
+    }catch(_){ return null; }
+  }
+
+  function updateRestoreLastButton(){
+    dom.restoreLastInvoice.classList.toggle("hidden", !loadLastInvoice());
+  }
+
+  function renderFieldWithActions(el, value, actions=[]){
+    const text=value || "";
+    el.textContent="";
+    const wrap=document.createElement("div");
+    wrap.className="field-value";
+    const span=document.createElement("span");
+    span.textContent=text;
+    wrap.appendChild(span);
+    if(text && actions.length){
+      const box=document.createElement("div");
+      box.className="field-actions";
+      actions.forEach(action=>{
+        const btn=document.createElement("button");
+        btn.type="button";
+        btn.className="small";
+        btn.textContent=action.label;
+        btn.addEventListener("click", action.onClick);
+        box.appendChild(btn);
+      });
+      wrap.appendChild(box);
+    }
+    el.appendChild(wrap);
+  }
+
+  async function copyText(text){
+    if(!text) return;
+    try{
+      await navigator.clipboard.writeText(text);
+    } catch(_){
+      const ta=document.createElement("textarea");
+      ta.value=text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
   }
 
   function buildStatusSelect(current, onChange){
@@ -1186,8 +1397,8 @@
 
   async function allInvoices(){
     const fromDb = await dbGetAll();
-    if(fromDb) return fromDb.sort((a,b)=>String(b?.meta?.loadedAt||"").localeCompare(String(a?.meta?.loadedAt||"")));
-    return lsLoad();
+    if(fromDb) return sortInvoices(fromDb);
+    return sortInvoices(lsLoad());
   }
 
   function filterInvoices(list){
@@ -1208,6 +1419,7 @@
     dom.collectionControls.classList.toggle("hidden", !enabled());
     const list = enabled() ? await allInvoices() : [];
     const filtered = enabled() ? filterInvoices(list) : [];
+    updateCollectionStats(list, filtered);
     dom.collectionEmpty.classList.toggle("hidden", !enabled() || filtered.length>0);
     dom.collectionTableWrap.classList.toggle("hidden", !enabled() || filtered.length===0);
     const tb=dom.collectionTable.querySelector("tbody");
@@ -1328,6 +1540,7 @@
   function renderInvoiceFromSaved(inv){
     resetView();
     invoiceData = JSON.parse(JSON.stringify(inv||{}));
+    saveLastInvoice(invoiceData);
     fillFromInvoiceData(invoiceData);
     // downloads: only JSON/CSV (no original source)
     show(dom.downloadButtons);
@@ -1501,6 +1714,7 @@
     }
 
     // render
+    saveLastInvoice(invoiceData);
     fillFromInvoiceData(invoiceData);
 
     // QR
@@ -1515,7 +1729,9 @@
 
   function fillFromInvoiceData(d){
     // header
-    dom.invNumber.textContent = d.header?.number || "";
+    renderFieldWithActions(dom.invNumber, d.header?.number || "", [
+      {label:L().copy, onClick:()=>copyText(d.header?.number || "")}
+    ]);
     dom.invDate.textContent = d.header?.date || "";
     dom.invDueDate.textContent = d.header?.dueDate || "";
     dom.invOrderNumber.textContent = d.header?.orderNumber || "";
@@ -1523,19 +1739,27 @@
     show(dom.headerSection);
 
     // seller
-    dom.sellerName.textContent = d.seller?.name || "";
+    renderFieldWithActions(dom.sellerName, d.seller?.name || "", [
+      {label:L().copy, onClick:()=>copyText(d.seller?.name || "")}
+    ]);
     dom.sellerAddress.textContent = d.seller?.address || "";
-    dom.sellerEmail.textContent = d.seller?.email || "";
+    renderFieldWithActions(dom.sellerEmail, d.seller?.email || "", [
+      {label:L().copy, onClick:()=>copyText(d.seller?.email || "")}
+    ]);
     dom.sellerPhone.textContent = d.seller?.phone || "";
     dom.sellerTaxID.textContent = d.seller?.taxId || "";
     dom.sellerRegister.textContent = d.seller?.register || "";
     show(dom.sellerSection);
 
     // buyer
-    dom.buyerName.textContent = d.buyer?.name || "";
+    renderFieldWithActions(dom.buyerName, d.buyer?.name || "", [
+      {label:L().copy, onClick:()=>copyText(d.buyer?.name || "")}
+    ]);
     dom.buyerAddress.textContent = d.buyer?.address || "";
     dom.buyerAddress2.textContent = d.buyer?.address2 || "";
-    dom.buyerEmail.textContent = d.buyer?.email || "";
+    renderFieldWithActions(dom.buyerEmail, d.buyer?.email || "", [
+      {label:L().copy, onClick:()=>copyText(d.buyer?.email || "")}
+    ]);
     dom.buyerPhone.textContent = d.buyer?.phone || "";
     dom.buyerTaxID.textContent = d.buyer?.taxId || "";
     show(dom.buyerSection);
@@ -1544,7 +1768,9 @@
     dom.currency.textContent = d.payment?.currency || "";
     dom.paymentType.textContent = d.payment?.type || "";
     dom.paymentTerms.textContent = d.payment?.terms || "";
-    dom.iban.textContent = (d.payment?.iban || "").replace(/(.{4})/g,"$1 ").trim();
+    renderFieldWithActions(dom.iban, (d.payment?.iban || "").replace(/(.{4})/g,"$1 ").trim(), [
+      {label:L().copy, onClick:()=>copyText(d.payment?.iban || "")}
+    ]);
     dom.bic.textContent = d.payment?.bic || "";
     dom.accountHolder.textContent = d.payment?.accountHolder || "";
     const sym = getCurSym(d.payment?.currency || "EUR");
@@ -1640,6 +1866,22 @@
     }
   }
 
+  async function handleFiles(files){
+    const list=Array.from(files||[]);
+    if(!list.length) return;
+    clearError();
+    showLoading();
+    let done=0;
+    for(const file of list){
+      await handleFile(file);
+      if(dom.error.classList.contains("hidden")) done += 1;
+    }
+    hideLoading();
+    if(list.length > 1){
+      showSuccess(tpl("importSummary",{done,total:list.length}));
+    }
+  }
+
   // Dropzone events
   dom.dropZone.addEventListener("click", ()=>dom.fileInput.click());
   dom.dropZone.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); dom.fileInput.click(); } });
@@ -1648,11 +1890,11 @@
   dom.dropZone.addEventListener("drop",(e)=>{
     e.preventDefault(); dom.dropZone.classList.remove("dragover");
     const files=Array.from(e.dataTransfer.files||[]);
-    (async()=>{ for(const f of files) await handleFile(f); })();
+    handleFiles(files);
   });
   dom.fileInput.addEventListener("change",()=>{
     const files=Array.from(dom.fileInput.files||[]);
-    (async()=>{ for(const f of files) await handleFile(f); })();
+    handleFiles(files);
   });
 
   // sample
@@ -1675,6 +1917,7 @@
   dom.collectionEnabled.addEventListener("change",()=>{ setEnabled(dom.collectionEnabled.checked); renderCollection(); });
   dom.collectionSearch.addEventListener("input",()=>renderCollection());
   dom.collectionStatusFilter.addEventListener("change",()=>renderCollection());
+  dom.collectionSort.addEventListener("change",()=>{ setSortMode(dom.collectionSort.value); renderCollection(); });
   dom.collectionTodayOnly.addEventListener("change",()=>renderCollection());
   dom.exportTodayJson.addEventListener("click",()=>exportCollection("today","json"));
   dom.exportAllJson.addEventListener("click",()=>exportCollection("all","json"));
@@ -1697,6 +1940,11 @@
   $("langEn").addEventListener("click",()=>setLang("en"));
   $("langFr").addEventListener("click",()=>setLang("fr"));
   $("langIt").addEventListener("click",()=>setLang("it"));
+  dom.restoreLastInvoice.addEventListener("click",()=>{
+    const last=loadLastInvoice();
+    if(!last) return showError(L().lastInvoiceMissing);
+    renderInvoiceFromSaved(last);
+  });
 
   // init
   const saved = (()=>{ try{return localStorage.getItem("invoiceInspector.lang")}catch(_){return null} })();
@@ -1705,7 +1953,9 @@
   setLang(saved || auto);
 
   buildStatusFilterOptions();
+  buildSortOptions();
   renderCollection();
+  updateRestoreLastButton();
   dom.collectionEnabled.checked = enabled();
   dom.collectionControls.classList.toggle("hidden", !enabled());
 })();
