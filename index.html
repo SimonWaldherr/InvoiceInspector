@@ -39,16 +39,36 @@
       --okbg:#d4edda; --ok:#155724; --okb:#c3e6cb;
       --errbg:#ffe6e6; --err:red;
       --dragbg:#f0f8ff; --dragb:#007BFF;
+      color-scheme:light;
     }
     @media (prefers-color-scheme:dark){
-      :root{
+      :root:not([data-theme="light"]){
         --bg:#1a1a1a; --text:#e0e0e0; --card:#2d2d2d; --border:#444; --shadow:rgba(0,0,0,.3);
         --accent:#0099ff; --accent2:#007acc; --muted:#adb5bd;
         --pre:#1e1e1e; --preb:#555; --thead:#383838;
         --okbg:#155724; --ok:#b8e6b8; --okb:#28a745;
         --errbg:#4a1a1a; --err:#ff9999;
         --dragbg:#1a3a5a; --dragb:#0099ff;
+        color-scheme:dark;
       }
+    }
+    :root[data-theme="light"]{
+      --bg:#f7f7f7; --text:#333; --card:#fff; --border:#ccc; --shadow:rgba(0,0,0,.1);
+      --accent:#007BFF; --accent2:#0056b3; --muted:#666;
+      --pre:#f9f9f9; --preb:#ccc; --thead:#f0f0f0;
+      --okbg:#d4edda; --ok:#155724; --okb:#c3e6cb;
+      --errbg:#ffe6e6; --err:red;
+      --dragbg:#f0f8ff; --dragb:#007BFF;
+      color-scheme:light;
+    }
+    :root[data-theme="dark"]{
+      --bg:#1a1a1a; --text:#e0e0e0; --card:#2d2d2d; --border:#444; --shadow:rgba(0,0,0,.3);
+      --accent:#0099ff; --accent2:#007acc; --muted:#adb5bd;
+      --pre:#1e1e1e; --preb:#555; --thead:#383838;
+      --okbg:#155724; --ok:#b8e6b8; --okb:#28a745;
+      --errbg:#4a1a1a; --err:#ff9999;
+      --dragbg:#1a3a5a; --dragb:#0099ff;
+      color-scheme:dark;
     }
     body{font-family:Arial,sans-serif;margin:20px;line-height:1.6;background:var(--bg);color:var(--text)}
     h1{margin:0; font-size:1.8em}
@@ -58,6 +78,7 @@
     .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
     .top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .langs{display:flex;gap:6px;flex-wrap:wrap}
     .lang-btn{padding:7px 12px;border-radius:16px;border:2px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer;font-weight:700}
     .lang-btn.active{background:var(--accent);color:#fff}
@@ -100,7 +121,16 @@
     .qrbox{display:inline-block;background:#fff;padding:12px;border-radius:10px;border:1px solid #ddd;margin:10px 0}
     textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text)}
     .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
-    input[type="search"], select{padding:10px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    input[type="search"], input[type="date"], input[type="number"], select{padding:10px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    #collectionTableWrap{max-height:62vh;overflow:auto}
+    #collectionTable th{position:sticky;top:0;z-index:2;background:var(--thead)}
+    #collectionTable tbody tr:nth-child(even){background:var(--pre)}
+    #collectionTable tbody tr:hover{background:var(--dragbg)}
+    .th-sort{display:flex;gap:6px;align-items:center;border:none;background:none;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer}
+    .th-sort:hover{color:var(--accent2)}
+    .th-sort .sort-arrow{display:inline-block;min-width:10px;color:var(--muted)}
+    .summary{margin:4px 0}
+    .pagination{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}
     .stat{padding:14px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,var(--card),var(--pre));box-shadow:0 2px 4px var(--shadow)}
     .stat strong{display:block;font-size:1.4rem;line-height:1.2}
@@ -114,11 +144,14 @@
 
   <div class="top">
     <h1 data-i18n="mainTitle">InvoiceInspector</h1>
-    <div class="langs" aria-label="Language switcher">
-      <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
-      <button id="langEn" class="lang-btn">🇺🇸 EN</button>
-      <button id="langFr" class="lang-btn">🇫🇷 FR</button>
-      <button id="langIt" class="lang-btn">🇮🇹 IT</button>
+    <div class="top-actions">
+      <button id="themeToggle" class="lang-btn" type="button" aria-label="Darstellung umschalten">🌙 Dark</button>
+      <div class="langs" aria-label="Language switcher">
+        <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
+        <button id="langEn" class="lang-btn">🇺🇸 EN</button>
+        <button id="langFr" class="lang-btn">🇫🇷 FR</button>
+        <button id="langIt" class="lang-btn">🇮🇹 IT</button>
+      </div>
     </div>
   </div>
 
@@ -158,12 +191,36 @@
         <input id="collectionTodayOnly" type="checkbox">
         <span data-i18n="collectionTodayOnly">nur heute</span>
       </label>
+      <label class="muted" style="display:flex;gap:8px;align-items:center">
+        <input id="collectionDuplicatesOnly" type="checkbox">
+        <span data-i18n="collectionDuplicatesOnly">nur Duplikate</span>
+      </label>
+      <input id="collectionDateFrom" type="date" aria-label="Von Datum">
+      <input id="collectionDateTo" type="date" aria-label="Bis Datum">
+      <input id="collectionGrossMin" type="number" inputmode="decimal" step="0.01" placeholder="Min">
+      <input id="collectionGrossMax" type="number" inputmode="decimal" step="0.01" placeholder="Max">
+      <button id="collectionResetFilters" class="pill" type="button" data-i18n="resetFilters">Filter zurücksetzen</button>
 
       <button id="exportTodayJson" class="pill" type="button" data-i18n="exportTodayJson">JSON heute</button>
       <button id="exportAllJson" class="pill" type="button" data-i18n="exportAllJson">JSON alle</button>
       <button id="exportTodayCsv" class="pill" type="button" data-i18n="exportTodayCsv">CSV heute</button>
       <button id="exportAllCsv" class="pill" type="button" data-i18n="exportAllCsv">CSV alle</button>
       <button id="clearCollection" class="pill" type="button" data-i18n="clearCollection">Sammlung löschen</button>
+    </div>
+    <div id="collectionSummary" class="muted summary hidden" aria-live="polite"></div>
+    <div id="collectionPagination" class="pagination hidden" aria-live="polite">
+      <button id="collectionPrevPage" class="small" type="button" data-i18n="prevPage">Zurück</button>
+      <span id="collectionPageInfo" class="muted"></span>
+      <button id="collectionNextPage" class="small" type="button" data-i18n="nextPage">Weiter</button>
+      <label class="muted" style="display:flex;gap:6px;align-items:center">
+        <span data-i18n="rowsPerPage">Zeilen pro Seite</span>
+        <select id="collectionPageSize" aria-label="Page size">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </label>
     </div>
 
     <div id="collectionStats" class="stats hidden" aria-live="polite">
@@ -180,12 +237,12 @@
         <caption class="sr-only" data-i18n="collectionTableCaption">Lokale Rechnungsliste</caption>
         <thead>
           <tr>
-            <th scope="col" data-i18n="colLoadedAt">Geladen</th>
-            <th scope="col" data-i18n="colInvNo">Nr.</th>
-            <th scope="col" data-i18n="colInvDate">Datum</th>
-            <th scope="col" data-i18n="colSeller">Verkäufer</th>
-            <th scope="col" data-i18n="colGross">Brutto</th>
-            <th scope="col" data-i18n="colStatus">Status</th>
+            <th scope="col"><button type="button" class="th-sort" data-sort-field="loaded"><span data-i18n="colLoadedAt">Geladen</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
+            <th scope="col"><button type="button" class="th-sort" data-sort-field="invoice"><span data-i18n="colInvNo">Nr.</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
+            <th scope="col"><button type="button" class="th-sort" data-sort-field="date"><span data-i18n="colInvDate">Datum</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
+            <th scope="col"><button type="button" class="th-sort" data-sort-field="seller"><span data-i18n="colSeller">Verkäufer</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
+            <th scope="col"><button type="button" class="th-sort" data-sort-field="gross"><span data-i18n="colGross">Brutto</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
+            <th scope="col"><button type="button" class="th-sort" data-sort-field="status"><span data-i18n="colStatus">Status</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col" data-i18n="colComment">Kommentar</th>
             <th scope="col" data-i18n="colActions">Aktionen</th>
           </tr>
@@ -390,6 +447,9 @@
       descriptionText:"Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur‑X PDFs an. Eingebettete XMLs in PDFs werden extrahiert.",
       disclaimerText:"<strong>Hinweis:</strong> Verarbeitung vollständig im Browser. Keine Uploads. Optional kann eine lokale Rechnungssammlung aktiviert werden (IndexedDB/LocalStorage), die jederzeit löschbar ist. Keine Gewähr.",
       shortcutHint:"Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute",
+      themeDark:"🌙 Dark",
+      themeLight:"☀️ Light",
+      themeToggleAria:"Hell/Dunkel umschalten",
       dropZoneText:"📄 Datei hierher ziehen & fallen lassen oder klicken",
       supportedFormatsText:"Unterstützt: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Beispiel laden",
@@ -464,7 +524,18 @@
       collectionEnableLabel:"Rechnungen lokal merken",
       collectionEnableHint:"Nur im Browser (IndexedDB/LocalStorage). Löschbar.",
       collectionTodayOnly:"nur heute",
+      collectionDuplicatesOnly:"nur Duplikate",
+      resetFilters:"Filter zurücksetzen",
+      filterDateFrom:"Geladen von",
+      filterDateTo:"Geladen bis",
+      filterGrossMin:"Brutto min.",
+      filterGrossMax:"Brutto max.",
       collectionEmpty:"Keine lokal gespeicherten Rechnungen.",
+      collectionSummary:"Anzeige: {shown} von {total} · Gesamt: {all}",
+      pageInfo:"Seite {page} / {pages}",
+      prevPage:"Zurück",
+      nextPage:"Weiter",
+      rowsPerPage:"Zeilen pro Seite",
       collectionTableCaption:"Lokale Rechnungsliste",
       exportTodayJson:"JSON heute",
       exportAllJson:"JSON alle",
@@ -481,6 +552,10 @@
       sort_invoice_asc:"Rechnungsnr. A-Z",
       sort_seller_asc:"Verkäufer A-Z",
       sort_seller_desc:"Verkäufer Z-A",
+      sort_date_desc:"Rechnungsdatum neu-alt",
+      sort_date_asc:"Rechnungsdatum alt-neu",
+      sort_status_asc:"Status A-Z",
+      sort_status_desc:"Status Z-A",
       sort_gross_desc:"Brutto hoch-niedrig",
       sort_gross_asc:"Brutto niedrig-hoch",
       colLoadedAt:"Geladen",
@@ -525,6 +600,9 @@
       descriptionText:"View e-invoices (XML) and ZUGFeRD/Factur‑X PDFs. Embedded XML is extracted.",
       disclaimerText:"<strong>Note:</strong> Fully local in your browser. No uploads. Optional local collection (IndexedDB/LocalStorage), deletable anytime. No warranty.",
       shortcutHint:"Tip: Ctrl/⌘+O open file · Ctrl/⌘+F search · Ctrl/⌘+E export today",
+      themeDark:"🌙 Dark",
+      themeLight:"☀️ Light",
+      themeToggleAria:"Toggle light/dark mode",
       dropZoneText:"📄 Drop a file here or click to select",
       supportedFormatsText:"Supported: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Load sample",
@@ -598,7 +676,18 @@
       collectionEnableLabel:"Remember invoices locally",
       collectionEnableHint:"Browser-only (IndexedDB/LocalStorage). Deletable anytime.",
       collectionTodayOnly:"today only",
+      collectionDuplicatesOnly:"duplicates only",
+      resetFilters:"Reset filters",
+      filterDateFrom:"Loaded from",
+      filterDateTo:"Loaded to",
+      filterGrossMin:"Gross min",
+      filterGrossMax:"Gross max",
       collectionEmpty:"No locally saved invoices.",
+      collectionSummary:"Showing: {shown} of {total} · Total: {all}",
+      pageInfo:"Page {page} / {pages}",
+      prevPage:"Prev",
+      nextPage:"Next",
+      rowsPerPage:"Rows per page",
       collectionTableCaption:"Local invoice list",
       exportTodayJson:"JSON today",
       exportAllJson:"JSON all",
@@ -615,6 +704,10 @@
       sort_invoice_asc:"Invoice no. A-Z",
       sort_seller_asc:"Seller A-Z",
       sort_seller_desc:"Seller Z-A",
+      sort_date_desc:"Invoice date new-old",
+      sort_date_asc:"Invoice date old-new",
+      sort_status_asc:"Status A-Z",
+      sort_status_desc:"Status Z-A",
       sort_gross_desc:"Gross high-low",
       sort_gross_asc:"Gross low-high",
       colLoadedAt:"Loaded",
@@ -658,6 +751,9 @@
       descriptionText:"Afficher des factures (XML) et des PDF ZUGFeRD/Factur‑X. Le XML intégré est extrait.",
       disclaimerText:"<strong>Remarque :</strong> Traitement local dans le navigateur. Aucun téléversement. Option : collection locale (IndexedDB/LocalStorage), supprimable. Aucune garantie.",
       shortcutHint:"Astuce : Ctrl/⌘+O ouvrir · Ctrl/⌘+F rechercher · Ctrl/⌘+E export aujourd’hui",
+      themeDark:"🌙 Sombre",
+      themeLight:"☀️ Clair",
+      themeToggleAria:"Basculer mode clair/sombre",
       dropZoneText:"📄 Déposez un fichier ici ou cliquez pour sélectionner",
       supportedFormatsText:"Formats : PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Charger un exemple",
@@ -731,7 +827,18 @@
       collectionEnableLabel:"Mémoriser localement",
       collectionEnableHint:"Navigateur uniquement (IndexedDB/LocalStorage). Suppression possible.",
       collectionTodayOnly:"aujourd’hui seulement",
+      collectionDuplicatesOnly:"doublons seulement",
+      resetFilters:"Réinitialiser les filtres",
+      filterDateFrom:"Chargée depuis",
+      filterDateTo:"Chargée jusqu’à",
+      filterGrossMin:"Brut min",
+      filterGrossMax:"Brut max",
       collectionEmpty:"Aucune facture enregistrée.",
+      collectionSummary:"Affichage : {shown} sur {total} · Total : {all}",
+      pageInfo:"Page {page} / {pages}",
+      prevPage:"Préc.",
+      nextPage:"Suiv.",
+      rowsPerPage:"Lignes par page",
       collectionTableCaption:"Liste locale",
       exportTodayJson:"JSON aujourd’hui",
       exportAllJson:"JSON toutes",
@@ -748,6 +855,10 @@
       sort_invoice_asc:"N° facture A-Z",
       sort_seller_asc:"Vendeur A-Z",
       sort_seller_desc:"Vendeur Z-A",
+      sort_date_desc:"Date facture récente-ancienne",
+      sort_date_asc:"Date facture ancienne-récente",
+      sort_status_asc:"Statut A-Z",
+      sort_status_desc:"Statut Z-A",
       sort_gross_desc:"Brut décroissant",
       sort_gross_asc:"Brut croissant",
       colLoadedAt:"Chargée",
@@ -791,6 +902,9 @@
       descriptionText:"Visualizza fatture (XML) e PDF ZUGFeRD/Factur‑X. L’XML incorporato viene estratto.",
       disclaimerText:"<strong>Nota:</strong> Elaborazione locale nel browser. Nessun upload. Opzione: raccolta locale (IndexedDB/LocalStorage), eliminabile. Nessuna garanzia.",
       shortcutHint:"Suggerimento: Ctrl/⌘+O apri · Ctrl/⌘+F cerca · Ctrl/⌘+E export oggi",
+      themeDark:"🌙 Scuro",
+      themeLight:"☀️ Chiaro",
+      themeToggleAria:"Attiva/disattiva tema chiaro/scuro",
       dropZoneText:"📄 Trascina un file qui o fai clic per selezionare",
       supportedFormatsText:"Formati: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Carica esempio",
@@ -864,7 +978,18 @@
       collectionEnableLabel:"Memorizza localmente",
       collectionEnableHint:"Solo nel browser (IndexedDB/LocalStorage). Eliminabile.",
       collectionTodayOnly:"solo oggi",
+      collectionDuplicatesOnly:"solo duplicati",
+      resetFilters:"Reimposta filtri",
+      filterDateFrom:"Caricata dal",
+      filterDateTo:"Caricata al",
+      filterGrossMin:"Lordo min",
+      filterGrossMax:"Lordo max",
       collectionEmpty:"Nessuna fattura salvata.",
+      collectionSummary:"Visualizzate: {shown} di {total} · Totale: {all}",
+      pageInfo:"Pagina {page} / {pages}",
+      prevPage:"Prec.",
+      nextPage:"Succ.",
+      rowsPerPage:"Righe per pagina",
       collectionTableCaption:"Elenco locale",
       exportTodayJson:"JSON oggi",
       exportAllJson:"JSON tutte",
@@ -881,6 +1006,10 @@
       sort_invoice_asc:"Numero fattura A-Z",
       sort_seller_asc:"Venditore A-Z",
       sort_seller_desc:"Venditore Z-A",
+      sort_date_desc:"Data fattura recente-vecchia",
+      sort_date_asc:"Data fattura vecchia-recente",
+      sort_status_asc:"Stato A-Z",
+      sort_status_desc:"Stato Z-A",
       sort_gross_desc:"Lordo decrescente",
       sort_gross_asc:"Lordo crescente",
       colLoadedAt:"Caricata",
@@ -924,6 +1053,7 @@
 
   // DOM
   const dom = {
+    themeToggle: $("themeToggle"),
     dropZone: $("dropZone"),
     fileInput: $("fileInput"),
     loadSample: $("loadSample"),
@@ -959,6 +1089,18 @@
     collectionStatusFilter:$("collectionStatusFilter"),
     collectionSort:$("collectionSort"),
     collectionTodayOnly:$("collectionTodayOnly"),
+    collectionDuplicatesOnly:$("collectionDuplicatesOnly"),
+    collectionDateFrom:$("collectionDateFrom"),
+    collectionDateTo:$("collectionDateTo"),
+    collectionGrossMin:$("collectionGrossMin"),
+    collectionGrossMax:$("collectionGrossMax"),
+    collectionResetFilters:$("collectionResetFilters"),
+    collectionSummary:$("collectionSummary"),
+    collectionPagination:$("collectionPagination"),
+    collectionPrevPage:$("collectionPrevPage"),
+    collectionPageInfo:$("collectionPageInfo"),
+    collectionNextPage:$("collectionNextPage"),
+    collectionPageSize:$("collectionPageSize"),
     collectionStats:$("collectionStats"),
     collectionEmpty:$("collectionEmpty"),
     collectionTableWrap:$("collectionTableWrap"),
@@ -1011,12 +1153,20 @@
     document.title = L().mainTitle;
     dom.dropZone.setAttribute("aria-label", L().dropZoneText);
     dom.collectionSearch.placeholder = (lang==="de")?"Suche…":(lang==="fr")?"Recherche…":(lang==="it")?"Cerca…":"Search…";
+    dom.collectionDateFrom.setAttribute("aria-label", L().filterDateFrom);
+    dom.collectionDateTo.setAttribute("aria-label", L().filterDateTo);
+    dom.collectionGrossMin.placeholder = L().filterGrossMin;
+    dom.collectionGrossMin.setAttribute("aria-label", L().filterGrossMin);
+    dom.collectionGrossMax.placeholder = L().filterGrossMax;
+    dom.collectionGrossMax.setAttribute("aria-label", L().filterGrossMax);
     // active btn
-    document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".langs .lang-btn").forEach(b=>b.classList.remove("active"));
     (lang==="de"?$("langDe"):lang==="fr"?$("langFr"):lang==="it"?$("langIt"):$("langEn")).classList.add("active");
 
     buildStatusFilterOptions();
     buildSortOptions();
+    updateThemeButton();
+    updateSortHeaderIndicators();
     updateRestoreLastButton();
     renderCollection();
   }
@@ -1179,17 +1329,76 @@
   // Local collection (IndexedDB + fallback)
   const DB = {name:"invoiceInspector",version:1,store:"invoices"};
   const LS = {
+    theme:"invoiceInspector.theme",
     enabled:"invoiceInspector.collectionEnabled",
     legacy:"invoiceInspector.legacyInvoices",
     lastInvoice:"invoiceInspector.lastInvoice",
-    collectionSort:"invoiceInspector.collectionSort"
+    collectionSort:"invoiceInspector.collectionSort",
+    collectionSearch:"invoiceInspector.collectionSearch",
+    collectionStatus:"invoiceInspector.collectionStatus",
+    collectionTodayOnly:"invoiceInspector.collectionTodayOnly",
+    collectionDuplicatesOnly:"invoiceInspector.collectionDuplicatesOnly",
+    collectionDateFrom:"invoiceInspector.collectionDateFrom",
+    collectionDateTo:"invoiceInspector.collectionDateTo",
+    collectionGrossMin:"invoiceInspector.collectionGrossMin",
+    collectionGrossMax:"invoiceInspector.collectionGrossMax",
+    collectionPageSize:"invoiceInspector.collectionPageSize",
+    collectionPage:"invoiceInspector.collectionPage"
   };
+
+  function lsGet(key, fallback=""){
+    try{
+      const v=localStorage.getItem(key);
+      return (v==null) ? fallback : v;
+    }catch(_){
+      return fallback;
+    }
+  }
+  function lsSet(key, value){
+    try{ localStorage.setItem(key, value); }catch(_){}
+  }
+  function boolFromLs(key){
+    return lsGet(key,"0")==="1";
+  }
+  function boolToLs(key, value){
+    lsSet(key, value?"1":"0");
+  }
+
+  function detectSystemTheme(){
+    try{
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }catch(_){
+      return "light";
+    }
+  }
+  function getThemeMode(){
+    const saved=lsGet(LS.theme, "");
+    if(saved==="light" || saved==="dark") return saved;
+    return detectSystemTheme();
+  }
+  function updateThemeButton(){
+    const mode=document.documentElement.getAttribute("data-theme") || getThemeMode();
+    const next=(mode==="dark") ? "light" : "dark";
+    dom.themeToggle.textContent = (next==="dark") ? L().themeDark : L().themeLight;
+    dom.themeToggle.setAttribute("aria-label", L().themeToggleAria);
+    dom.themeToggle.title = L().themeToggleAria;
+  }
+  function applyTheme(mode){
+    const finalMode=(mode==="dark") ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", finalMode);
+    lsSet(LS.theme, finalMode);
+    updateThemeButton();
+  }
+  function toggleTheme(){
+    const current=document.documentElement.getAttribute("data-theme") || getThemeMode();
+    applyTheme(current==="dark" ? "light" : "dark");
+  }
 
   function uuid(){
     return (crypto?.randomUUID) ? crypto.randomUUID() : ("id-"+Math.random().toString(16).slice(2)+"-"+Date.now());
   }
-  function enabled(){ try{return localStorage.getItem(LS.enabled)==="1"}catch(_){return false} }
-  function setEnabled(v){ try{localStorage.setItem(LS.enabled, v?"1":"0")}catch(_){} }
+  function enabled(){ return boolFromLs(LS.enabled); }
+  function setEnabled(v){ boolToLs(LS.enabled, v); }
 
   function openDb(){
     return new Promise((resolve)=>{
@@ -1255,22 +1464,99 @@
     return [no,seller,date,gross].join("|");
   }
   function getStatusLabel(k){ return L()["status_"+k]||k; }
-  function getSortMode(){ try{return localStorage.getItem(LS.collectionSort) || "loaded_desc"}catch(_){return "loaded_desc"} }
-  function setSortMode(v){ try{localStorage.setItem(LS.collectionSort, v)}catch(_){} }
+  function getSortMode(){ return lsGet(LS.collectionSort, "loaded_desc"); }
+  function setSortMode(v){ lsSet(LS.collectionSort, v); }
+  function getPageSize(){
+    const n=Number(lsGet(LS.collectionPageSize, "25"));
+    return [10,25,50,100].includes(n) ? n : 25;
+  }
+  function invoiceDateKey(v){
+    const s=String(v||"").trim();
+    if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){ const [d,m,y]=s.split("."); return `${y}-${m}-${d}`; }
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if(/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+    return "";
+  }
+  function parseNum(v){
+    const txt=String(v??"").trim().replace(",",".");
+    if(!txt) return null;
+    const n=Number(txt);
+    return Number.isFinite(n) ? n : null;
+  }
+  function saveCollectionUiSettings(){
+    lsSet(LS.collectionSearch, dom.collectionSearch.value || "");
+    lsSet(LS.collectionStatus, dom.collectionStatusFilter.value || "all");
+    boolToLs(LS.collectionTodayOnly, !!dom.collectionTodayOnly.checked);
+    boolToLs(LS.collectionDuplicatesOnly, !!dom.collectionDuplicatesOnly.checked);
+    lsSet(LS.collectionDateFrom, dom.collectionDateFrom.value || "");
+    lsSet(LS.collectionDateTo, dom.collectionDateTo.value || "");
+    lsSet(LS.collectionGrossMin, dom.collectionGrossMin.value || "");
+    lsSet(LS.collectionGrossMax, dom.collectionGrossMax.value || "");
+    lsSet(LS.collectionPageSize, dom.collectionPageSize.value || "25");
+  }
+  function restoreCollectionUiSettings(){
+    dom.collectionSearch.value = lsGet(LS.collectionSearch, "");
+    dom.collectionStatusFilter.value = lsGet(LS.collectionStatus, "all");
+    dom.collectionTodayOnly.checked = boolFromLs(LS.collectionTodayOnly);
+    dom.collectionDuplicatesOnly.checked = boolFromLs(LS.collectionDuplicatesOnly);
+    dom.collectionDateFrom.value = lsGet(LS.collectionDateFrom, "");
+    dom.collectionDateTo.value = lsGet(LS.collectionDateTo, "");
+    dom.collectionGrossMin.value = lsGet(LS.collectionGrossMin, "");
+    dom.collectionGrossMax.value = lsGet(LS.collectionGrossMax, "");
+    dom.collectionPageSize.value = String(getPageSize());
+  }
+  function clearCollectionFilters(){
+    dom.collectionSearch.value="";
+    dom.collectionStatusFilter.value="all";
+    dom.collectionTodayOnly.checked=false;
+    dom.collectionDuplicatesOnly.checked=false;
+    dom.collectionDateFrom.value="";
+    dom.collectionDateTo.value="";
+    dom.collectionGrossMin.value="";
+    dom.collectionGrossMax.value="";
+    lsSet(LS.collectionPage, "1");
+    saveCollectionUiSettings();
+  }
+  function sortMeta(mode){
+    const m=String(mode||"").match(/^([a-z]+)_(asc|desc)$/);
+    return m ? {field:m[1], dir:m[2]} : {field:"loaded", dir:"desc"};
+  }
+  function toggleSortByField(field){
+    const cur=sortMeta(dom.collectionSort.value || getSortMode());
+    const defaultDir=(field==="loaded" || field==="date" || field==="gross") ? "desc" : "asc";
+    const next=(cur.field===field) ? `${field}_${cur.dir==="asc"?"desc":"asc"}` : `${field}_${defaultDir}`;
+    dom.collectionSort.value=next;
+    setSortMode(next);
+    saveCollectionUiSettings();
+    updateSortHeaderIndicators();
+    renderCollection();
+  }
+  function updateSortHeaderIndicators(){
+    const cur=sortMeta(dom.collectionSort.value || getSortMode());
+    dom.collectionTable.querySelectorAll(".th-sort").forEach(btn=>{
+      const active=btn.dataset.sortField===cur.field;
+      const arrow=btn.querySelector(".sort-arrow");
+      if(arrow) arrow.textContent = active ? (cur.dir==="asc"?"↑":"↓") : "";
+      btn.setAttribute("aria-pressed", active?"true":"false");
+      const th=btn.closest("th");
+      if(th) th.setAttribute("aria-sort", active ? (cur.dir==="asc"?"ascending":"descending") : "none");
+    });
+  }
 
   function buildStatusFilterOptions(){
     const sel=dom.collectionStatusFilter;
-    const cur=sel.value||"all";
+    const cur=sel.value || lsGet(LS.collectionStatus,"all");
     sel.innerHTML="";
     const oAll=document.createElement("option"); oAll.value="all"; oAll.textContent=L().status_all; sel.appendChild(oAll);
     STATUS_KEYS.forEach(k=>{ const o=document.createElement("option"); o.value=k; o.textContent=getStatusLabel(k); sel.appendChild(o); });
-    sel.value=cur;
+    sel.value=Array.from(sel.options).some(o=>o.value===cur) ? cur : "all";
+    saveCollectionUiSettings();
   }
 
   function buildSortOptions(){
     const sel=dom.collectionSort;
     const cur=getSortMode();
-    const items=["loaded_desc","loaded_asc","invoice_asc","invoice_desc","seller_asc","seller_desc","gross_desc","gross_asc"];
+    const items=["loaded_desc","loaded_asc","invoice_asc","invoice_desc","date_desc","date_asc","seller_asc","seller_desc","status_asc","status_desc","gross_desc","gross_asc"];
     sel.innerHTML="";
     items.forEach(k=>{
       const o=document.createElement("option");
@@ -1278,7 +1564,8 @@
       o.textContent=L()["sort_"+k] || k;
       sel.appendChild(o);
     });
-    sel.value=cur;
+    sel.value=Array.from(sel.options).some(o=>o.value===cur) ? cur : "loaded_desc";
+    updateSortHeaderIndicators();
   }
 
   function sortInvoices(list){
@@ -1291,8 +1578,12 @@
       if(mode==="loaded_asc") return String(a?.meta?.loadedAt||"").localeCompare(String(b?.meta?.loadedAt||""));
       if(mode==="invoice_asc") return cmpText(a?.header?.number,b?.header?.number);
       if(mode==="invoice_desc") return cmpText(b?.header?.number,a?.header?.number);
+      if(mode==="date_asc") return cmpText(invoiceDateKey(a?.header?.date),invoiceDateKey(b?.header?.date));
+      if(mode==="date_desc") return cmpText(invoiceDateKey(b?.header?.date),invoiceDateKey(a?.header?.date));
       if(mode==="seller_asc") return cmpText(a?.seller?.name,b?.seller?.name);
       if(mode==="seller_desc") return cmpText(b?.seller?.name,a?.seller?.name);
+      if(mode==="status_asc") return cmpText(getStatusLabel(a?.user?.status||"open"),getStatusLabel(b?.user?.status||"open"));
+      if(mode==="status_desc") return cmpText(getStatusLabel(b?.user?.status||"open"),getStatusLabel(a?.user?.status||"open"));
       if(mode==="gross_asc") return cmpNum(a?.payment?.grossAmount ?? a?.payment?.dueAmount, b?.payment?.grossAmount ?? b?.payment?.dueAmount);
       if(mode==="gross_desc") return cmpNum(b?.payment?.grossAmount ?? b?.payment?.dueAmount, a?.payment?.grossAmount ?? a?.payment?.dueAmount);
       return 0;
@@ -1318,6 +1609,27 @@
     dom.statPending.textContent=fmtMoney(pending, getCurSym(currency));
     dom.statDuplicates.textContent=String(all.filter(inv=>inv?.duplicateOf).length);
     dom.collectionStats.classList.toggle("hidden", !enabled() || all.length===0);
+  }
+
+  function paginate(list){
+    const size=Number(dom.collectionPageSize.value || getPageSize());
+    const pages=Math.max(1, Math.ceil(list.length / size));
+    let page=Number(lsGet(LS.collectionPage, "1")) || 1;
+    page=Math.min(Math.max(page,1), pages);
+    lsSet(LS.collectionPage, String(page));
+    const start=(page-1)*size;
+    return {page,pages,size,slice:list.slice(start,start+size)};
+  }
+
+  function updateCollectionSummary(all, filtered, pageData){
+    const visible=pageData.slice.length;
+    const summary=tpl("collectionSummary", {shown:visible, total:filtered.length, all:all.length});
+    dom.collectionSummary.textContent=summary;
+    dom.collectionSummary.classList.toggle("hidden", !enabled() || all.length===0);
+    dom.collectionPageInfo.textContent=tpl("pageInfo", {page:pageData.page, pages:pageData.pages});
+    dom.collectionPrevPage.disabled=pageData.page<=1;
+    dom.collectionNextPage.disabled=pageData.page>=pageData.pages;
+    dom.collectionPagination.classList.toggle("hidden", !enabled() || filtered.length===0 || filtered.length<=pageData.size);
   }
 
   function saveLastInvoice(inv){
@@ -1405,11 +1717,24 @@
     const q=(dom.collectionSearch.value||"").trim().toLowerCase();
     const st=dom.collectionStatusFilter.value||"all";
     const today=!!dom.collectionTodayOnly.checked;
+    const dupOnly=!!dom.collectionDuplicatesOnly.checked;
+    const from=dom.collectionDateFrom.value || "";
+    const to=dom.collectionDateTo.value || "";
+    const minGross=parseNum(dom.collectionGrossMin.value);
+    const maxGross=parseNum(dom.collectionGrossMax.value);
     return list.filter(inv=>{
       if(today && !isToday(inv?.meta?.loadedAt)) return false;
+      if(dupOnly && !inv?.duplicateOf) return false;
+      const loadedDate=inv?.meta?.loadedAt ? new Date(inv.meta.loadedAt) : null;
+      const loadedAt=(loadedDate && !Number.isNaN(loadedDate.getTime())) ? dayKey(loadedDate) : "";
+      if(from && (!loadedAt || loadedAt<from)) return false;
+      if(to && (!loadedAt || loadedAt>to)) return false;
+      const gross=Number(inv?.payment?.grossAmount ?? inv?.payment?.dueAmount);
+      if(minGross!=null && (!Number.isFinite(gross) || gross<minGross)) return false;
+      if(maxGross!=null && (!Number.isFinite(gross) || gross>maxGross)) return false;
       if(st!=="all" && (inv?.user?.status||"open")!==st) return false;
       if(!q) return true;
-      const hay=[inv?.header?.number,inv?.header?.date,inv?.seller?.name,inv?.buyer?.name,inv?.meta?.filename].filter(Boolean).join(" ").toLowerCase();
+      const hay=[inv?.header?.number,inv?.header?.date,inv?.seller?.name,inv?.buyer?.name,inv?.meta?.filename,inv?.user?.comment,getStatusLabel(inv?.user?.status||"open")].filter(Boolean).join(" ").toLowerCase();
       return hay.includes(q);
     });
   }
@@ -1419,12 +1744,15 @@
     dom.collectionControls.classList.toggle("hidden", !enabled());
     const list = enabled() ? await allInvoices() : [];
     const filtered = enabled() ? filterInvoices(list) : [];
+    const pageData = paginate(filtered);
     updateCollectionStats(list, filtered);
+    updateCollectionSummary(list, filtered, pageData);
+    updateSortHeaderIndicators();
     dom.collectionEmpty.classList.toggle("hidden", !enabled() || filtered.length>0);
     dom.collectionTableWrap.classList.toggle("hidden", !enabled() || filtered.length===0);
     const tb=dom.collectionTable.querySelector("tbody");
     tb.innerHTML="";
-    filtered.forEach(inv=>{
+    pageData.slice.forEach(inv=>{
       const tr=document.createElement("tr");
       const loaded=new Date(inv.meta.loadedAt||Date.now()).toLocaleString();
       const invNo=inv?.header?.number||"";
@@ -1454,7 +1782,15 @@
       const cbtn=document.createElement("button");
       cbtn.type="button"; cbtn.className="small"; cbtn.textContent=L().btnComment;
       cbtn.onclick=()=>openTextModal(inv);
-      tr.querySelector(".cm").appendChild(cbtn);
+      const cmCell=tr.querySelector(".cm");
+      const comment=String(inv?.user?.comment||"").trim();
+      if(comment){
+        const preview=document.createElement("div");
+        preview.className="muted";
+        preview.textContent=comment.length>72 ? (comment.slice(0,72)+"…") : comment;
+        cmCell.appendChild(preview);
+      }
+      cmCell.appendChild(cbtn);
 
       const openBtn=document.createElement("button");
       openBtn.type="button"; openBtn.className="small"; openBtn.textContent=L().btnOpen;
@@ -1721,7 +2057,7 @@
     buildQrIfPossible(invoiceData, sym);
 
     // save to collection (optional)
-    addToCollection(invoiceData, originalXmlBlob || originalPdfBlob);
+    addToCollection(invoiceData, originalPdfBlob || originalXmlBlob);
 
     renderWarnings();
     showSuccess();
@@ -1914,11 +2250,42 @@
   });
 
   // collection events
+  const rerenderFromFilters=()=>{
+    lsSet(LS.collectionPage, "1");
+    saveCollectionUiSettings();
+    renderCollection();
+  };
   dom.collectionEnabled.addEventListener("change",()=>{ setEnabled(dom.collectionEnabled.checked); renderCollection(); });
-  dom.collectionSearch.addEventListener("input",()=>renderCollection());
-  dom.collectionStatusFilter.addEventListener("change",()=>renderCollection());
-  dom.collectionSort.addEventListener("change",()=>{ setSortMode(dom.collectionSort.value); renderCollection(); });
-  dom.collectionTodayOnly.addEventListener("change",()=>renderCollection());
+  dom.collectionSearch.addEventListener("input",rerenderFromFilters);
+  dom.collectionStatusFilter.addEventListener("change",rerenderFromFilters);
+  dom.collectionSort.addEventListener("change",()=>{
+    setSortMode(dom.collectionSort.value);
+    lsSet(LS.collectionPage, "1");
+    saveCollectionUiSettings();
+    updateSortHeaderIndicators();
+    renderCollection();
+  });
+  dom.collectionTodayOnly.addEventListener("change",rerenderFromFilters);
+  dom.collectionDuplicatesOnly.addEventListener("change",rerenderFromFilters);
+  dom.collectionDateFrom.addEventListener("change",rerenderFromFilters);
+  dom.collectionDateTo.addEventListener("change",rerenderFromFilters);
+  dom.collectionGrossMin.addEventListener("input",rerenderFromFilters);
+  dom.collectionGrossMax.addEventListener("input",rerenderFromFilters);
+  dom.collectionResetFilters.addEventListener("click",()=>{ clearCollectionFilters(); renderCollection(); });
+  dom.collectionPageSize.addEventListener("change",()=>{ lsSet(LS.collectionPage, "1"); saveCollectionUiSettings(); renderCollection(); });
+  dom.collectionPrevPage.addEventListener("click",()=>{
+    const cur=Number(lsGet(LS.collectionPage,"1"))||1;
+    lsSet(LS.collectionPage, String(Math.max(1, cur-1)));
+    renderCollection();
+  });
+  dom.collectionNextPage.addEventListener("click",()=>{
+    const cur=Number(lsGet(LS.collectionPage,"1"))||1;
+    lsSet(LS.collectionPage, String(cur+1));
+    renderCollection();
+  });
+  dom.collectionTable.querySelectorAll(".th-sort").forEach(btn=>{
+    btn.addEventListener("click",()=>toggleSortByField(btn.dataset.sortField || "loaded"));
+  });
   dom.exportTodayJson.addEventListener("click",()=>exportCollection("today","json"));
   dom.exportAllJson.addEventListener("click",()=>exportCollection("all","json"));
   dom.exportTodayCsv.addEventListener("click",()=>exportCollection("today","csv"));
@@ -1940,6 +2307,7 @@
   $("langEn").addEventListener("click",()=>setLang("en"));
   $("langFr").addEventListener("click",()=>setLang("fr"));
   $("langIt").addEventListener("click",()=>setLang("it"));
+  dom.themeToggle.addEventListener("click",toggleTheme);
   dom.restoreLastInvoice.addEventListener("click",()=>{
     const last=loadLastInvoice();
     if(!last) return showError(L().lastInvoiceMissing);
@@ -1947,14 +2315,12 @@
   });
 
   // init
+  applyTheme(getThemeMode());
+  restoreCollectionUiSettings();
   const saved = (()=>{ try{return localStorage.getItem("invoiceInspector.lang")}catch(_){return null} })();
   const nav = (navigator.language||"en").toLowerCase();
   const auto = nav.startsWith("de")?"de":nav.startsWith("fr")?"fr":nav.startsWith("it")?"it":"en";
   setLang(saved || auto);
-
-  buildStatusFilterOptions();
-  buildSortOptions();
-  renderCollection();
   updateRestoreLastButton();
   dom.collectionEnabled.checked = enabled();
   dom.collectionControls.classList.toggle("hidden", !enabled());
