@@ -2,7 +2,7 @@
 # metadata file that makes public software easily discoverable.
 # More info at https://github.com/italia/publiccode.yml
 
-publiccodeYmlVersion: '0.2'
+publiccodeYmlVersion: "0"
 name: InvoiceInspector
 applicationSuite: InvoiceInspector
 url: 'https://gitlab.opencode.de/simonwaldherr/InvoiceInspector.git'
@@ -10,11 +10,13 @@ landingURL: 'https://simonwaldherr.github.io/InvoiceInspector/'
 softwareVersion: 1.4.1
 releaseDate: '2026-03-10'
 developmentStatus: stable
-softwareType: standalone
+softwareType: standalone/web
 platforms:
   - web
 categories:
-  - finance-and-accounting
+  - accounting
+  - billing-and-invoicing
+  - procurement
 maintenance:
   type: community
   contacts:
