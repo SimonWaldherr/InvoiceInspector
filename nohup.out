@@ -1,8 +1,0 @@
-127.0.0.1 - - [02/Apr/2026 20:38:54] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [02/Apr/2026 20:38:57] "GET /index.html HTTP/1.1" 200 -
-127.0.0.1 - - [02/Apr/2026 20:38:58] "GET /index.html HTTP/1.1" 200 -
-127.0.0.1 - - [02/Apr/2026 20:40:08] "GET /index.html HTTP/1.1" 200 -
-127.0.0.1 - - [02/Apr/2026 20:40:56] "GET /test-invoice.xml HTTP/1.1" 200 -
-127.0.0.1 - - [02/Apr/2026 20:41:30] "GET /test-invoice.xml HTTP/1.1" 200 -
-127.0.0.1 - - [02/Apr/2026 20:45:46] "GET /index.html HTTP/1.1" 200 -
-127.0.0.1 - - [02/Apr/2026 20:46:10] "GET /test-invoice.xml HTTP/1.1" 200 -
