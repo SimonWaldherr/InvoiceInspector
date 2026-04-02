@@ -147,6 +147,8 @@
     /* visibility helpers */
     .pro-only{display:none!important}
     body.pro-mode .pro-only{display:initial!important}
+    /* hidden always wins even in pro-mode */
+    body.pro-mode .pro-only.hidden{display:none!important}
     body.pro-mode .std-only{display:none!important}
 
     /* BT identifier badge */
@@ -1648,8 +1650,8 @@
     const panel=$("explainPanel"); if(!panel) return;
     const name=info.name[lang]||info.name.en;
     const desc=info.desc[lang]||info.desc.en;
-    const oblKey="obligation"+info.obligation.toUpperCase();
-    const oblLabel=L()[oblKey]||info.obligation;
+    const oblKeyMap={M:"obligationM",C:"obligationC",O:"obligationO"};
+    const oblLabel=L()[oblKeyMap[info.obligation]]||info.obligation;
     $("explainTitle").textContent=name;
     $("explainContent").innerHTML=`
       <div class="explain-row"><span class="explain-key">${escapeHtml(L().explainBt||"Business Term")}:</span><span class="explain-val">${escapeHtml(info.bt)}</span></div>
@@ -1783,7 +1785,8 @@
         highlightFieldFromXml(span.getAttribute("data-field-id"));
       });
       span.addEventListener("keydown",(e)=>{
-        if(e.key==="Enter"||e.key===" "){ e.preventDefault(); highlightFieldFromXml(span.getAttribute("data-field-id")); }
+        if(e.key==="Enter"){ e.preventDefault(); highlightFieldFromXml(span.getAttribute("data-field-id")); }
+        else if(e.key===" "){ e.preventDefault(); highlightFieldFromXml(span.getAttribute("data-field-id")); }
       });
     });
   }
@@ -1801,8 +1804,9 @@
   // Invoice field clicked → highlight in interactive XML
   function highlightFieldInXml(fieldId){
     const wrap=$("xmlCodeWrap"); if(!wrap) return;
-    // Build pro XML view if not yet done
-    if($("proXmlSection")&&$("proXmlSection").classList.contains("hidden")) buildProXmlView();
+    // Build pro XML view if not yet visible
+    const proSec=$("proXmlSection");
+    if(proSec && proSec.classList.contains("hidden")) buildProXmlView();
     // Remove previous highlights
     wrap.querySelectorAll(".xml-hl").forEach(el=>el.classList.remove("xml-hl"));
     const spans=wrap.querySelectorAll(`[data-field-id="${fieldId}"]`);
@@ -1811,7 +1815,7 @@
       spans[0].scrollIntoView({behavior:"smooth",block:"center"});
       setTimeout(()=>spans.forEach(s=>s.classList.remove("xml-hl")), 2500);
     }
-    $("proXmlSection")&&$("proXmlSection").scrollIntoView({behavior:"smooth",block:"start"});
+    if(proSec) proSec.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
 
@@ -2885,6 +2889,7 @@
   const auto = nav.startsWith("de")?"de":nav.startsWith("fr")?"fr":nav.startsWith("it")?"it":"en";
   proMode = lsGet(LS.proMode,"0")==="1";
   document.body.classList.toggle("pro-mode", proMode);
+  updateModeButton(); // set button text/style before language init
   setLang(saved || auto);
   updateRestoreLastButton();
   dom.collectionEnabled.checked = enabled();
