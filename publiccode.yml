@@ -2,10 +2,10 @@
 # metadata file that makes public software easily discoverable.
 # More info at https://github.com/italia/publiccode.yml
 
-publiccodeYmlVersion: "0"
+publiccodeYmlVersion: '0.4'
 name: InvoiceInspector
 applicationSuite: InvoiceInspector
-url: 'https://gitlab.opencode.de/simonwaldherr/InvoiceInspector.git'
+url: 'https://gitlab.opencode.de/simonwaldherr/InvoiceInspector'
 landingURL: 'https://simonwaldherr.github.io/InvoiceInspector/'
 softwareVersion: 1.4.1
 releaseDate: '2026-03-10'
@@ -34,11 +34,10 @@ localisation:
   availableLanguages:
     - de
     - en
-    - fr
-    - it
 description:
   de:
     genericName: Rechnungsbetrachter
+    documentation: 'https://github.com/SimonWaldherr/InvoiceInspector/blob/main/README.md'
     shortDescription: >-
       Web-basierter Viewer und Inspector für elektronische Rechnungen wie
       XRechnung, ZUGFeRD und EN 16931.
@@ -55,13 +54,17 @@ description:
     features:
       - Visualisierung von ZUGFeRD/Factur-X-PDF und XRechnung-XML
       - 100 % clientseitige Verarbeitung ohne Upload
+      - Offline-fähig und ohne Installation nutzbar
       - 'Export als XML, PDF, JSON und CSV'
-      - 'Mehrsprachige Oberfläche (DE, EN, FR, IT)'
+      - 'Mehrsprachige Oberfläche (DE, EN)'
       - Dark-Mode-Unterstützung
       - Lokale Rechnungssammlung mit IndexedDB
       - EPC-QR-Code-Erzeugung für SEPA-Überweisungen
+    screenshots:
+      - invoiceinspector.gif
   en:
-    genericName: Invoice viewer
+    genericName: E-invoice viewer
+    documentation: 'https://github.com/SimonWaldherr/InvoiceInspector/blob/main/README.en.md'
     shortDescription: >-
       Web-based viewer and inspector for electronic invoices such as XRechnung,
       ZUGFeRD and EN 16931.
@@ -78,11 +81,14 @@ description:
     features:
       - Visualise ZUGFeRD/Factur-X PDF and XRechnung XML invoices
       - 100% client-side processing without uploads
+      - Offline capable and usable without installation
       - 'Export as XML, PDF, JSON and CSV'
-      - 'Multilingual interface (DE, EN, FR, IT)'
+      - 'Multilingual interface (DE, EN)'
       - Dark mode support
       - Local invoice collection using IndexedDB
       - EPC QR code generation for SEPA payments
+    screenshots:
+      - invoiceinspector.gif
   fr:
     genericName: Visionneuse de factures
     shortDescription: >-
@@ -101,8 +107,9 @@ description:
     features:
       - Visualisation de PDF ZUGFeRD/Factur-X et de XML XRechnung
       - 'Traitement 100 % côté client, sans téléversement'
+      - Utilisable hors ligne, sans installation
       - 'Export XML, PDF, JSON et CSV'
-      - 'Interface multilingue (DE, EN, FR, IT)'
+      - 'Interface multilingue (DE, EN)'
       - Mode sombre
       - Collection locale de factures via IndexedDB
       - Génération de codes QR EPC pour paiements SEPA
@@ -123,8 +130,9 @@ description:
     features:
       - Visualizzazione di PDF ZUGFeRD/Factur-X e XML XRechnung
       - Elaborazione 100% lato client senza upload
+      - Utilizzabile offline senza installazione
       - 'Esportazione in XML, PDF, JSON e CSV'
-      - 'Interfaccia multilingue (DE, EN, FR, IT)'
+      - 'Interfaccia multilingue (DE, EN)'
       - Supporto modalità scura
       - Raccolta locale di fatture con IndexedDB
       - Generazione di codici QR EPC per pagamenti SEPA
