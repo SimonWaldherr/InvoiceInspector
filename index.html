@@ -138,6 +138,68 @@
     .field-value{display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
     .field-value span{flex:1;min-width:0}
     .field-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+    /* ── Pro / Developer mode ─────────────────────────────────── */
+    .mode-btn{padding:7px 14px;border-radius:16px;border:2px solid var(--accent);background:var(--card);color:var(--accent);cursor:pointer;font-weight:700;transition:background .15s,color .15s}
+    .mode-btn:hover{background:var(--dragbg)}
+    .mode-btn.pro-active{background:var(--accent);color:#fff}
+
+    /* visibility helpers */
+    .pro-only{display:none!important}
+    body.pro-mode .pro-only{display:initial!important}
+    /* hidden always wins even in pro-mode */
+    body.pro-mode .pro-only.hidden{display:none!important}
+    body.pro-mode .std-only{display:none!important}
+
+    /* BT identifier badge */
+    .bt-badge{display:inline-block;padding:1px 7px;border-radius:10px;background:var(--accent);color:#fff;font-size:.74em;font-weight:700;vertical-align:middle;margin-left:5px;letter-spacing:.02em;cursor:default;white-space:nowrap}
+
+    /* explain button */
+    .explain-btn{border:none;background:none;cursor:pointer;color:var(--muted);font-size:.9em;padding:1px 3px;margin-left:4px;line-height:1}
+    .explain-btn:hover{color:var(--accent)}
+
+    /* explainability panel */
+    #explainPanel{position:fixed;right:20px;top:80px;z-index:5000;background:var(--card);border:1px solid var(--accent);border-radius:10px;padding:16px 18px;max-width:340px;width:90vw;box-shadow:0 4px 20px var(--shadow);display:none}
+    #explainPanel.visible{display:block}
+    #explainPanel h3{margin:0 0 10px;font-size:1em}
+    .explain-row{display:flex;gap:8px;margin:4px 0;font-size:.91em}
+    .explain-key{color:var(--muted);min-width:110px;flex-shrink:0}
+    .explain-val{color:var(--text);font-weight:700}
+    #explainClose{position:absolute;top:8px;right:12px;border:none;background:none;cursor:pointer;font-size:1.1em;color:var(--muted)}
+    #explainClose:hover{color:var(--err)}
+    .explain-desc{font-size:.9em;line-height:1.5;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--text)}
+
+    /* validation severity */
+    .validation-list{list-style:none;padding:0;margin:0}
+    .validation-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:6px;margin:4px 0}
+    .validation-item .v-icon{font-size:1em;flex-shrink:0;margin-top:2px}
+    .validation-item .v-body{flex:1;min-width:0}
+    .validation-item .v-msg{font-weight:600}
+    .validation-item .v-hint{color:var(--muted);font-size:.88em;margin-top:2px}
+    .validation-item .v-rule{font-size:.76em;color:var(--muted);font-family:monospace;margin-top:2px}
+    .v-sev-error{background:var(--errbg);border-left:3px solid var(--err)}
+    .v-sev-warn{background:var(--thead);border-left:3px solid #e08000}
+    .v-sev-info{background:var(--okbg);border-left:3px solid var(--ok)}
+
+    /* interactive XML viewer */
+    .xml-code-wrap{font-family:monospace;font-size:.83em;background:var(--pre);border:1px solid var(--preb);border-radius:6px;padding:10px;max-height:520px;overflow:auto;white-space:pre;tab-size:2;line-height:1.55;word-break:break-all}
+    .xml-punct{color:var(--muted)}
+    .xml-tag{color:#0099c0}
+    .xml-attr{color:#d07000}
+    .xml-val{color:#9030c0}
+    .xml-text{color:var(--text)}
+    .xml-comment{color:var(--muted);font-style:italic}
+    .xml-el-name{cursor:pointer;font-weight:700}
+    .xml-el-name:hover{text-decoration:underline;color:var(--accent)}
+    .xml-hl{background:#ffe082;border-radius:2px;outline:2px solid #e0b000}
+    :root[data-theme="dark"] .xml-hl{background:#5d4500;outline-color:#d0a000}
+
+    /* field highlight (row) */
+    tr.row-hl td{background:var(--dragbg)!important}
+    tr.row-hl{outline:2px solid var(--accent);scroll-margin-top:60px}
+
+    /* pro XML section */
+    #proXmlSection{margin:12px 0}
   </style>
 </head>
 <body>
@@ -145,6 +207,7 @@
   <div class="top">
     <h1 data-i18n="mainTitle">InvoiceInspector</h1>
     <div class="top-actions">
+      <button id="modeToggle" class="mode-btn" type="button">🔧 Pro</button>
       <button id="themeToggle" class="lang-btn" type="button" aria-label="Darstellung umschalten">🌙 Dark</button>
       <div class="langs" aria-label="Language switcher">
         <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
@@ -278,6 +341,11 @@
     <summary data-i18n="xmlViewerSummary">XML anzeigen</summary>
     <pre id="xmlPre"></pre>
   </details>
+
+  <section id="proXmlSection" class="pro-only hidden">
+    <h2 data-i18n="proXmlTitle">🔍 Interaktive XML-Ansicht</h2>
+    <div id="xmlCodeWrap" class="xml-code-wrap" tabindex="0" aria-label="Interactive XML view"></div>
+  </section>
 
   <div class="grid">
     <section id="headerSection" class="hidden">
@@ -593,6 +661,18 @@
       copy:"Kopieren",
       copied:"Kopiert!",
       lastInvoiceMissing:"Keine letzte Rechnung gespeichert.",
+      modeSwitchPro:"🔧 Pro",
+      modeSwitchStd:"🧾 Standard",
+      modeProHint:"Pro-Modus aktiv – klicken für Standard-Ansicht",
+      modeStdHint:"Standard-Ansicht – klicken für Pro/Entwickler-Modus",
+      proXmlTitle:"🔍 Interaktive XML-Ansicht",
+      explainBt:"Business Term",
+      explainCardinality:"Kardinalität",
+      explainObligation:"Pflicht",
+      explainSource:"Quelle",
+      obligationM:"Pflicht",
+      obligationC:"Bedingt",
+      obligationO:"Optional",
     },
     en:{
       mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / EN16931)",
@@ -744,6 +824,18 @@
       copy:"Copy",
       copied:"Copied!",
       lastInvoiceMissing:"No last invoice stored.",
+      modeSwitchPro:"🔧 Pro",
+      modeSwitchStd:"🧾 Standard",
+      modeProHint:"Pro mode active – click for Standard view",
+      modeStdHint:"Standard view – click for Pro/Developer mode",
+      proXmlTitle:"🔍 Interactive XML View",
+      explainBt:"Business Term",
+      explainCardinality:"Cardinality",
+      explainObligation:"Obligation",
+      explainSource:"Source",
+      obligationM:"Mandatory",
+      obligationC:"Conditional",
+      obligationO:"Optional",
     },
     fr:{
       mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / EN16931)",
@@ -895,6 +987,18 @@
       copy:"Copier",
       copied:"Copié !",
       lastInvoiceMissing:"Aucune dernière facture enregistrée.",
+      modeSwitchPro:"🔧 Pro",
+      modeSwitchStd:"🧾 Standard",
+      modeProHint:"Mode Pro actif – cliquer pour la vue Standard",
+      modeStdHint:"Vue Standard – cliquer pour le mode Pro/Développeur",
+      proXmlTitle:"🔍 Vue XML Interactive",
+      explainBt:"Terme métier",
+      explainCardinality:"Cardinalité",
+      explainObligation:"Obligation",
+      explainSource:"Source",
+      obligationM:"Obligatoire",
+      obligationC:"Conditionnel",
+      obligationO:"Optionnel",
     },
     it:{
       mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / EN16931)",
@@ -1046,6 +1150,18 @@
       copy:"Copia",
       copied:"Copiato!",
       lastInvoiceMissing:"Nessuna ultima fattura salvata.",
+      modeSwitchPro:"🔧 Pro",
+      modeSwitchStd:"🧾 Standard",
+      modeProHint:"Modalità Pro attiva – clicca per la vista Standard",
+      modeStdHint:"Vista Standard – clicca per la modalità Pro/Sviluppatore",
+      proXmlTitle:"🔍 Vista XML Interattiva",
+      explainBt:"Business Term",
+      explainCardinality:"Cardinalità",
+      explainObligation:"Obbligo",
+      explainSource:"Fonte",
+      obligationM:"Obbligatorio",
+      obligationC:"Condizionale",
+      obligationO:"Opzionale",
     }
   };
 
@@ -1053,6 +1169,7 @@
 
   // DOM
   const dom = {
+    modeToggle: $("modeToggle"),
     themeToggle: $("themeToggle"),
     dropZone: $("dropZone"),
     fileInput: $("fileInput"),
@@ -1129,6 +1246,7 @@
 
   // state
   let lang = "de";
+  let proMode = false;
   let xmlDoc = null;
   let originalPdfBlob = null;
   let originalXmlBlob = null;
@@ -1166,9 +1284,12 @@
     buildStatusFilterOptions();
     buildSortOptions();
     updateThemeButton();
+    updateModeButton();
     updateSortHeaderIndicators();
     updateRestoreLastButton();
     renderCollection();
+    // refresh BT badges with new language
+    if(proMode) applyProModeToFields();
   }
 
   function show(el){ el.classList.remove("hidden"); }
@@ -1196,6 +1317,7 @@
     clearError();
     hide(dom.downloadButtons);
     hide(dom.xmlViewer);
+    const proSec=$("proXmlSection"); if(proSec) proSec.classList.add("hidden");
     hide(dom.headerSection); hide(dom.paymentSection); hide(dom.sellerSection); hide(dom.buyerSection); hide(dom.lineItemsSection);
     dom.xmlPre.textContent="";
     dom.lineItemsTable.querySelector("tbody").innerHTML="";
@@ -1206,6 +1328,12 @@
     closeModal(dom.textModal);
     dom.qrCanvasWrap.innerHTML="";
     hide(dom.showQr);
+    hideExplainPanel();
+    document.querySelectorAll(".bt-badge,.explain-btn").forEach(el=>el.remove());
+    document.querySelectorAll("tr.pro-field-row").forEach(row=>{
+      row.classList.remove("pro-field-row"); row.style.cursor=""; row.title="";
+      delete row.dataset.fieldId;
+    });
   }
 
   function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s??""; return d.innerHTML; }
@@ -1241,12 +1369,30 @@
   }
 
   function addWarning(msgKey){
-    warnings.push(L()[msgKey] || msgKey);
+    const rule = VALIDATION_RULES[msgKey];
+    if(rule){
+      const ld = rule[lang] || rule.en;
+      warnings.push({severity:rule.severity, message:ld.msg, hint:ld.hint, ruleId:rule.id, msgKey});
+    } else {
+      warnings.push({severity:"warn", message:L()[msgKey]||msgKey, hint:"", ruleId:"", msgKey});
+    }
   }
   function renderWarnings(){
     dom.warningsList.innerHTML="";
+    dom.warningsList.className="validation-list";
     if(!warnings.length){ hide(dom.warningsSection); return; }
-    warnings.forEach(w=>{ const li=document.createElement("li"); li.textContent=w; dom.warningsList.appendChild(li); });
+    warnings.forEach(w=>{
+      const li=document.createElement("li");
+      const sev=w.severity||"warn";
+      li.className=`validation-item v-sev-${sev}`;
+      const icon=sev==="error"?"❌":sev==="info"?"ℹ️":"⚠️";
+      let inner=`<span class="v-icon">${icon}</span><div class="v-body"><div class="v-msg">${escapeHtml(w.message||w)}</div>`;
+      if(proMode && w.hint) inner+=`<div class="v-hint">${escapeHtml(w.hint)}</div>`;
+      if(proMode && w.ruleId) inner+=`<div class="v-rule">Rule: ${escapeHtml(w.ruleId)}</div>`;
+      inner+=`</div>`;
+      li.innerHTML=inner;
+      dom.warningsList.appendChild(li);
+    });
     show(dom.warningsSection);
   }
 
@@ -1258,6 +1404,420 @@
     const r=xmlDoc.evaluate(path, ctx, nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     return Array.from({length:r.snapshotLength}, (_,i)=>r.snapshotItem(i));
   }
+
+  // ── EN 16931 Business Term mapping ──────────────────────────────────────
+  const BT_MAP = {
+    invNumber:     {bt:"BT-1",  cardinality:"1..1", obligation:"M",
+      name:{de:"Rechnungsnummer",en:"Invoice number",fr:"Numéro de facture",it:"Numero fattura"},
+      desc:{de:"Eindeutige Kennung der Rechnung.",en:"A unique identification of the Invoice.",fr:"Identification unique de la facture.",it:"Identificativo univoco della fattura."}},
+    invDate:       {bt:"BT-2",  cardinality:"1..1", obligation:"M",
+      name:{de:"Rechnungsdatum",en:"Invoice issue date",fr:"Date de facture",it:"Data fattura"},
+      desc:{de:"Datum, an dem die Rechnung ausgestellt wurde.",en:"The date when the Invoice was issued.",fr:"Date d'émission de la facture.",it:"Data in cui la fattura è stata emessa."}},
+    invDueDate:    {bt:"BT-9",  cardinality:"0..1", obligation:"C",
+      name:{de:"Fälligkeitsdatum",en:"Payment due date",fr:"Date d'échéance",it:"Data scadenza"},
+      desc:{de:"Datum, bis zu dem die Zahlung fällig ist.",en:"The date when the payment is due.",fr:"Date à laquelle le paiement est dû.",it:"Data entro cui il pagamento è dovuto."}},
+    invOrderNumber:{bt:"BT-13", cardinality:"0..1", obligation:"O",
+      name:{de:"Bestellnummer",en:"Purchase order reference",fr:"Référence commande",it:"Riferimento ordine"},
+      desc:{de:"Kennung einer referenzierten Bestellung.",en:"An identifier of a referenced purchase order.",fr:"Référence à un bon de commande.",it:"Riferimento all'ordine d'acquisto."}},
+    invNote:       {bt:"BT-22", cardinality:"0..n", obligation:"O",
+      name:{de:"Notiz",en:"Invoice note",fr:"Note",it:"Nota"},
+      desc:{de:"Freitexthinweis, der für die gesamte Rechnung gilt.",en:"A textual note that gives unstructured information relevant to the whole Invoice.",fr:"Note textuelle non structurée sur la facture.",it:"Nota testuale non strutturata sulla fattura."}},
+    sellerName:    {bt:"BT-27", cardinality:"1..1", obligation:"M",
+      name:{de:"Verkäufername",en:"Seller name",fr:"Nom du vendeur",it:"Nome venditore"},
+      desc:{de:"Vollständiger offizieller Name des Verkäufers.",en:"The full formal name by which the Seller is registered.",fr:"Nom officiel complet du vendeur.",it:"Nome ufficiale completo del venditore."}},
+    sellerAddress: {bt:"BT-35", cardinality:"0..1", obligation:"O",
+      name:{de:"Verkäufer Adresse",en:"Seller address line 1",fr:"Adresse vendeur",it:"Indirizzo venditore"},
+      desc:{de:"Hauptadresszeile des Verkäufers (Straße und Hausnummer).",en:"The main address line of the Seller.",fr:"Première ligne de l'adresse du vendeur.",it:"Prima riga dell'indirizzo del venditore."}},
+    sellerEmail:   {bt:"BT-43", cardinality:"0..1", obligation:"O",
+      name:{de:"Verkäufer E-Mail",en:"Seller contact email",fr:"Email vendeur",it:"Email venditore"},
+      desc:{de:"E-Mail-Adresse des Ansprechpartners beim Verkäufer.",en:"An email address for the contact point of the Seller.",fr:"Email du contact vendeur.",it:"Email del contatto venditore."}},
+    sellerPhone:   {bt:"BT-42", cardinality:"0..1", obligation:"O",
+      name:{de:"Verkäufer Telefon",en:"Seller contact phone",fr:"Téléphone vendeur",it:"Telefono venditore"},
+      desc:{de:"Telefonnummer des Ansprechpartners beim Verkäufer.",en:"A phone number for the contact point of the Seller.",fr:"Téléphone du contact vendeur.",it:"Numero di telefono del contatto venditore."}},
+    sellerTaxID:   {bt:"BT-31", cardinality:"0..1", obligation:"C",
+      name:{de:"Verkäufer USt-ID",en:"Seller VAT identifier",fr:"TVA vendeur",it:"Partita IVA venditore"},
+      desc:{de:"Umsatzsteuer-Identifikationsnummer des Verkäufers.",en:"The Seller's VAT identifier.",fr:"Numéro d'identification TVA du vendeur.",it:"Identificativo IVA del venditore."}},
+    sellerRegister:{bt:"BT-30", cardinality:"0..1", obligation:"O",
+      name:{de:"Handelsregisternummer",en:"Seller legal registration",fr:"Immatriculation vendeur",it:"Registro imprese"},
+      desc:{de:"Kennung des Verkäufers im offiziellen Handelsregister.",en:"An identifier issued by an official registrar that identifies the Seller as a legal entity.",fr:"Identifiant légal du vendeur.",it:"Identificativo legale del venditore."}},
+    buyerName:     {bt:"BT-44", cardinality:"1..1", obligation:"M",
+      name:{de:"Käufername",en:"Buyer name",fr:"Nom de l'acheteur",it:"Nome acquirente"},
+      desc:{de:"Vollständiger offizieller Name des Käufers.",en:"The full name of the Buyer.",fr:"Nom complet de l'acheteur.",it:"Nome completo dell'acquirente."}},
+    buyerAddress:  {bt:"BT-50", cardinality:"0..1", obligation:"O",
+      name:{de:"Käufer Adresse",en:"Buyer address line 1",fr:"Adresse acheteur",it:"Indirizzo acquirente"},
+      desc:{de:"Hauptadresszeile des Käufers.",en:"The main address line of the Buyer.",fr:"Première ligne de l'adresse de l'acheteur.",it:"Prima riga dell'indirizzo dell'acquirente."}},
+    buyerEmail:    {bt:"BT-58", cardinality:"0..1", obligation:"O",
+      name:{de:"Käufer E-Mail",en:"Buyer contact email",fr:"Email acheteur",it:"Email acquirente"},
+      desc:{de:"E-Mail-Adresse des Ansprechpartners beim Käufer.",en:"An email address for the contact point of the Buyer.",fr:"Email du contact acheteur.",it:"Email del contatto acquirente."}},
+    buyerPhone:    {bt:"BT-57", cardinality:"0..1", obligation:"O",
+      name:{de:"Käufer Telefon",en:"Buyer contact phone",fr:"Téléphone acheteur",it:"Telefono acquirente"},
+      desc:{de:"Telefonnummer des Ansprechpartners beim Käufer.",en:"A phone number for the contact point of the Buyer.",fr:"Téléphone du contact acheteur.",it:"Numero di telefono del contatto acquirente."}},
+    buyerTaxID:    {bt:"BT-48", cardinality:"0..1", obligation:"O",
+      name:{de:"Käufer USt-ID",en:"Buyer VAT identifier",fr:"TVA acheteur",it:"Partita IVA acquirente"},
+      desc:{de:"Umsatzsteuer-Identifikationsnummer des Käufers.",en:"The Buyer's VAT identifier.",fr:"Numéro d'identification TVA de l'acheteur.",it:"Identificativo IVA dell'acquirente."}},
+    currency:      {bt:"BT-5",  cardinality:"1..1", obligation:"M",
+      name:{de:"Währung",en:"Invoice currency code",fr:"Devise",it:"Valuta"},
+      desc:{de:"Währung, in der alle Rechnungsbeträge angegeben werden.",en:"The currency in which all Invoice amounts are given.",fr:"Devise dans laquelle tous les montants sont exprimés.",it:"Valuta in cui sono espressi tutti gli importi."}},
+    paymentType:   {bt:"BT-81", cardinality:"0..1", obligation:"O",
+      name:{de:"Zahlungsart",en:"Payment means type code",fr:"Moyen de paiement",it:"Mezzo di pagamento"},
+      desc:{de:"Code für die Zahlungsart.",en:"The means, expressed as code, for how a payment is expected to be settled.",fr:"Code indiquant le moyen de paiement.",it:"Codice del mezzo di pagamento."}},
+    paymentTerms:  {bt:"BT-20", cardinality:"0..1", obligation:"O",
+      name:{de:"Zahlungsziel",en:"Payment terms",fr:"Conditions de paiement",it:"Termini pagamento"},
+      desc:{de:"Textuelle Beschreibung der Zahlungsbedingungen.",en:"A textual description of the payment terms that apply to the amount due.",fr:"Description des conditions de paiement.",it:"Descrizione delle condizioni di pagamento."}},
+    iban:          {bt:"BT-84", cardinality:"0..1", obligation:"C",
+      name:{de:"IBAN",en:"Payment account identifier",fr:"IBAN",it:"IBAN"},
+      desc:{de:"Eindeutige Kennung des Zahlungskontos des Empfängers.",en:"A unique identifier of the financial payment account to which payment should be made.",fr:"Identifiant unique du compte de paiement.",it:"Identificatore univoco del conto di pagamento."}},
+    bic:           {bt:"BT-86", cardinality:"0..1", obligation:"O",
+      name:{de:"BIC",en:"Payment service provider identifier",fr:"BIC",it:"BIC"},
+      desc:{de:"Kennung des Zahlungsdienstleisters.",en:"An identifier for the payment service provider where a payment account is located.",fr:"Identifiant du prestataire de services de paiement.",it:"Identificatore del prestatore di servizi di pagamento."}},
+    accountHolder: {bt:"BT-85", cardinality:"0..1", obligation:"O",
+      name:{de:"Kontoinhaber",en:"Payment account name",fr:"Titulaire du compte",it:"Intestatario conto"},
+      desc:{de:"Name des Zahlungskontos.",en:"The name of the payment account held with a payment service provider.",fr:"Nom du compte de paiement.",it:"Nome del conto di pagamento."}},
+    netAmount:     {bt:"BT-106",cardinality:"1..1", obligation:"M",
+      name:{de:"Summe Netto",en:"Sum of line net amounts",fr:"Total net",it:"Totale netto"},
+      desc:{de:"Summe aller Rechnungspositions-Nettobeträge.",en:"Sum of all Invoice line net amounts.",fr:"Somme de tous les montants nets des lignes.",it:"Somma di tutti gli importi netti delle righe."}},
+    taxAmount:     {bt:"BT-110",cardinality:"1..1", obligation:"M",
+      name:{de:"Steuerbetrag",en:"Invoice total VAT amount",fr:"Total TVA",it:"Totale IVA"},
+      desc:{de:"Gesamter Umsatzsteuerbetrag der Rechnung.",en:"The total VAT amount for the Invoice.",fr:"Montant total de TVA de la facture.",it:"Importo IVA totale della fattura."}},
+    grossAmount:   {bt:"BT-112",cardinality:"1..1", obligation:"M",
+      name:{de:"Bruttobetrag",en:"Invoice total amount with VAT",fr:"Total brut",it:"Totale lordo"},
+      desc:{de:"Rechnungsgesamtbetrag einschließlich Mehrwertsteuer.",en:"The total amount of the Invoice with VAT.",fr:"Montant total de la facture TVA incluse.",it:"Importo totale della fattura IVA inclusa."}},
+    dueAmount:     {bt:"BT-115",cardinality:"1..1", obligation:"M",
+      name:{de:"Fälliger Betrag",en:"Amount due for payment",fr:"Montant à payer",it:"Importo dovuto"},
+      desc:{de:"Ausstehender Zahlbetrag.",en:"The outstanding amount that is requested to be paid.",fr:"Le montant restant à payer.",it:"L'importo residuo da pagare."}}
+  };
+
+  // ── Validation rules with severity ──────────────────────────────────────
+  const VALIDATION_RULES = {
+    warningsInvalidIban:{
+      id:"BR-IBAN-01", severity:"error",
+      en:{msg:"IBAN checksum validation failed.",      hint:"Verify the IBAN digits are correct."},
+      de:{msg:"IBAN-Prüfsumme ungültig.",             hint:"Bitte IBAN prüfen."},
+      fr:{msg:"La somme de contrôle IBAN est invalide.",hint:"Vérifier l'IBAN."},
+      it:{msg:"Checksum IBAN non valido.",             hint:"Verificare l'IBAN."}},
+    warningsTotalsMismatch:{
+      id:"BR-CO-13", severity:"warn",
+      en:{msg:"Sum of line net amounts does not match invoice net total.", hint:"Check for rounding differences or missing positions."},
+      de:{msg:"Positionssumme stimmt nicht mit dem Nettobetrag überein.",  hint:"Rundungsdifferenzen oder fehlende Positionen prüfen."},
+      fr:{msg:"La somme des montants nets ne correspond pas au total net.", hint:"Vérifier les arrondis ou les lignes manquantes."},
+      it:{msg:"La somma degli importi netti non corrisponde al totale.",    hint:"Verificare arrotondamenti o righe mancanti."}},
+    warningsUbl:{
+      id:"INFO-UBL-01", severity:"info",
+      en:{msg:"UBL invoice detected. Full field mapping not yet supported.", hint:"XML is displayed. For full analysis use CII/XRechnung format."},
+      de:{msg:"UBL-Rechnung erkannt. Vollständige Feldzuordnung noch nicht implementiert.", hint:"XML wird angezeigt. Für vollständige Analyse CII/XRechnung-Format verwenden."},
+      fr:{msg:"Facture UBL détectée. Mapping complet non encore supporté.", hint:"XML affiché. Utiliser le format CII/XRechnung pour l'analyse complète."},
+      it:{msg:"Fattura UBL rilevata. Mapping completo non ancora supportato.", hint:"XML visualizzato. Usare il formato CII/XRechnung per l'analisi completa."}}
+  };
+
+  // ── Context path → fieldId for interactive XML linking ─────────────────
+  // Keys are slash-joined local element names (trailing 2-4 ancestors / element)
+  const CONTEXT_EL_TO_FIELD = {
+    "ExchangedDocument/ID":                                                    "invNumber",
+    "ExchangedDocument/IssueDateTime/DateTimeString":                          "invDate",
+    "ExchangedDocument/IssueDateTime":                                         "invDate",
+    "DueDateDateTime/DateTimeString":                                          "invDueDate",
+    "BuyerOrderReferencedDocument/IssuerAssignedID":                           "invOrderNumber",
+    "IncludedNote/Content":                                                    "invNote",
+    "SellerTradeParty/Name":                                                   "sellerName",
+    "SellerTradeParty/PostalTradeAddress/LineOne":                             "sellerAddress",
+    "SellerTradeParty/PostalTradeAddress":                                     "sellerAddress",
+    "SellerTradeParty/DefinedTradeContact/EmailURIUniversalCommunication/URIID":"sellerEmail",
+    "SellerTradeParty/DefinedTradeContact/TelephoneUniversalCommunication/CompleteNumber":"sellerPhone",
+    "SellerTradeParty/SpecifiedTaxRegistration/ID":                            "sellerTaxID",
+    "SellerTradeParty/SpecifiedLegalOrganization/ID":                          "sellerRegister",
+    "BuyerTradeParty/Name":                                                    "buyerName",
+    "BuyerTradeParty/PostalTradeAddress/LineOne":                              "buyerAddress",
+    "BuyerTradeParty/PostalTradeAddress":                                      "buyerAddress",
+    "BuyerTradeParty/DefinedTradeContact/EmailURIUniversalCommunication/URIID":"buyerEmail",
+    "BuyerTradeParty/DefinedTradeContact/TelephoneUniversalCommunication/CompleteNumber":"buyerPhone",
+    "BuyerTradeParty/SpecifiedTaxRegistration/ID":                             "buyerTaxID",
+    "ApplicableHeaderTradeSettlement/InvoiceCurrencyCode":                     "currency",
+    "SpecifiedTradeSettlementPaymentMeans/TypeCode":                           "paymentType",
+    "SpecifiedTradePaymentTerms/Description":                                  "paymentTerms",
+    "PayeePartyCreditorFinancialAccount/IBANID":                               "iban",
+    "PayerPartyCreditorFinancialAccount/IBANID":                               "iban",
+    "PayeeSpecifiedCreditorFinancialInstitution/BICID":                        "bic",
+    "PayeePartyCreditorFinancialInstitution/BICID":                            "bic",
+    "PayeePartyCreditorFinancialAccount/AccountName":                          "accountHolder",
+    "SpecifiedTradeSettlementHeaderMonetarySummation/LineTotalAmount":         "netAmount",
+    "SpecifiedTradeSettlementMonetarySummation/LineTotalAmount":               "netAmount",
+    "SpecifiedTradeSettlementHeaderMonetarySummation/TaxTotalAmount":          "taxAmount",
+    "SpecifiedTradeSettlementMonetarySummation/TaxTotalAmount":                "taxAmount",
+    "SpecifiedTradeSettlementHeaderMonetarySummation/GrandTotalAmount":        "grossAmount",
+    "SpecifiedTradeSettlementMonetarySummation/GrandTotalAmount":              "grossAmount",
+    "SpecifiedTradeSettlementHeaderMonetarySummation/DuePayableAmount":        "dueAmount",
+    "SpecifiedTradeSettlementMonetarySummation/DuePayableAmount":              "dueAmount"
+  };
+
+  // Lookup fieldId by element context stack + local element name
+  function lookupFieldByContext(stack, localName){
+    // Build candidate keys from longest to shortest context
+    const joined = [...stack, localName];
+    for(let n=Math.min(5, joined.length); n>=1; n--){
+      const key = joined.slice(-n).join("/");
+      if(CONTEXT_EL_TO_FIELD[key]) return CONTEXT_EL_TO_FIELD[key];
+    }
+    return null;
+  }
+
+  // ── Pro mode management ──────────────────────────────────────────────────
+  function updateModeButton(){
+    const btn=dom.modeToggle; if(!btn) return;
+    if(proMode){
+      btn.textContent=L().modeSwitchStd||"🧾 Standard";
+      btn.title=L().modeProHint||"Pro mode active";
+      btn.classList.add("pro-active");
+    } else {
+      btn.textContent=L().modeSwitchPro||"🔧 Pro";
+      btn.title=L().modeStdHint||"Switch to Pro mode";
+      btn.classList.remove("pro-active");
+    }
+  }
+
+  function setProMode(v){
+    proMode=!!v;
+    lsSet(LS.proMode, proMode?"1":"0");
+    document.body.classList.toggle("pro-mode", proMode);
+    updateModeButton();
+    const proSec=$("proXmlSection");
+    if(proMode){
+      buildProXmlView();
+    } else {
+      if(proSec) proSec.classList.add("hidden");
+    }
+    // refresh validation display with/without rule hints
+    renderWarnings();
+    // refresh BT badges
+    applyProModeToFields();
+  }
+
+  function toggleProMode(){ setProMode(!proMode); }
+
+  // ── BT badges & explainability ───────────────────────────────────────────
+  // Use a delegated click handler rather than per-row addEventListener
+  // to avoid stale DOM references when cloneNode replaces rows.
+  document.addEventListener("click",(e)=>{
+    if(!proMode) return;
+    // Skip if target is an interactive element (button, input, etc.)
+    if(e.target.matches("button,a,input,select,textarea")) return;
+    const row=e.target.closest("tr.pro-field-row");
+    if(row && row.dataset.fieldId) highlightFieldInXml(row.dataset.fieldId);
+  });
+
+  function applyProModeToFields(){
+    // Remove any existing bt-badges and explain-btns from previous application
+    document.querySelectorAll(".bt-badge,.explain-btn").forEach(el=>el.remove());
+    // Remove pro-field-row marker attributes (no cloneNode needed)
+    document.querySelectorAll(".pro-field-row").forEach(row=>{
+      row.classList.remove("pro-field-row");
+      row.style.cursor="";
+      row.title="";
+      delete row.dataset.fieldId;
+    });
+    if(!proMode) return;
+
+    Object.entries(BT_MAP).forEach(([fieldId, info])=>{
+      const cell=$(fieldId); if(!cell) return;
+      const row=cell.closest("tr"); if(!row) return;
+      const th=row.querySelector("th"); if(!th) return;
+
+      // Badge on the header cell
+      const badge=document.createElement("span");
+      badge.className="bt-badge";
+      badge.textContent=info.bt;
+      badge.title=`${info.bt} – ${info.name[lang]||info.name.en}`;
+      th.appendChild(badge);
+
+      // Explain button inside the value cell
+      const eBtn=document.createElement("button");
+      eBtn.type="button"; eBtn.className="explain-btn";
+      eBtn.textContent="ℹ️";
+      eBtn.setAttribute("aria-label","Explain "+( info.name[lang]||info.name.en));
+      eBtn.addEventListener("click",(e)=>{ e.stopPropagation(); showExplainPanel(fieldId); });
+      cell.appendChild(eBtn);
+
+      // Mark row for delegated click handler
+      row.classList.add("pro-field-row");
+      row.style.cursor="pointer";
+      row.title=`${info.bt}: ${info.name[lang]||info.name.en}`;
+      row.dataset.fieldId=fieldId;
+    });
+  }
+
+  // ── Explainability panel ─────────────────────────────────────────────────
+  function showExplainPanel(fieldId){
+    const info=BT_MAP[fieldId]; if(!info) return;
+    const panel=$("explainPanel"); if(!panel) return;
+    const name=info.name[lang]||info.name.en;
+    const desc=info.desc[lang]||info.desc.en;
+    const oblKeyMap={M:"obligationM",C:"obligationC",O:"obligationO"};
+    const oblLabel=L()[oblKeyMap[info.obligation]]||info.obligation;
+    $("explainTitle").textContent=name;
+    $("explainContent").innerHTML=`
+      <div class="explain-row"><span class="explain-key">${escapeHtml(L().explainBt||"Business Term")}:</span><span class="explain-val">${escapeHtml(info.bt)}</span></div>
+      <div class="explain-row"><span class="explain-key">${escapeHtml(L().explainCardinality||"Cardinality")}:</span><span class="explain-val">${escapeHtml(info.cardinality)}</span></div>
+      <div class="explain-row"><span class="explain-key">${escapeHtml(L().explainObligation||"Obligation")}:</span><span class="explain-val">${escapeHtml(oblLabel)}</span></div>
+      <div class="explain-row"><span class="explain-key">${escapeHtml(L().explainSource||"Source")}:</span><span class="explain-val">EN 16931-1</span></div>
+      <div class="explain-desc">${escapeHtml(desc)}</div>
+    `;
+    panel.classList.add("visible");
+  }
+
+  function hideExplainPanel(){
+    const panel=$("explainPanel");
+    if(panel) panel.classList.remove("visible");
+  }
+
+  // Close explain panel on outside click or Escape
+  document.addEventListener("click",(e)=>{
+    const panel=$("explainPanel");
+    if(panel&&panel.classList.contains("visible")&&!panel.contains(e.target)&&!e.target.classList.contains("explain-btn")){
+      hideExplainPanel();
+    }
+  });
+
+  const explainCloseBtn=$("explainClose");
+  if(explainCloseBtn) explainCloseBtn.addEventListener("click",hideExplainPanel);
+
+  // ── Interactive XML syntax highlighter ───────────────────────────────────
+  function buildInteractiveXmlHtml(xmlStr){
+    const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    let result="";
+    let i=0;
+    const stack=[]; // local element names
+
+    while(i<xmlStr.length){
+      if(xmlStr[i]==="<"){
+        // Find end of tag, respecting quoted attributes
+        let j=i+1, inQ=false, qChar="";
+        while(j<xmlStr.length){
+          if(!inQ&&(xmlStr[j]==='"'||xmlStr[j]==="'")){ inQ=true; qChar=xmlStr[j]; }
+          else if(inQ&&xmlStr[j]===qChar) inQ=false;
+          else if(!inQ&&xmlStr[j]===">") break;
+          j++;
+        }
+        const tag=xmlStr.slice(i, j+1);
+
+        if(tag.startsWith("<!--")){
+          // comment
+          const end=xmlStr.indexOf("-->",i);
+          const commentText=end===-1?xmlStr.slice(i):xmlStr.slice(i,end+3);
+          result+=`<span class="xml-comment">${esc(commentText)}</span>`;
+          i=end===-1?xmlStr.length:end+3;
+          continue;
+        }
+        if(tag.startsWith("<?")){
+          result+=`<span class="xml-comment">${esc(tag)}</span>`;
+          i=j+1; continue;
+        }
+        if(tag.startsWith("</")){
+          const elName=tag.slice(2,-1).trim();
+          const local=elName.replace(/^[^:]+:/,"");
+          if(stack.length>0&&stack[stack.length-1]===local) stack.pop();
+          result+=`<span class="xml-punct">&lt;/</span><span class="xml-tag">${esc(elName)}</span><span class="xml-punct">&gt;</span>`;
+          i=j+1; continue;
+        }
+        // Opening or self-closing tag
+        const isSelf=tag.endsWith("/>");
+        const inner=isSelf?tag.slice(1,-2):tag.slice(1,-1);
+        const spIdx=inner.search(/[\s]/);
+        const elName=spIdx===-1?inner.trimEnd():inner.slice(0,spIdx);
+        const attrStr=spIdx===-1?"":inner.slice(spIdx);
+        const local=elName.replace(/^[^:]+:/,"");
+
+        // Look up field BEFORE pushing (so context is the parent)
+        const fieldId=lookupFieldByContext(stack, local);
+        if(!isSelf) stack.push(local);
+
+        result+=`<span class="xml-punct">&lt;</span>`;
+        if(fieldId){
+          result+=`<span class="xml-tag xml-el-name" data-field-id="${escapeHtml(fieldId)}" tabindex="0" role="button">${esc(elName)}</span>`;
+        } else {
+          result+=`<span class="xml-tag">${esc(elName)}</span>`;
+        }
+
+        // Attributes
+        if(attrStr.trim()){
+          const attrRe=/([\w:.-]+)\s*=\s*(?:"([^"]*?)"|'([^']*?)')/g;
+          let last=0, m;
+          let attrHtml="";
+          while((m=attrRe.exec(attrStr))!==null){
+            attrHtml+=esc(attrStr.slice(last,m.index));
+            const val=m[2]!==undefined?m[2]:m[3];
+            const q=m[2]!==undefined?'"':"'";
+            attrHtml+=` <span class="xml-attr">${esc(m[1])}</span><span class="xml-punct">=</span><span class="xml-val">${q}${esc(val)}${q}</span>`;
+            last=m.index+m[0].length;
+          }
+          attrHtml+=esc(attrStr.slice(last));
+          result+=attrHtml;
+        }
+
+        result+=isSelf?`<span class="xml-punct">/&gt;</span>`:`<span class="xml-punct">&gt;</span>`;
+        i=j+1;
+      } else if(xmlStr[i]==="\n"){
+        result+="\n"; i++;
+      } else {
+        // Text node
+        const next=xmlStr.indexOf("<",i);
+        const text=next===-1?xmlStr.slice(i):xmlStr.slice(i,next);
+        if(text.trim()) result+=`<span class="xml-text">${esc(text)}</span>`;
+        else result+=esc(text);
+        i=next===-1?xmlStr.length:next;
+      }
+    }
+    return result;
+  }
+
+  function buildProXmlView(){
+    const section=$("proXmlSection");
+    const wrap=$("xmlCodeWrap");
+    if(!section||!wrap) return;
+    const xmlStr=dom.xmlPre&&dom.xmlPre.textContent.trim();
+    if(!xmlStr){ section.classList.add("hidden"); return; }
+
+    wrap.innerHTML=buildInteractiveXmlHtml(xmlStr);
+    section.classList.remove("hidden");
+
+    // Attach click handlers to clickable element names
+    wrap.querySelectorAll(".xml-el-name[data-field-id]").forEach(span=>{
+      span.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        highlightFieldFromXml(span.getAttribute("data-field-id"));
+      });
+      span.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter"){ e.preventDefault(); highlightFieldFromXml(span.getAttribute("data-field-id")); }
+        else if(e.key===" "){ e.preventDefault(); highlightFieldFromXml(span.getAttribute("data-field-id")); }
+      });
+    });
+  }
+
+  // XML element clicked → highlight invoice field row
+  function highlightFieldFromXml(fieldId){
+    document.querySelectorAll("tr.row-hl").forEach(r=>r.classList.remove("row-hl"));
+    const cell=$(fieldId); if(!cell) return;
+    const row=cell.closest("tr"); if(!row) return;
+    row.classList.add("row-hl");
+    row.scrollIntoView({behavior:"smooth",block:"center"});
+    setTimeout(()=>row.classList.remove("row-hl"), 2500);
+  }
+
+  // Invoice field clicked → highlight in interactive XML
+  function highlightFieldInXml(fieldId){
+    const wrap=$("xmlCodeWrap"); if(!wrap) return;
+    // Build pro XML view if not yet visible
+    const proSec=$("proXmlSection");
+    if(proSec && proSec.classList.contains("hidden")) buildProXmlView();
+    // Remove previous highlights
+    wrap.querySelectorAll(".xml-hl").forEach(el=>el.classList.remove("xml-hl"));
+    const spans=wrap.querySelectorAll(`[data-field-id="${fieldId}"]`);
+    if(spans.length){
+      spans.forEach(s=>s.classList.add("xml-hl"));
+      spans[0].scrollIntoView({behavior:"smooth",block:"center"});
+      setTimeout(()=>spans.forEach(s=>s.classList.remove("xml-hl")), 2500);
+    }
+    if(proSec) proSec.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
 
   // Detect UBL
   function isUbl(doc){
@@ -1330,6 +1890,7 @@
   const DB = {name:"invoiceInspector",version:1,store:"invoices"};
   const LS = {
     theme:"invoiceInspector.theme",
+    proMode:"invoiceInspector.proMode",
     enabled:"invoiceInspector.collectionEnabled",
     legacy:"invoiceInspector.legacyInvoices",
     lastInvoice:"invoiceInspector.lastInvoice",
@@ -2136,6 +2697,12 @@
       tb.appendChild(tr);
     });
     if((d.lineItems||[]).length) show(dom.lineItemsSection);
+
+    // Pro mode: apply BT badges and build interactive XML
+    if(proMode){
+      applyProModeToFields();
+      buildProXmlView();
+    }
   }
 
   function buildQrIfPossible(d, sym){
@@ -2320,11 +2887,23 @@
   const saved = (()=>{ try{return localStorage.getItem("invoiceInspector.lang")}catch(_){return null} })();
   const nav = (navigator.language||"en").toLowerCase();
   const auto = nav.startsWith("de")?"de":nav.startsWith("fr")?"fr":nav.startsWith("it")?"it":"en";
+  proMode = lsGet(LS.proMode,"0")==="1";
+  document.body.classList.toggle("pro-mode", proMode);
+  updateModeButton(); // set button text/style before language init
   setLang(saved || auto);
   updateRestoreLastButton();
   dom.collectionEnabled.checked = enabled();
   dom.collectionControls.classList.toggle("hidden", !enabled());
+  if(dom.modeToggle) dom.modeToggle.addEventListener("click", toggleProMode);
 })();
 </script>
+
+  <!-- Explainability Panel (Pro mode) -->
+  <div id="explainPanel" role="complementary" aria-live="polite">
+    <button id="explainClose" type="button" aria-label="Close">✕</button>
+    <h3 id="explainTitle"></h3>
+    <div id="explainContent"></div>
+  </div>
+
 </body>
 </html>
