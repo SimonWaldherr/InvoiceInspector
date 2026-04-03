@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>InvoiceInspector – E-Rechnungs-Viewer (ZUGFeRD / XRechnung)</title>
   <meta name="description" content="Kostenloser, clientseitiger Web-Viewer für elektronische Rechnungen: ZUGFeRD, XRechnung, Factur-X und EN 16931. Kein Upload, kein Server – läuft komplett im Browser.">
+  <meta id="themeColorLight" name="theme-color" media="(prefers-color-scheme: light)" content="#f7f7f7">
+  <meta id="themeColorDark" name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1a1a">
   <meta name="keywords" content="ZUGFeRD, XRechnung, Factur-X, EN 16931, e-invoice, electronic invoice, viewer, inspector, PDF, XML, open source">
   <meta name="application-name" content="InvoiceInspector">
   <meta name="author" content="Simon Waldherr">
@@ -27,9 +29,9 @@
   <link rel="publiccode" href="https://raw.githubusercontent.com/SimonWaldherr/InvoiceInspector/main/publiccode.yml">
 
   <!-- Pinned CDN libs -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.min.js" integrity="sha512-KEoL9wKXt/fhlAfN+ZNXf3pI48aaQE9Qd5fihHY+5n5XLTSnyGJ0uKgUj//V6KAcjFwzAbCYYPKeGlFES/H5Ng==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.6.172/pdf.worker.min.js" integrity="sha512-Dpeau+qELRm1XP/EtXrPkPMYceOlFdrIIoyJr/F7ct8PFDcfviRJm3yLXuUlFIVfT3pBDp3Sc7QYo8zn9Na13A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js" integrity="sha512-zc5USdLdonEICXhXahZ8HQHk6wlcuJsawFoZgUttu87/S45ENuO2NhkDJFlvNu9AlpQGvRKD9jdOi5G4IkhF7Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <style>
     :root{
@@ -147,10 +149,10 @@
     <div class="top-actions">
       <button id="themeToggle" class="lang-btn" type="button" aria-label="Darstellung umschalten">🌙 Dark</button>
       <div class="langs" aria-label="Language switcher">
-        <button id="langDe" class="lang-btn active">🇩🇪 DE</button>
-        <button id="langEn" class="lang-btn">🇺🇸 EN</button>
-        <button id="langFr" class="lang-btn">🇫🇷 FR</button>
-        <button id="langIt" class="lang-btn">🇮🇹 IT</button>
+        <button id="langDe" class="lang-btn active" type="button" aria-label="Deutsch">🇩🇪 DE</button>
+        <button id="langEn" class="lang-btn" type="button" aria-label="English">🇺🇸 EN</button>
+        <button id="langFr" class="lang-btn" type="button" aria-label="Français">🇫🇷 FR</button>
+        <button id="langIt" class="lang-btn" type="button" aria-label="Italiano">🇮🇹 IT</button>
       </div>
     </div>
   </div>
@@ -165,7 +167,8 @@
   <div id="dropZone" class="drop" role="button" tabindex="0" aria-label="Datei auswählen oder hier ablegen">
     <p data-i18n="dropZoneText">📄 Datei hierher ziehen & fallen lassen oder klicken</p>
     <p class="muted" data-i18n="supportedFormatsText">Unterstützt: PDF (ZUGFeRD/Factur-X), XML (XRechnung/EN16931)</p>
-    <input id="fileInput" type="file" accept=".xml,.pdf,application/pdf" multiple class="hidden">
+    <label for="fileInput" class="sr-only" data-i18n="fileInputLabel">Rechnungsdateien auswählen</label>
+    <input id="fileInput" type="file" accept=".xml,.pdf,application/pdf" multiple class="hidden" aria-label="Rechnungsdateien auswählen">
   </div>
 
   <div class="btns">
@@ -184,7 +187,8 @@
     </div>
 
     <div id="collectionControls" class="controls hidden">
-      <input id="collectionSearch" type="search" placeholder="Suche…">
+      <label for="collectionSearch" class="sr-only" data-i18n="collectionSearchLabel">Rechnungssammlung durchsuchen</label>
+      <input id="collectionSearch" type="search" placeholder="Suche…" aria-label="Rechnungssammlung durchsuchen">
       <select id="collectionStatusFilter" aria-label="Status filter"></select>
       <select id="collectionSort" aria-label="Sortierung"></select>
       <label class="muted" style="display:flex;gap:8px;align-items:center">
@@ -268,10 +272,10 @@
   <section id="error" class="err hidden" role="alert" aria-live="assertive" aria-atomic="true"></section>
 
   <div class="btns hidden" id="downloadButtons">
-    <button id="btnXml" class="btn" data-i18n="downloadXml">📄 XML</button>
-    <button id="btnPdf" class="btn" data-i18n="downloadPdf">📋 PDF</button>
-    <button id="btnJson" class="btn" data-i18n="downloadJson">📊 JSON</button>
-    <button id="btnCsv" class="btn" data-i18n="downloadCsv">📈 CSV</button>
+    <button id="btnXml" class="btn" type="button" data-i18n="downloadXml" aria-label="XML speichern">📄 XML</button>
+    <button id="btnPdf" class="btn" type="button" data-i18n="downloadPdf" aria-label="PDF speichern">📋 PDF</button>
+    <button id="btnJson" class="btn" type="button" data-i18n="downloadJson" aria-label="JSON exportieren">📊 JSON</button>
+    <button id="btnCsv" class="btn" type="button" data-i18n="downloadCsv" aria-label="CSV exportieren">📈 CSV</button>
   </div>
 
   <details id="xmlViewer" class="hidden">
@@ -375,9 +379,9 @@
   </section>
 
   <!-- QR Modal -->
-  <div id="qrModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true">
+  <div id="qrModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true" aria-labelledby="qrModalTitle">
     <div class="modal-box">
-      <h2 data-i18n="qrCodeTitle">📱 QR-Code</h2>
+      <h2 id="qrModalTitle" data-i18n="qrCodeTitle">📱 QR-Code</h2>
       <div class="qrbox" id="qrCanvasWrap"></div>
       <div class="muted">
         <strong data-i18n="qrCodeInfoTitle">Scannen zum Bezahlen</strong><br>
@@ -391,10 +395,11 @@
   </div>
 
   <!-- Comment Modal -->
-  <div id="textModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true">
+  <div id="textModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true" aria-labelledby="textModalTitle">
     <div class="modal-box" style="text-align:left">
       <h2 id="textModalTitle">📝 Kommentar</h2>
-      <textarea id="textModalTextarea" rows="7"></textarea>
+      <label for="textModalTextarea" class="sr-only" data-i18n="commentFieldLabel">Kommentar bearbeiten</label>
+      <textarea id="textModalTextarea" rows="7" aria-label="Kommentar bearbeiten"></textarea>
       <div class="controls" style="justify-content:center">
         <button id="textModalSave" class="pill" type="button" data-i18n="save">Speichern</button>
         <button id="textModalClose" class="pill" type="button" data-i18n="close">Schließen</button>
@@ -450,6 +455,11 @@
       themeDark:"🌙 Dark",
       themeLight:"☀️ Light",
       themeToggleAria:"Hell/Dunkel umschalten",
+      fileInputLabel:"Rechnungsdateien auswählen",
+      collectionSearchLabel:"Rechnungssammlung durchsuchen",
+      statusFilterLabel:"Status filtern",
+      sortLabel:"Sortierung",
+      commentFieldLabel:"Kommentar bearbeiten",
       dropZoneText:"📄 Datei hierher ziehen & fallen lassen oder klicken",
       supportedFormatsText:"Unterstützt: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Beispiel laden",
@@ -603,6 +613,11 @@
       themeDark:"🌙 Dark",
       themeLight:"☀️ Light",
       themeToggleAria:"Toggle light/dark mode",
+      fileInputLabel:"Select invoice files",
+      collectionSearchLabel:"Search invoice collection",
+      statusFilterLabel:"Filter by status",
+      sortLabel:"Sort order",
+      commentFieldLabel:"Edit comment",
       dropZoneText:"📄 Drop a file here or click to select",
       supportedFormatsText:"Supported: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Load sample",
@@ -754,6 +769,11 @@
       themeDark:"🌙 Sombre",
       themeLight:"☀️ Clair",
       themeToggleAria:"Basculer mode clair/sombre",
+      fileInputLabel:"Sélectionner des fichiers de facture",
+      collectionSearchLabel:"Rechercher dans la collection de factures",
+      statusFilterLabel:"Filtrer par statut",
+      sortLabel:"Ordre de tri",
+      commentFieldLabel:"Modifier le commentaire",
       dropZoneText:"📄 Déposez un fichier ici ou cliquez pour sélectionner",
       supportedFormatsText:"Formats : PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Charger un exemple",
@@ -905,6 +925,11 @@
       themeDark:"🌙 Scuro",
       themeLight:"☀️ Chiaro",
       themeToggleAria:"Attiva/disattiva tema chiaro/scuro",
+      fileInputLabel:"Seleziona i file della fattura",
+      collectionSearchLabel:"Cerca nella raccolta fatture",
+      statusFilterLabel:"Filtra per stato",
+      sortLabel:"Ordinamento",
+      commentFieldLabel:"Modifica commento",
       dropZoneText:"📄 Trascina un file qui o fai clic per selezionare",
       supportedFormatsText:"Formati: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
       loadSample:"🧪 Carica esempio",
@@ -1152,13 +1177,35 @@
     });
     document.title = L().mainTitle;
     dom.dropZone.setAttribute("aria-label", L().dropZoneText);
+    dom.fileInput.setAttribute("aria-label", L().fileInputLabel);
     dom.collectionSearch.placeholder = (lang==="de")?"Suche…":(lang==="fr")?"Recherche…":(lang==="it")?"Cerca…":"Search…";
+    dom.collectionSearch.setAttribute("aria-label", L().collectionSearchLabel);
+    dom.collectionStatusFilter.setAttribute("aria-label", L().statusFilterLabel);
+    dom.collectionSort.setAttribute("aria-label", L().sortLabel);
     dom.collectionDateFrom.setAttribute("aria-label", L().filterDateFrom);
     dom.collectionDateTo.setAttribute("aria-label", L().filterDateTo);
     dom.collectionGrossMin.placeholder = L().filterGrossMin;
     dom.collectionGrossMin.setAttribute("aria-label", L().filterGrossMin);
     dom.collectionGrossMax.placeholder = L().filterGrossMax;
     dom.collectionGrossMax.setAttribute("aria-label", L().filterGrossMax);
+    dom.collectionPageSize.setAttribute("aria-label", L().rowsPerPage);
+    dom.btnXml.setAttribute("aria-label", L().downloadXml);
+    dom.btnPdf.setAttribute("aria-label", L().downloadPdf);
+    dom.btnJson.setAttribute("aria-label", L().downloadJson);
+    dom.btnCsv.setAttribute("aria-label", L().downloadCsv);
+    dom.loadSample.setAttribute("aria-label", L().loadSample);
+    dom.restoreLastInvoice.setAttribute("aria-label", L().restoreLastInvoice);
+    dom.showQr.setAttribute("aria-label", L().showQr);
+    dom.qrSave.setAttribute("aria-label", L().saveQr);
+    dom.qrClose.setAttribute("aria-label", L().close);
+    dom.textModalTextarea.setAttribute("aria-label", L().commentFieldLabel);
+    dom.textModalSave.setAttribute("aria-label", L().save);
+    dom.textModalClose.setAttribute("aria-label", L().close);
+    dom.exportTodayJson.setAttribute("aria-label", L().exportTodayJson);
+    dom.exportAllJson.setAttribute("aria-label", L().exportAllJson);
+    dom.exportTodayCsv.setAttribute("aria-label", L().exportTodayCsv);
+    dom.exportAllCsv.setAttribute("aria-label", L().exportAllCsv);
+    dom.clearCollection.setAttribute("aria-label", L().clearCollection);
     // active btn
     document.querySelectorAll(".langs .lang-btn").forEach(b=>b.classList.remove("active"));
     (lang==="de"?$("langDe"):lang==="fr"?$("langFr"):lang==="it"?$("langIt"):$("langEn")).classList.add("active");
@@ -1386,6 +1433,12 @@
   function applyTheme(mode){
     const finalMode=(mode==="dark") ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", finalMode);
+    const themeColorLight = $("themeColorLight");
+    const themeColorDark = $("themeColorDark");
+    if(themeColorLight && themeColorDark){
+      themeColorLight.media = (finalMode==="light") ? "all" : "not all";
+      themeColorDark.media = (finalMode==="dark") ? "all" : "not all";
+    }
     lsSet(LS.theme, finalMode);
     updateThemeButton();
   }
