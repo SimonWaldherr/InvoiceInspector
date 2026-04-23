@@ -2642,6 +2642,7 @@
     dom.collectionTableWrap.classList.toggle("hidden", !enabled() || filtered.length===0);
     const tb=dom.collectionTable.querySelector("tbody");
     tb.innerHTML="";
+    const todayKey=dayKey(new Date());
     pageData.slice.forEach(inv=>{
       const tr=document.createElement("tr");
       const loaded=new Date(inv.meta.loadedAt||Date.now()).toLocaleString();
@@ -2656,7 +2657,7 @@
       const isOverdue=(()=>{
         if(!dueDate || ["paid","done","cancelled","claimed"].includes(status)) return false;
         const dk=invoiceDateKey(dueDate);
-        return dk ? dk < dayKey(new Date()) : false;
+        return dk ? dk < todayKey : false;
       })();
       if(isOverdue) tr.classList.add("overdue-row");
       tr.innerHTML = `
@@ -3267,9 +3268,14 @@
     const tag=(document.activeElement?.tagName||"").toLowerCase();
     if(["input","textarea","select"].includes(tag)) return;
     const text=(e.clipboardData||window.clipboardData)?.getData("text")||"";
-    if(!text.trim().startsWith("<")) return;
+    const trimmed=text.trim();
+    // Basic XML sanity check: must start and end with a tag
+    if(!trimmed.startsWith("<") || !trimmed.includes(">")) return;
+    // Quick pre-parse to confirm it is parseable XML before committing to full processing
+    const testDoc=new DOMParser().parseFromString(trimmed,"application/xml");
+    if(testDoc.querySelector("parsererror")) return;
     e.preventDefault();
-    const blob=new Blob([text],{type:"text/xml"});
+    const blob=new Blob([trimmed],{type:"text/xml"});
     handleFile(new File([blob],"pasted-invoice.xml",{type:"text/xml"}));
   });
 
