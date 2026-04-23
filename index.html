@@ -202,6 +202,23 @@
 
     /* pro XML section */
     #proXmlSection{margin:12px 0}
+
+    /* print */
+    @media print{
+      .top-actions,.langs,#dropZone,.btns,#collectionSection,#loading,#success,#error,#downloadButtons,#xmlViewer,#proXmlSection,#explainPanel,#qrModal,#textModal{display:none!important}
+      body{background:#fff;color:#000;margin:0;font-size:11pt}
+      section,details{border:1px solid #aaa;box-shadow:none;break-inside:avoid}
+      .field-actions,.bt-badge,.explain-btn{display:none!important}
+      table{page-break-inside:avoid;width:100%}
+      .table-wrap{overflow:visible!important}
+    }
+
+    /* overdue rows */
+    .overdue-row>td{color:var(--err)!important}
+    .overdue-badge{display:inline-block;padding:1px 6px;border-radius:10px;background:var(--errbg);color:var(--err);font-size:.78em;font-weight:700;margin-left:5px;border:1px solid var(--err);vertical-align:middle}
+
+    /* tax breakdown column alignment */
+    .tax-breakdown th:nth-child(n+3),.tax-breakdown td:nth-child(n+3){text-align:right}
   </style>
 </head>
 <body>
@@ -216,6 +233,7 @@
         <button id="langEn" class="lang-btn" type="button" aria-label="English">🇺🇸 EN</button>
         <button id="langFr" class="lang-btn" type="button" aria-label="Français">🇫🇷 FR</button>
         <button id="langIt" class="lang-btn" type="button" aria-label="Italiano">🇮🇹 IT</button>
+        <button id="langEs" class="lang-btn" type="button" aria-label="Español">🇪🇸 ES</button>
       </div>
     </div>
   </div>
@@ -339,6 +357,7 @@
     <button id="btnPdf" class="btn" type="button" data-i18n="downloadPdf" aria-label="PDF speichern">📋 PDF</button>
     <button id="btnJson" class="btn" type="button" data-i18n="downloadJson" aria-label="JSON exportieren">📊 JSON</button>
     <button id="btnCsv" class="btn" type="button" data-i18n="downloadCsv" aria-label="CSV exportieren">📈 CSV</button>
+    <button id="btnPrint" class="btn" type="button" data-i18n="downloadPrint" aria-label="Drucken">🖨️ Drucken</button>
   </div>
 
   <details id="xmlViewer" class="hidden">
@@ -358,6 +377,7 @@
         <table>
           <caption class="sr-only" data-i18n="invoiceHeaderCaption">Rechnungs-Kopf</caption>
           <tr><th scope="row" data-i18n="invNumber">Rechnungsnummer</th><td id="invNumber"></td></tr>
+          <tr><th scope="row" data-i18n="invType">Typ</th><td id="invType"></td></tr>
           <tr><th scope="row" data-i18n="invDate">Rechnungsdatum</th><td id="invDate"></td></tr>
           <tr><th scope="row" data-i18n="invDueDate">Fälligkeitsdatum</th><td id="invDueDate"></td></tr>
           <tr><th scope="row" data-i18n="invOrderNumber">Bestellnummer</th><td id="invOrderNumber"></td></tr>
@@ -446,6 +466,25 @@
     </div>
   </section>
 
+  <section id="taxBreakdownSection" class="hidden">
+    <h2 data-i18n="taxBreakdownTitle">🧾 Steueraufschlüsselung</h2>
+    <div class="table-wrap">
+      <table id="taxBreakdownTable" class="tax-breakdown">
+        <caption class="sr-only" data-i18n="taxBreakdownCaption">Steueraufschlüsselung</caption>
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="taxCode">Steuerart</th>
+            <th scope="col" data-i18n="taxCategory">Kategorie</th>
+            <th scope="col" data-i18n="taxRate">Steuersatz</th>
+            <th scope="col" data-i18n="taxBasis">Bemessungsgrundlage</th>
+            <th scope="col" data-i18n="taxAmount2">Steuerbetrag</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- QR Modal -->
   <div id="qrModal" class="modal" role="dialog" aria-hidden="true" aria-modal="true" aria-labelledby="qrModalTitle">
     <div class="modal-box">
@@ -511,7 +550,20 @@
     en:{30:"Credit transfer",58:"SEPA Credit Transfer",59:"SEPA Direct Debit",49:"Direct debit",48:"Card payment",10:"Cash"},
     fr:{30:"Virement",58:"Virement SEPA",59:"Prélèvement SEPA",49:"Prélèvement",48:"Paiement par carte",10:"Espèces"},
     it:{30:"Bonifico",58:"Bonifico SEPA",59:"Addebito SEPA",49:"Addebito diretto",48:"Carta",10:"Contanti"},
+    es:{30:"Transferencia",58:"Transferencia SEPA",59:"Débito SEPA",49:"Débito directo",48:"Pago con tarjeta",10:"Efectivo"},
   };
+
+  const DOCTYPE = {
+    "380":{de:"Rechnung",en:"Invoice",fr:"Facture",it:"Fattura",es:"Factura"},
+    "381":{de:"Gutschrift",en:"Credit note",fr:"Avoir",it:"Nota credito",es:"Nota de crédito"},
+    "383":{de:"Belastungsanzeige",en:"Debit note",fr:"Note de débit",it:"Nota di addebito",es:"Nota de débito"},
+    "384":{de:"Korrekturrechnung",en:"Corrected invoice",fr:"Facture rectificative",it:"Fattura rettificata",es:"Factura rectificada"},
+    "386":{de:"Anzahlungsrechnung",en:"Prepayment invoice",fr:"Facture d'acompte",it:"Fattura di acconto",es:"Factura de anticipo"},
+    "389":{de:"Gutschrift (Empfänger)",en:"Self-billing invoice",fr:"Autofacturation",it:"Autofattura",es:"Autofactura"},
+    "875":{de:"Teilrechnung",en:"Partial billing",fr:"Facturation partielle",it:"Fatturazione parziale",es:"Facturación parcial"},
+    "880":{de:"Schlussrechnung",en:"Final payment billing",fr:"Facture finale",it:"Fattura finale",es:"Factura final"},
+  };
+  function docTypeName(code){ if(!code) return ""; const d=DOCTYPE[String(code).trim()]; if(!d) return code; return `${d[lang]||d.en} (${code})`; }
 
   const LABELS = {
     de:{
@@ -519,7 +571,7 @@
       descriptionTitle:"Beschreibung",
       descriptionText:"Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur‑X PDFs an. Eingebettete XMLs in PDFs werden extrahiert.",
       disclaimerText:"<strong>Hinweis:</strong> Verarbeitung vollständig im Browser. Keine Uploads. Optional kann eine lokale Rechnungssammlung aktiviert werden (IndexedDB/LocalStorage), die jederzeit löschbar ist. Keine Gewähr.",
-      shortcutHint:"Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute",
+      shortcutHint:"Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute · Ctrl/⌘+V XML einfügen",
       themeDark:"🌙 Dark",
       themeLight:"☀️ Light",
       themeToggleAria:"Hell/Dunkel umschalten",
@@ -683,13 +735,22 @@
       obligationM:"Pflicht",
       obligationC:"Bedingt",
       obligationO:"Optional",
+      invType:"Rechnungstyp",
+      downloadPrint:"🖨️ Drucken",
+      taxBreakdownTitle:"🧾 Steueraufschlüsselung",
+      taxBreakdownCaption:"Steueraufschlüsselung",
+      taxCode:"Steuerart",
+      taxCategory:"Kategorie",
+      taxBasis:"Bemessungsgrundlage",
+      taxAmount2:"Steuerbetrag",
+      overdueHint:"Überfällig",
     },
     en:{
       mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / EN16931)",
       descriptionTitle:"Description",
       descriptionText:"View e-invoices (XML) and ZUGFeRD/Factur‑X PDFs. Embedded XML is extracted.",
       disclaimerText:"<strong>Note:</strong> Fully local in your browser. No uploads. Optional local collection (IndexedDB/LocalStorage), deletable anytime. No warranty.",
-      shortcutHint:"Tip: Ctrl/⌘+O open file · Ctrl/⌘+F search · Ctrl/⌘+E export today",
+      shortcutHint:"Tip: Ctrl/⌘+O open file · Ctrl/⌘+F search · Ctrl/⌘+E export today · Ctrl/⌘+V paste XML",
       themeDark:"🌙 Dark",
       themeLight:"☀️ Light",
       themeToggleAria:"Toggle light/dark mode",
@@ -851,6 +912,15 @@
       obligationM:"Mandatory",
       obligationC:"Conditional",
       obligationO:"Optional",
+      invType:"Invoice type",
+      downloadPrint:"🖨️ Print",
+      taxBreakdownTitle:"🧾 Tax breakdown",
+      taxBreakdownCaption:"Tax breakdown",
+      taxCode:"Type",
+      taxCategory:"Category",
+      taxBasis:"Tax base",
+      taxAmount2:"Tax amount",
+      overdueHint:"Overdue",
     },
     fr:{
       mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / EN16931)",
@@ -1019,13 +1089,22 @@
       obligationM:"Obligatoire",
       obligationC:"Conditionnel",
       obligationO:"Optionnel",
+      invType:"Type de facture",
+      downloadPrint:"🖨️ Imprimer",
+      taxBreakdownTitle:"🧾 Ventilation fiscale",
+      taxBreakdownCaption:"Ventilation fiscale",
+      taxCode:"Type",
+      taxCategory:"Catégorie",
+      taxBasis:"Base d'imposition",
+      taxAmount2:"Montant taxe",
+      overdueHint:"En retard",
     },
     it:{
       mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / EN16931)",
       descriptionTitle:"Descrizione",
       descriptionText:"Visualizza fatture (XML) e PDF ZUGFeRD/Factur‑X. L’XML incorporato viene estratto.",
       disclaimerText:"<strong>Nota:</strong> Elaborazione locale nel browser. Nessun upload. Opzione: raccolta locale (IndexedDB/LocalStorage), eliminabile. Nessuna garanzia.",
-      shortcutHint:"Suggerimento: Ctrl/⌘+O apri · Ctrl/⌘+F cerca · Ctrl/⌘+E export oggi",
+      shortcutHint:"Suggerimento: Ctrl/⌘+O apri · Ctrl/⌘+F cerca · Ctrl/⌘+E export oggi · Ctrl/⌘+V incolla XML",
       themeDark:"🌙 Scuro",
       themeLight:"☀️ Chiaro",
       themeToggleAria:"Attiva/disattiva tema chiaro/scuro",
@@ -1187,6 +1266,192 @@
       obligationM:"Obbligatorio",
       obligationC:"Condizionale",
       obligationO:"Opzionale",
+      invType:"Tipo fattura",
+      downloadPrint:"🖨️ Stampa",
+      taxBreakdownTitle:"🧾 Riepilogo IVA",
+      taxBreakdownCaption:"Riepilogo IVA",
+      taxCode:"Tipo",
+      taxCategory:"Categoria",
+      taxBasis:"Imponibile",
+      taxAmount2:"Imposta",
+      overdueHint:"Scaduta",
+    },
+    es:{
+      mainTitle:"Lector de facturas electrónicas (ZUGFeRD / XRechnung / EN16931)",
+      descriptionTitle:"Descripción",
+      descriptionText:"Visualizar facturas (XML) y PDF ZUGFeRD/Factur‑X. El XML incrustado se extrae.",
+      disclaimerText:"<strong>Nota:</strong> Procesamiento completamente local en el navegador. Sin carga. Colección local opcional (IndexedDB/LocalStorage), eliminable. Sin garantía.",
+      shortcutHint:"Atajo: Ctrl/⌘+O abrir · Ctrl/⌘+F buscar · Ctrl/⌘+E exportar hoy · Ctrl/⌘+V pegar XML",
+      themeDark:"🌙 Oscuro",
+      themeLight:"☀️ Claro",
+      themeToggleAria:"Cambiar modo claro/oscuro",
+      fileInputLabel:"Seleccionar archivos de factura",
+      collectionSearchLabel:"Buscar en la colección de facturas",
+      statusFilterLabel:"Filtrar por estado",
+      sortLabel:"Orden",
+      commentFieldLabel:"Editar comentario",
+      dropZoneText:"📄 Arrastra un archivo aquí o haz clic para seleccionar",
+      supportedFormatsText:"Admite: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      loadSample:"🧪 Cargar ejemplo",
+      restoreLastInvoice:"🕘 Abrir última factura",
+      loadingText:"Procesando…",
+      successText:"✅ ¡Factura procesada!",
+      importSummary:"Importación completada: {done}/{total} facturas procesadas.",
+      warningsTitle:"⚠️ Avisos",
+      warningsInvalidIban:"El IBAN parece inválido (suma de verificación).",
+      warningsTotalsMismatch:"Los totales parecen inconsistentes (líneas vs. neto).",
+      warningsUbl:"Factura UBL detectada: XML mostrado, mapeo no completamente soportado.",
+      downloadXml:"📄 Guardar XML",
+      downloadPdf:"📋 Guardar PDF",
+      downloadJson:"📊 Exportar JSON",
+      downloadCsv:"📈 Exportar CSV",
+      downloadPrint:"🖨️ Imprimir",
+      xmlViewerSummary:"Ver XML",
+      invoiceInfo:"📋 Información de factura",
+      paymentInfo:"💳 Pago",
+      sellerInfo:"🏢 Vendedor",
+      buyerInfo:"👤 Comprador",
+      lineItems:"📦 Líneas",
+      invoiceHeaderCaption:"Encabezado",
+      paymentCaption:"Pago",
+      sellerCaption:"Vendedor",
+      buyerCaption:"Comprador",
+      positionsCaption:"Líneas",
+      invNumber:"Número de factura",
+      invType:"Tipo de factura",
+      invDate:"Fecha",
+      invDueDate:"Fecha de vencimiento",
+      invOrderNumber:"Número de pedido",
+      invNote:"Nota",
+      currency:"Moneda",
+      paymentType:"Tipo de pago",
+      paymentTerms:"Condiciones de pago",
+      iban:"IBAN",
+      bic:"BIC",
+      accountHolder:"Titular",
+      netAmount:"Total neto",
+      taxAmount:"Impuestos",
+      grossAmount:"Total bruto",
+      dueAmount:"Importe a pagar",
+      sellerName:"Nombre",
+      sellerAddress:"Dirección",
+      sellerEmail:"Email",
+      sellerPhone:"Teléfono",
+      sellerTaxID:"ID fiscal",
+      sellerRegister:"Registro",
+      buyerName:"Nombre",
+      buyerAddress:"Dirección",
+      buyerAddress2:"Complemento",
+      buyerEmail:"Email",
+      buyerPhone:"Teléfono",
+      buyerTaxID:"ID fiscal",
+      posNr:"N.°",
+      productName:"Producto",
+      description:"Descripción",
+      notes:"Nota",
+      quantity:"Cant.",
+      unit:"Unidad",
+      unitPrice:"Precio unit.",
+      lineNet:"Neto línea",
+      taxRate:"IVA",
+      lineGross:"Bruto línea",
+      noFileFound:"No se encontró XML en el PDF.",
+      unsupportedFormat:"Formato no admitido.",
+      invalidXml:"XML no válido.",
+      pdfNotAvailable:"PDF original no disponible.",
+      processingError:"Error al procesar: ",
+      noPositionsToExport:"No hay líneas disponibles.",
+      collectionTitle:"🗂️ Colección (opcional)",
+      collectionEnableLabel:"Recordar facturas localmente",
+      collectionEnableHint:"Solo en el navegador (IndexedDB/LocalStorage). Eliminable.",
+      collectionTodayOnly:"solo hoy",
+      collectionDuplicatesOnly:"solo duplicados",
+      resetFilters:"Restablecer filtros",
+      filterDateFrom:"Cargada desde",
+      filterDateTo:"Cargada hasta",
+      filterGrossMin:"Bruto mín.",
+      filterGrossMax:"Bruto máx.",
+      collectionEmpty:"No hay facturas guardadas localmente.",
+      collectionSummary:"Mostrando: {shown} de {total} · Total: {all}",
+      pageInfo:"Página {page} / {pages}",
+      prevPage:"Ant.",
+      nextPage:"Sig.",
+      rowsPerPage:"Filas por página",
+      collectionTableCaption:"Lista de facturas local",
+      exportTodayJson:"JSON hoy",
+      exportAllJson:"JSON todas",
+      exportTodayCsv:"CSV hoy",
+      exportAllCsv:"CSV todas",
+      clearCollection:"Vaciar colección",
+      statTotal:"Facturas totales",
+      statToday:"Cargadas hoy",
+      statPending:"Importe pendiente",
+      statDuplicates:"Duplicados",
+      sort_loaded_desc:"Más recientes primero",
+      sort_loaded_asc:"Más antiguas primero",
+      sort_invoice_desc:"N.° factura Z-A",
+      sort_invoice_asc:"N.° factura A-Z",
+      sort_seller_asc:"Vendedor A-Z",
+      sort_seller_desc:"Vendedor Z-A",
+      sort_date_desc:"Fecha factura reciente-antigua",
+      sort_date_asc:"Fecha factura antigua-reciente",
+      sort_status_asc:"Estado A-Z",
+      sort_status_desc:"Estado Z-A",
+      sort_gross_desc:"Bruto alto-bajo",
+      sort_gross_asc:"Bruto bajo-alto",
+      colLoadedAt:"Cargada",
+      colInvNo:"N.°",
+      colInvDate:"Fecha",
+      colSeller:"Vendedor",
+      colGross:"Bruto",
+      colStatus:"Estado",
+      colComment:"Comentario",
+      colActions:"Acciones",
+      status_all:"Todos los estados",
+      status_open:"abierto",
+      status_checked:"verificado",
+      status_unclear:"a aclarar",
+      status_done:"hecho",
+      status_pay:"a pagar",
+      status_paid:"pagado",
+      status_claim:"reclamar",
+      status_claimed:"reclamado",
+      status_cancelled:"cancelado",
+      dupHint:"Duplicado",
+      btnOpen:"Abrir",
+      btnDelete:"Eliminar",
+      btnComment:"Comentario",
+      confirmDeleteOne:"¿Eliminar esta factura?",
+      confirmClearAll:"¿Vaciar toda la colección?",
+      qrCodeTitle:"📱 Código QR (pago)",
+      qrCodeInfoTitle:"Escanear para pagar",
+      qrCodeDetails:"EPC QR Code (Girocode)",
+      saveQr:"Guardar QR",
+      showQr:"Mostrar QR",
+      save:"Guardar",
+      close:"Cerrar",
+      copy:"Copiar",
+      copied:"¡Copiado!",
+      lastInvoiceMissing:"No hay última factura guardada.",
+      modeSwitchPro:"🔧 Pro",
+      modeSwitchStd:"🧾 Estándar",
+      modeProHint:"Modo Pro activo – clic para vista Estándar",
+      modeStdHint:"Vista Estándar – clic para modo Pro/Desarrollador",
+      proXmlTitle:"🔍 Vista XML Interactiva",
+      explainBt:"Término de negocio",
+      explainCardinality:"Cardinalidad",
+      explainObligation:"Obligación",
+      explainSource:"Fuente",
+      obligationM:"Obligatorio",
+      obligationC:"Condicional",
+      obligationO:"Opcional",
+      taxBreakdownTitle:"🧾 Desglose de impuestos",
+      taxBreakdownCaption:"Desglose de impuestos",
+      taxCode:"Tipo",
+      taxCategory:"Categoría",
+      taxBasis:"Base imponible",
+      taxAmount2:"Impuesto",
+      overdueHint:"Vencida",
     }
   };
 
@@ -1267,6 +1532,11 @@
     textModalTextarea:$("textModalTextarea"),
     textModalSave:$("textModalSave"),
     textModalClose:$("textModalClose"),
+    // new elements
+    taxBreakdownSection:$("taxBreakdownSection"),
+    taxBreakdownTable:$("taxBreakdownTable"),
+    btnPrint:$("btnPrint"),
+    invType:$("invType"),
   };
 
   // state
@@ -1296,7 +1566,7 @@
     document.title = L().mainTitle;
     dom.dropZone.setAttribute("aria-label", L().dropZoneText);
     dom.fileInput.setAttribute("aria-label", L().fileInputLabel);
-    dom.collectionSearch.placeholder = (lang==="de")?"Suche…":(lang==="fr")?"Recherche…":(lang==="it")?"Cerca…":"Search…";
+    dom.collectionSearch.placeholder = (lang==="de")?"Suche…":(lang==="fr")?"Recherche…":(lang==="it")?"Cerca…":(lang==="es")?"Buscar…":"Search…";
     dom.collectionSearch.setAttribute("aria-label", L().collectionSearchLabel);
     dom.collectionStatusFilter.setAttribute("aria-label", L().statusFilterLabel);
     dom.collectionSort.setAttribute("aria-label", L().sortLabel);
@@ -1311,6 +1581,7 @@
     dom.btnPdf.setAttribute("aria-label", L().downloadPdf);
     dom.btnJson.setAttribute("aria-label", L().downloadJson);
     dom.btnCsv.setAttribute("aria-label", L().downloadCsv);
+    if(dom.btnPrint) dom.btnPrint.setAttribute("aria-label", L().downloadPrint);
     dom.loadSample.setAttribute("aria-label", L().loadSample);
     dom.restoreLastInvoice.setAttribute("aria-label", L().restoreLastInvoice);
     dom.showQr.setAttribute("aria-label", L().showQr);
@@ -1326,7 +1597,7 @@
     dom.clearCollection.setAttribute("aria-label", L().clearCollection);
     // active btn
     document.querySelectorAll(".langs .lang-btn").forEach(b=>b.classList.remove("active"));
-    (lang==="de"?$("langDe"):lang==="fr"?$("langFr"):lang==="it"?$("langIt"):$("langEn")).classList.add("active");
+    (lang==="de"?$("langDe"):lang==="fr"?$("langFr"):lang==="it"?$("langIt"):lang==="es"?$("langEs"):$("langEn")).classList.add("active");
 
     buildStatusFilterOptions();
     buildSortOptions();
@@ -1366,6 +1637,7 @@
     hide(dom.xmlViewer);
     const proSec=$("proXmlSection"); if(proSec) proSec.classList.add("hidden");
     hide(dom.headerSection); hide(dom.paymentSection); hide(dom.sellerSection); hide(dom.buyerSection); hide(dom.lineItemsSection);
+    if(dom.taxBreakdownSection) hide(dom.taxBreakdownSection);
     dom.xmlPre.textContent="";
     dom.lineItemsTable.querySelector("tbody").innerHTML="";
     Object.values(dom).forEach(v=>{}); // noop
@@ -1530,8 +1802,11 @@
       name:{de:"Bruttobetrag",en:"Invoice total amount with VAT",fr:"Total brut",it:"Totale lordo"},
       desc:{de:"Rechnungsgesamtbetrag einschließlich Mehrwertsteuer.",en:"The total amount of the Invoice with VAT.",fr:"Montant total de la facture TVA incluse.",it:"Importo totale della fattura IVA inclusa."}},
     dueAmount:     {bt:"BT-115",cardinality:"1..1", obligation:"M",
-      name:{de:"Fälliger Betrag",en:"Amount due for payment",fr:"Montant à payer",it:"Importo dovuto"},
-      desc:{de:"Ausstehender Zahlbetrag.",en:"The outstanding amount that is requested to be paid.",fr:"Le montant restant à payer.",it:"L'importo residuo da pagare."}}
+      name:{de:"Fälliger Betrag",en:"Amount due for payment",fr:"Montant à payer",it:"Importo dovuto",es:"Importe a pagar"},
+      desc:{de:"Ausstehender Zahlbetrag.",en:"The outstanding amount that is requested to be paid.",fr:"Le montant restant à payer.",it:"L'importo residuo da pagare.",es:"El importe pendiente de pago."}},
+    invType:       {bt:"BT-3",  cardinality:"1..1", obligation:"M",
+      name:{de:"Rechnungstyp",en:"Invoice type code",fr:"Code type de facture",it:"Codice tipo fattura",es:"Código tipo factura"},
+      desc:{de:"Ein Code, der den Funktionstyp der Rechnung angibt.",en:"A code specifying the functional type of the Invoice.",fr:"Code indiquant le type fonctionnel de la facture.",it:"Codice che specifica il tipo funzionale della fattura.",es:"Código que especifica el tipo funcional de la factura."}}
   };
 
   // ── Validation rules with severity ──────────────────────────────────────
@@ -1560,6 +1835,7 @@
   // Keys are slash-joined local element names (trailing 2-4 ancestors / element)
   const CONTEXT_EL_TO_FIELD = {
     "ExchangedDocument/ID":                                                    "invNumber",
+    "ExchangedDocument/TypeCode":                                              "invType",
     "ExchangedDocument/IssueDateTime/DateTimeString":                          "invDate",
     "ExchangedDocument/IssueDateTime":                                         "invDate",
     "DueDateDateTime/DateTimeString":                                          "invDueDate",
@@ -2366,6 +2642,7 @@
     dom.collectionTableWrap.classList.toggle("hidden", !enabled() || filtered.length===0);
     const tb=dom.collectionTable.querySelector("tbody");
     tb.innerHTML="";
+    const todayKey=dayKey(new Date());
     pageData.slice.forEach(inv=>{
       const tr=document.createElement("tr");
       const loaded=new Date(inv.meta.loadedAt||Date.now()).toLocaleString();
@@ -2375,10 +2652,18 @@
       const gross=(inv?.payment?.grossAmount ?? inv?.payment?.dueAmount);
       const sym=getCurSym(inv?.payment?.currency||"EUR");
       const grossTxt=(gross!=null && gross!=="") ? fmtMoney(gross,sym) : "";
+      const status=inv?.user?.status||"open";
+      const dueDate=inv?.header?.dueDate||"";
+      const isOverdue=(()=>{
+        if(!dueDate || ["paid","done","cancelled","claimed"].includes(status)) return false;
+        const dk=invoiceDateKey(dueDate);
+        return dk ? dk < todayKey : false;
+      })();
+      if(isOverdue) tr.classList.add("overdue-row");
       tr.innerHTML = `
         <td>${escapeHtml(loaded)}</td>
         <td>${escapeHtml(invNo)}${inv.duplicateOf?` <span class="dup">${escapeHtml(L().dupHint)}</span>`:""}</td>
-        <td>${escapeHtml(invDate)}</td>
+        <td>${escapeHtml(invDate)}${isOverdue?` <span class="overdue-badge">${escapeHtml(L().overdueHint||"Overdue")}</span>`:""}</td>
         <td>${escapeHtml(seller)}</td>
         <td>${escapeHtml(grossTxt)}</td>
         <td class="st"></td>
@@ -2498,6 +2783,7 @@
     dom.btnPdf.onclick=()=>showError(L().pdfNotAvailable);
     dom.btnJson.onclick=downloadInvoiceJson;
     dom.btnCsv.onclick=downloadInvoiceCsv;
+    if(dom.btnPrint) dom.btnPrint.onclick=()=>window.print();
     showSuccess();
   }
 
@@ -2542,6 +2828,7 @@
     dom.btnPdf.onclick=()=>originalPdfBlob ? downloadBlob(originalPdfBlob,"invoice.pdf") : showError(L().pdfNotAvailable);
     dom.btnJson.onclick=downloadInvoiceJson;
     dom.btnCsv.onclick=downloadInvoiceCsv;
+    if(dom.btnPrint) dom.btnPrint.onclick=()=>window.print();
 
     // UBL detection
     if(isUbl(xmlDoc)){
@@ -2555,12 +2842,14 @@
     invoiceData = {header:{},seller:{},buyer:{},payment:{},lineItems:[]};
 
     const invNo = xp1(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:ID")?.textContent?.trim() || "";
+    const docTypeCode = xp1(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:TypeCode")?.textContent?.trim() || "";
     const invDateRaw = xp1(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString")?.textContent?.trim() || "";
     const dueRaw = xp1(xmlDoc, "//ram:SpecifiedTradePaymentTerms/ram:DueDateDateTime/udt:DateTimeString")?.textContent?.trim() || "";
     const orderNo = xp1(xmlDoc, "//ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID")?.textContent?.trim() || "";
     const notes = xps(xmlDoc, "/rsm:CrossIndustryInvoice/rsm:ExchangedDocument/ram:IncludedNote/ram:Content").map(n=>n.textContent.trim()).join("\n");
 
     invoiceData.header.number = invNo;
+    invoiceData.header.typeCode = docTypeCode;
     invoiceData.header.date = formatDate(invDateRaw);
     invoiceData.header.dueDate = formatDate(dueRaw);
     invoiceData.header.orderNumber = orderNo;
@@ -2663,6 +2952,16 @@
       if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > 0.02) addWarning("warningsTotalsMismatch");
     }
 
+    // tax breakdown (BG-23)
+    const taxNodes = xps(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax");
+    invoiceData.taxBreakdown = taxNodes.map(tn => ({
+      typeCode:        xp1(tn, "./ram:TypeCode")?.textContent?.trim() || "",
+      categoryCode:    xp1(tn, "./ram:CategoryCode")?.textContent?.trim() || "",
+      ratePercent:     parseFloat(xp1(tn, "./ram:RateApplicablePercent")?.textContent?.trim() || "0") || 0,
+      basisAmount:     parseFloat(xp1(tn, "./ram:BasisAmount")?.textContent?.trim() || "0") || 0,
+      calculatedAmount:parseFloat(xp1(tn, "./ram:CalculatedAmount")?.textContent?.trim() || "0") || 0,
+    }));
+
     // render
     saveLastInvoice(invoiceData);
     fillFromInvoiceData(invoiceData);
@@ -2682,6 +2981,7 @@
     renderFieldWithActions(dom.invNumber, d.header?.number || "", [
       {label:L().copy, onClick:()=>copyText(d.header?.number || "")}
     ]);
+    if(dom.invType) dom.invType.textContent = docTypeName(d.header?.typeCode) || "";
     dom.invDate.textContent = d.header?.date || "";
     dom.invDueDate.textContent = d.header?.dueDate || "";
     dom.invOrderNumber.textContent = d.header?.orderNumber || "";
@@ -2696,7 +2996,9 @@
     renderFieldWithActions(dom.sellerEmail, d.seller?.email || "", [
       {label:L().copy, onClick:()=>copyText(d.seller?.email || "")}
     ]);
-    dom.sellerPhone.textContent = d.seller?.phone || "";
+    renderFieldWithActions(dom.sellerPhone, d.seller?.phone || "", [
+      {label:L().copy, onClick:()=>copyText(d.seller?.phone || "")}
+    ]);
     dom.sellerTaxID.textContent = d.seller?.taxId || "";
     dom.sellerRegister.textContent = d.seller?.register || "";
     show(dom.sellerSection);
@@ -2721,7 +3023,9 @@
     renderFieldWithActions(dom.iban, (d.payment?.iban || "").replace(/(.{4})/g,"$1 ").trim(), [
       {label:L().copy, onClick:()=>copyText(d.payment?.iban || "")}
     ]);
-    dom.bic.textContent = d.payment?.bic || "";
+    renderFieldWithActions(dom.bic, d.payment?.bic || "", [
+      {label:L().copy, onClick:()=>copyText(d.payment?.bic || "")}
+    ]);
     dom.accountHolder.textContent = d.payment?.accountHolder || "";
     const sym = getCurSym(d.payment?.currency || "EUR");
     dom.netAmount.textContent = (d.payment?.netAmount!=null) ? fmtMoney(d.payment.netAmount, sym) : "";
@@ -2751,6 +3055,30 @@
     });
     if((d.lineItems||[]).length) show(dom.lineItemsSection);
 
+    // tax breakdown (BG-23) – only show when more than 1 rate, or rate is meaningful
+    if(dom.taxBreakdownSection && dom.taxBreakdownTable){
+      const tbBody = dom.taxBreakdownTable.querySelector("tbody");
+      tbBody.innerHTML = "";
+      const breakdown = d.taxBreakdown || [];
+      const showBreakdown = breakdown.length > 1 || (breakdown.length === 1 && breakdown[0].ratePercent > 0);
+      if(showBreakdown){
+        breakdown.forEach(tx => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(tx.typeCode)}</td>
+            <td>${escapeHtml(tx.categoryCode)}</td>
+            <td>${escapeHtml(tx.ratePercent.toFixed(2))}%</td>
+            <td>${escapeHtml(fmtMoney(tx.basisAmount, sym))}</td>
+            <td>${escapeHtml(fmtMoney(tx.calculatedAmount, sym))}</td>
+          `;
+          tbBody.appendChild(tr);
+        });
+        show(dom.taxBreakdownSection);
+      } else {
+        hide(dom.taxBreakdownSection);
+      }
+    }
+
     // Pro mode: apply BT badges and build interactive XML
     if(proMode){
       applyProModeToFields();
@@ -2767,7 +3095,7 @@
     }
     show(dom.showQr);
 
-    const prefix = (lang==="en")?"Invoice":(lang==="fr")?"Facture":(lang==="it")?"Fattura":"Rechnung";
+    const prefix = (lang==="en")?"Invoice":(lang==="fr")?"Facture":(lang==="it")?"Fattura":(lang==="es")?"Factura":"Rechnung";
     const payload = [
       "BCD","002","1","SCT",
       d.payment?.bic || "",
@@ -2927,6 +3255,7 @@
   $("langEn").addEventListener("click",()=>setLang("en"));
   $("langFr").addEventListener("click",()=>setLang("fr"));
   $("langIt").addEventListener("click",()=>setLang("it"));
+  $("langEs").addEventListener("click",()=>setLang("es"));
   dom.themeToggle.addEventListener("click",toggleTheme);
   dom.restoreLastInvoice.addEventListener("click",()=>{
     const last=loadLastInvoice();
@@ -2934,12 +3263,28 @@
     renderInvoiceFromSaved(last);
   });
 
+  // clipboard paste: allow pasting XML directly
+  document.addEventListener("paste",(e)=>{
+    const tag=(document.activeElement?.tagName||"").toLowerCase();
+    if(["input","textarea","select"].includes(tag)) return;
+    const text=(e.clipboardData||window.clipboardData)?.getData("text")||"";
+    const trimmed=text.trim();
+    // Basic XML sanity check: must start and end with a tag
+    if(!trimmed.startsWith("<") || !trimmed.includes(">")) return;
+    // Quick pre-parse to confirm it is parseable XML before committing to full processing
+    const testDoc=new DOMParser().parseFromString(trimmed,"application/xml");
+    if(testDoc.querySelector("parsererror")) return;
+    e.preventDefault();
+    const blob=new Blob([trimmed],{type:"text/xml"});
+    handleFile(new File([blob],"pasted-invoice.xml",{type:"text/xml"}));
+  });
+
   // init
   applyTheme(getThemeMode());
   restoreCollectionUiSettings();
   const saved = (()=>{ try{return localStorage.getItem("invoiceInspector.lang")}catch(_){return null} })();
   const nav = (navigator.language||"en").toLowerCase();
-  const auto = nav.startsWith("de")?"de":nav.startsWith("fr")?"fr":nav.startsWith("it")?"it":"en";
+  const auto = nav.startsWith("de")?"de":nav.startsWith("fr")?"fr":nav.startsWith("it")?"it":nav.startsWith("es")?"es":"en";
   proMode = lsGet(LS.proMode,"0")==="1";
   document.body.classList.toggle("pro-mode", proMode);
   updateModeButton(); // set button text/style before language init
