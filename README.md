@@ -10,7 +10,7 @@
 
 Deutsche Version | [English Version](README.en.md)
 
-Ein leichtgewichtiger, clientseitiger Web-Viewer für elektronische Rechnungen mit Unterstützung für ZUGFeRD, XRechnung, UBL, Peppol BIS, EN 16931 und weitere Standards.
+Ein leichtgewichtiger, clientseitiger Web-Viewer für elektronische Rechnungen mit Unterstützung für aktuellen ZUGFeRD-, Factur-X-, XRechnung-, UBL-, Peppol-BIS- und EN-16931-Spezifikationen.
 
 InvoiceInspector ist eng mit dem Projekt
 [SimonWaldherr/InvoiceGenerator](https://github.com/SimonWaldherr/InvoiceGenerator)
@@ -57,17 +57,27 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 ## Verwendung
 
 1. **Öffnen Sie** `index.html` in Ihrem Browser
-2. **Ziehen Sie** eine ZUGFeRD-PDF oder XRechnung-XML in die Drop-Zone oder klicken zum Auswählen
+2. **Ziehen Sie** eine ZUGFeRD-/Factur-X-PDF oder eine XRechnung-, UBL- bzw. Peppol-BIS-XML in die Drop-Zone oder klicken zum Auswählen
 3. **Betrachten Sie** die automatisch extrahierten und strukturierten Daten
 4. **Exportieren Sie** die Daten in verschiedenen Formaten
 
 ### Unterstützte Dateiformate
 
-- **ZUGFeRD PDF/A-3** (alle Profile: MINIMUM, BASIC WL, BASIC, COMFORT, EXTENDED)
-- **XRechnung XML** (alle Versionen)
-- **EN 16931 kompatible XML-Dateien**
-- **Factur-X** (französischer ZUGFeRD-Standard)
-- **UBL 2.x / Peppol BIS Billing 3.0 XML** (Invoice und CreditNote)
+- **ZUGFeRD 2.4 PDF/A-3** (Profile: MINIMUM, BASIC WL, BASIC, EN 16931, EXTENDED)
+- **Factur-X 1.0.8** (französisches Pendant zu ZUGFeRD 2.4)
+- **XRechnung XML** (aktuelle produktive 3.0.x-Linie; 4.0 noch nicht produktiv)
+- **EN 16931** kompatible XML-/CII-Dateien (Referenzstand: EN 16931-1:2026)
+- **Peppol BIS Billing 3.0 XML** (aktueller 3.0-Release-Zweig auf UBL-2.1-Basis)
+- **UBL 2.1 / 2.3 XML** (Invoice und CreditNote)
+
+### Referenzstand der unterstützten Normen (Stand: 2026-04)
+
+- **ZUGFeRD**: 2.4
+- **Factur-X**: 1.0.8
+- **XRechnung**: 3.0.x produktiv, 4.0 angekündigt
+- **Peppol BIS Billing**: 3.0
+- **UBL**: 2.3 als aktuelle OASIS-Version; Peppol BIS nutzt UBL 2.1
+- **EN 16931**: EN 16931-1:2026
 
 ## Getestete Beispiele
 

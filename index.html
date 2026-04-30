@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>InvoiceInspector – E-Rechnungs-Viewer (ZUGFeRD / XRechnung)</title>
-  <meta name="description" content="Kostenloser, clientseitiger Web-Viewer für elektronische Rechnungen: ZUGFeRD, XRechnung, Factur-X, UBL, Peppol BIS und EN 16931. Kein Upload, kein Server – läuft komplett im Browser.">
+  <meta name="description" content="Kostenloser, clientseitiger Web-Viewer für elektronische Rechnungen nach aktuellem ZUGFeRD-, Factur-X-, XRechnung-, UBL-, Peppol-BIS- und EN-16931-Stand. Kein Upload, kein Server – läuft komplett im Browser.">
   <meta id="themeColorLight" name="theme-color" media="(prefers-color-scheme: light)" content="#f7f7f7">
   <meta id="themeColorDark" name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1a1a">
   <meta name="keywords" content="ZUGFeRD, XRechnung, Factur-X, EN 16931, UBL, Peppol BIS, e-invoice, electronic invoice, viewer, inspector, PDF, XML, open source">
@@ -15,7 +15,7 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="InvoiceInspector – E-Rechnungs-Viewer">
-  <meta property="og:description" content="Kostenloser clientseitiger Viewer für ZUGFeRD, XRechnung, UBL, Peppol BIS und EN 16931. Kein Upload – 100% lokal im Browser.">
+  <meta property="og:description" content="Kostenloser clientseitiger Viewer für aktuelle ZUGFeRD-, XRechnung-, UBL-, Peppol-BIS- und EN-16931-Rechnungen. Kein Upload – 100% lokal im Browser.">
   <meta property="og:url" content="https://simonwaldherr.github.io/InvoiceInspector/">
   <meta property="og:site_name" content="InvoiceInspector">
 
@@ -238,14 +238,14 @@
 
   <section>
     <h2 data-i18n="descriptionTitle">Beschreibung</h2>
-    <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur-X PDFs an, einschließlich UBL/Peppol BIS-Dateien.</p>
+    <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen nach aktuellem ZUGFeRD-, Factur-X-, XRechnung-, UBL-, Peppol-BIS- und EN-16931-Stand an.</p>
     <p data-i18n-html="disclaimerText"><strong>Hinweis:</strong> Verarbeitung lokal im Browser. Keine Uploads. Optional lokale Sammlung.</p>
     <p class="muted" data-i18n="shortcutHint">Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute</p>
   </section>
 
   <div id="dropZone" class="drop" role="button" tabindex="0" aria-label="Datei auswählen oder hier ablegen">
     <p data-i18n="dropZoneText">📄 Datei hierher ziehen & fallen lassen oder klicken</p>
-    <p class="muted" data-i18n="supportedFormatsText">Unterstützt: PDF (ZUGFeRD/Factur-X), XML (XRechnung/EN16931, UBL/Peppol BIS)</p>
+    <p class="muted" data-i18n="supportedFormatsText">Unterstützt: ZUGFeRD 2.4 / Factur-X 1.0.8, XRechnung 3.x, EN 16931, UBL 2.1/2.3, Peppol BIS 3.0</p>
     <label for="fileInput" class="sr-only" data-i18n="fileInputLabel">Rechnungsdateien auswählen</label>
     <input id="fileInput" type="file" accept=".xml,.pdf,application/pdf" multiple class="hidden" aria-label="Rechnungsdateien auswählen">
   </div>
@@ -902,9 +902,9 @@ window.QRCode = (() => {
 
   const LABELS = {
     de:{
-      mainTitle:"E‑Rechnungs‑Reader (ZUGFeRD / XRechnung / UBL / EN16931)",
+      mainTitle:"E‑Rechnungs‑Reader (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Beschreibung",
-      descriptionText:"Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur‑X PDFs an. Eingebettete XMLs in PDFs werden extrahiert. UBL/Peppol-BIS-XML wird analysiert.",
+      descriptionText:"Dieses Tool zeigt elektronische Rechnungen nach aktuellem ZUGFeRD-, Factur‑X-, XRechnung-, UBL-, Peppol-BIS- und EN-16931-Stand an. Eingebettete XMLs in PDFs werden extrahiert.",
       disclaimerText:"<strong>Hinweis:</strong> Verarbeitung vollständig im Browser. Keine Uploads. Optional kann eine lokale Rechnungssammlung aktiviert werden (IndexedDB/LocalStorage), die jederzeit löschbar ist. Keine Gewähr.",
       shortcutHint:"Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute · Ctrl/⌘+V XML einfügen",
       themeDark:"🌙 Dark",
@@ -916,7 +916,7 @@ window.QRCode = (() => {
       sortLabel:"Sortierung",
       commentFieldLabel:"Kommentar bearbeiten",
       dropZoneText:"📄 Datei hierher ziehen & fallen lassen oder klicken",
-      supportedFormatsText:"Unterstützt: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
+      supportedFormatsText:"Unterstützt: ZUGFeRD 2.4 / Factur‑X 1.0.8, XRechnung 3.x, EN 16931, UBL 2.1/2.3, Peppol BIS 3.0",
       loadSample:"🧪 Beispiel laden",
       restoreLastInvoice:"🕘 Letzte Rechnung öffnen",
       loadingText:"Verarbeitung läuft…",
@@ -1081,9 +1081,9 @@ window.QRCode = (() => {
       overdueHint:"Überfällig",
     },
     en:{
-      mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / UBL / EN16931)",
+      mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Description",
-      descriptionText:"View e-invoices (XML) and ZUGFeRD/Factur‑X PDFs. Embedded XML is extracted. UBL/Peppol BIS XML is analyzed.",
+      descriptionText:"View e-invoices aligned with current ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS, and EN 16931 references. Embedded XML is extracted from PDFs.",
       disclaimerText:"<strong>Note:</strong> Fully local in your browser. No uploads. Optional local collection (IndexedDB/LocalStorage), deletable anytime. No warranty.",
       shortcutHint:"Tip: Ctrl/⌘+O open file · Ctrl/⌘+F search · Ctrl/⌘+E export today · Ctrl/⌘+V paste XML",
       themeDark:"🌙 Dark",
@@ -1095,7 +1095,7 @@ window.QRCode = (() => {
       sortLabel:"Sort order",
       commentFieldLabel:"Edit comment",
       dropZoneText:"📄 Drop a file here or click to select",
-      supportedFormatsText:"Supported: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
+      supportedFormatsText:"Supported: ZUGFeRD 2.4 / Factur‑X 1.0.8, XRechnung 3.x, EN 16931, UBL 2.1/2.3, Peppol BIS 3.0",
       loadSample:"🧪 Load sample",
       restoreLastInvoice:"🕘 Open last invoice",
       loadingText:"Processing…",
@@ -1258,9 +1258,9 @@ window.QRCode = (() => {
       overdueHint:"Overdue",
     },
     fr:{
-      mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / UBL / EN16931)",
+      mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Description",
-      descriptionText:"Afficher des factures (XML) et des PDF ZUGFeRD/Factur‑X. Le XML intégré est extrait. Les XML UBL/Peppol BIS sont analysés.",
+      descriptionText:"Afficher des factures électroniques conformes aux références actuelles ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS et EN 16931. Le XML intégré est extrait.",
       disclaimerText:"<strong>Remarque :</strong> Traitement local dans le navigateur. Aucun téléversement. Option : collection locale (IndexedDB/LocalStorage), supprimable. Aucune garantie.",
       shortcutHint:"Astuce : Ctrl/⌘+O ouvrir · Ctrl/⌘+F rechercher · Ctrl/⌘+E export aujourd’hui",
       themeDark:"🌙 Sombre",
@@ -1272,7 +1272,7 @@ window.QRCode = (() => {
       sortLabel:"Ordre de tri",
       commentFieldLabel:"Modifier le commentaire",
       dropZoneText:"📄 Déposez un fichier ici ou cliquez pour sélectionner",
-      supportedFormatsText:"Formats : PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
+      supportedFormatsText:"Formats : ZUGFeRD 2.4 / Factur‑X 1.0.8, XRechnung 3.x, EN 16931, UBL 2.1/2.3, Peppol BIS 3.0",
       loadSample:"🧪 Charger un exemple",
       restoreLastInvoice:"🕘 Ouvrir la dernière facture",
       loadingText:"Traitement…",
@@ -1435,9 +1435,9 @@ window.QRCode = (() => {
       overdueHint:"En retard",
     },
     it:{
-      mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / UBL / EN16931)",
+      mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Descrizione",
-      descriptionText:"Visualizza fatture (XML) e PDF ZUGFeRD/Factur‑X. L’XML incorporato viene estratto. Gli XML UBL/Peppol BIS vengono analizzati.",
+      descriptionText:"Visualizza fatture elettroniche allineate agli attuali riferimenti ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS ed EN 16931. L’XML incorporato viene estratto.",
       disclaimerText:"<strong>Nota:</strong> Elaborazione locale nel browser. Nessun upload. Opzione: raccolta locale (IndexedDB/LocalStorage), eliminabile. Nessuna garanzia.",
       shortcutHint:"Suggerimento: Ctrl/⌘+O apri · Ctrl/⌘+F cerca · Ctrl/⌘+E export oggi · Ctrl/⌘+V incolla XML",
       themeDark:"🌙 Scuro",
@@ -1449,7 +1449,7 @@ window.QRCode = (() => {
       sortLabel:"Ordinamento",
       commentFieldLabel:"Modifica commento",
       dropZoneText:"📄 Trascina un file qui o fai clic per selezionare",
-      supportedFormatsText:"Formati: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
+      supportedFormatsText:"Formati: ZUGFeRD 2.4 / Factur‑X 1.0.8, XRechnung 3.x, EN 16931, UBL 2.1/2.3, Peppol BIS 3.0",
       loadSample:"🧪 Carica esempio",
       restoreLastInvoice:"🕘 Apri ultima fattura",
       loadingText:"Elaborazione…",
@@ -1612,9 +1612,9 @@ window.QRCode = (() => {
       overdueHint:"Scaduta",
     },
     es:{
-      mainTitle:"Lector de facturas electrónicas (ZUGFeRD / XRechnung / UBL / EN16931)",
+      mainTitle:"Lector de facturas electrónicas (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Descripción",
-      descriptionText:"Visualizar facturas (XML) y PDF ZUGFeRD/Factur‑X. El XML incrustado se extrae. Se analizan XML UBL/Peppol BIS.",
+      descriptionText:"Visualizar facturas electrónicas alineadas con las referencias actuales de ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS y EN 16931. El XML incrustado se extrae.",
       disclaimerText:"<strong>Nota:</strong> Procesamiento completamente local en el navegador. Sin carga. Colección local opcional (IndexedDB/LocalStorage), eliminable. Sin garantía.",
       shortcutHint:"Atajo: Ctrl/⌘+O abrir · Ctrl/⌘+F buscar · Ctrl/⌘+E exportar hoy · Ctrl/⌘+V pegar XML",
       themeDark:"🌙 Oscuro",
@@ -1626,7 +1626,7 @@ window.QRCode = (() => {
       sortLabel:"Orden",
       commentFieldLabel:"Editar comentario",
       dropZoneText:"📄 Arrastra un archivo aquí o haz clic para seleccionar",
-      supportedFormatsText:"Admite: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
+      supportedFormatsText:"Admite: ZUGFeRD 2.4 / Factur‑X 1.0.8, XRechnung 3.x, EN 16931, UBL 2.1/2.3, Peppol BIS 3.0",
       loadSample:"🧪 Cargar ejemplo",
       restoreLastInvoice:"🕘 Abrir última factura",
       loadingText:"Procesando…",

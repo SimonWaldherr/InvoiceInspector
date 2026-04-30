@@ -5,7 +5,7 @@
 [![GitHub release](https://img.shields.io/github/release/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/stargazers)
 
-A lightweight, client-side web viewer for electronic invoices with support for ZUGFeRD, XRechnung, UBL, Peppol BIS, EN 16931, and other standards.
+A lightweight, client-side web viewer for electronic invoices with support for current ZUGFeRD, Factur-X, XRechnung, UBL, Peppol BIS, and EN 16931 specifications.
 
 [Deutsche Version](README.md) | English Version
 
@@ -54,17 +54,27 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 ## Usage
 
 1. **Open** `index.html` in your browser
-2. **Drag** a ZUGFeRD PDF or XRechnung XML into the drop zone or click to select
+2. **Drag** a ZUGFeRD/Factur-X PDF or an XRechnung, UBL, or Peppol BIS XML into the drop zone or click to select
 3. **View** the automatically extracted and structured data
 4. **Export** the data in various formats
 
 ### Supported file formats
 
-- **ZUGFeRD PDF/A-3** (all profiles: MINIMUM, BASIC WL, BASIC, COMFORT, EXTENDED)
-- **XRechnung XML** (all versions)
-- **EN 16931 compatible XML files**
-- **Factur-X** (French ZUGFeRD standard)
-- **UBL 2.x / Peppol BIS Billing 3.0 XML** (Invoice and CreditNote)
+- **ZUGFeRD 2.4 PDF/A-3** (profiles: MINIMUM, BASIC WL, BASIC, EN 16931, EXTENDED)
+- **Factur-X 1.0.8** (French counterpart to ZUGFeRD 2.4)
+- **XRechnung XML** (current production 3.0.x line; 4.0 not yet production-ready)
+- **EN 16931** compatible XML/CII files (reference baseline: EN 16931-1:2026)
+- **Peppol BIS Billing 3.0 XML** (current 3.0 release stream on UBL 2.1 syntax)
+- **UBL 2.1 / 2.3 XML** (Invoice and CreditNote)
+
+### Standards baseline (status: 2026-04)
+
+- **ZUGFeRD**: 2.4
+- **Factur-X**: 1.0.8
+- **XRechnung**: 3.0.x in production, 4.0 announced
+- **Peppol BIS Billing**: 3.0
+- **UBL**: 2.3 as the current OASIS release; Peppol BIS uses UBL 2.1
+- **EN 16931**: EN 16931-1:2026
 
 ## Tested examples
 
