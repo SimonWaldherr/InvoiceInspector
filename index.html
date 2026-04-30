@@ -2032,9 +2032,6 @@ window.QRCode = (() => {
       warnings.push({severity:"warn", message:L()[msgKey]||msgKey, hint:"", ruleId:"", msgKey});
     }
   }
-  function addWarningOnce(msgKey){
-    if(!warnings.some(w=>w.msgKey===msgKey)) addWarning(msgKey);
-  }
   function renderWarnings(){
     dom.warningsList.innerHTML="";
     dom.warningsList.className="validation-list";
@@ -2561,14 +2558,15 @@ window.QRCode = (() => {
       "./cac:Contact/cbc:Name",
     ]);
     const address = xp1(party, "./cac:PostalAddress");
-    const street = firstText(address || party, ["./cbc:StreetName", "./cac:PostalAddress/cbc:StreetName"]);
-    const line2 = firstText(address || party, ["./cbc:AdditionalStreetName", "./cac:PostalAddress/cbc:AdditionalStreetName"]);
-    const zip = firstText(address || party, ["./cbc:PostalZone", "./cac:PostalAddress/cbc:PostalZone"]);
-    const city = firstText(address || party, ["./cbc:CityName", "./cac:PostalAddress/cbc:CityName"]);
-    const country = firstText(address || party, ["./cac:Country/cbc:IdentificationCode", "./cac:PostalAddress/cac:Country/cbc:IdentificationCode"]);
+    const street = address ? firstText(address, ["./cbc:StreetName"]) : "";
+    const line2 = address ? firstText(address, ["./cbc:AdditionalStreetName"]) : "";
+    const zip = address ? firstText(address, ["./cbc:PostalZone"]) : "";
+    const city = address ? firstText(address, ["./cbc:CityName"]) : "";
+    const country = address ? firstText(address, ["./cac:Country/cbc:IdentificationCode"]) : "";
     const taxIds = xps(party, "./cac:PartyTaxScheme").map(taxScheme=>{
       const scheme = firstText(taxScheme, ["./cac:TaxScheme/cbc:ID"]);
       const id = firstText(taxScheme, ["./cbc:CompanyID"]);
+      if(!id) return "";
       return scheme ? `${scheme}: ${id}` : id;
     }).filter(Boolean);
     const cityLine = [zip, city].filter(Boolean).join(" ");
@@ -2635,13 +2633,14 @@ window.QRCode = (() => {
 
     const rows = xps(xmlDoc, isCredit ? "//cac:CreditNoteLine" : "//cac:InvoiceLine");
     let sumNetLines = 0;
+    let usedLineAmountFallback = false;
     rows.forEach((row,i)=>{
       const qtyEl = xp1(row, isCredit ? "./cbc:CreditedQuantity" : "./cbc:InvoicedQuantity");
       const qty = parseAmount(qtyEl?.textContent?.trim()) ?? 0;
       const unitCode = qtyEl?.getAttribute("unitCode") || "";
       const unitPrice = parseAmount(firstText(row, ["./cac:Price/cbc:PriceAmount"])) ?? 0;
       const lineNetAmount = parseAmount(firstText(row, ["./cbc:LineExtensionAmount"]));
-      if(lineNetAmount == null) addWarningOnce("warningsUblLineAmountFallback");
+      if(lineNetAmount == null) usedLineAmountFallback = true;
       const lineNet = lineNetAmount != null ? lineNetAmount : +(unitPrice * qty).toFixed(2);
       const taxRate = parseAmount(firstText(row, [
         "./cac:Item/cac:ClassifiedTaxCategory/cbc:Percent",
@@ -2658,6 +2657,7 @@ window.QRCode = (() => {
         lineNet:+lineNet.toFixed(2), taxRate:+taxRate.toFixed(2), lineGross:+lineGross.toFixed(2)
       });
     });
+    if(usedLineAmountFallback) addWarning("warningsUblLineAmountFallback");
 
     validateLineNetTotal(invoiceData.payment.netAmount, sumNetLines, rows.length > 0);
 
