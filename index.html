@@ -2524,7 +2524,7 @@ window.QRCode = (() => {
 
 
   // Detect UBL
-  function isUbl(doc){
+  function isUblInvoiceOrCreditNote(doc){
     const root=doc.documentElement;
     if(!root) return false;
     const name=root.localName||root.nodeName||"";
@@ -3352,7 +3352,7 @@ window.QRCode = (() => {
     if(dom.btnPrint) dom.btnPrint.onclick=()=>window.print();
 
     // UBL detection
-    if(isUbl(xmlDoc)){
+    if(isUblInvoiceOrCreditNote(xmlDoc)){
       parseUblXml();
       return;
     }
