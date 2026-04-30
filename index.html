@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>InvoiceInspector – E-Rechnungs-Viewer (ZUGFeRD / XRechnung)</title>
-  <meta name="description" content="Kostenloser, clientseitiger Web-Viewer für elektronische Rechnungen: ZUGFeRD, XRechnung, Factur-X und EN 16931. Kein Upload, kein Server – läuft komplett im Browser.">
+  <meta name="description" content="Kostenloser, clientseitiger Web-Viewer für elektronische Rechnungen: ZUGFeRD, XRechnung, Factur-X, UBL, Peppol BIS und EN 16931. Kein Upload, kein Server – läuft komplett im Browser.">
   <meta id="themeColorLight" name="theme-color" media="(prefers-color-scheme: light)" content="#f7f7f7">
   <meta id="themeColorDark" name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1a1a">
-  <meta name="keywords" content="ZUGFeRD, XRechnung, Factur-X, EN 16931, e-invoice, electronic invoice, viewer, inspector, PDF, XML, open source">
+  <meta name="keywords" content="ZUGFeRD, XRechnung, Factur-X, EN 16931, UBL, Peppol BIS, e-invoice, electronic invoice, viewer, inspector, PDF, XML, open source">
   <meta name="application-name" content="InvoiceInspector">
   <meta name="author" content="Simon Waldherr">
   <meta name="generator" content="InvoiceInspector">
@@ -15,7 +15,7 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="InvoiceInspector – E-Rechnungs-Viewer">
-  <meta property="og:description" content="Kostenloser clientseitiger Viewer für ZUGFeRD, XRechnung und EN 16931. Kein Upload – 100% lokal im Browser.">
+  <meta property="og:description" content="Kostenloser clientseitiger Viewer für ZUGFeRD, XRechnung, UBL, Peppol BIS und EN 16931. Kein Upload – 100% lokal im Browser.">
   <meta property="og:url" content="https://simonwaldherr.github.io/InvoiceInspector/">
   <meta property="og:site_name" content="InvoiceInspector">
 
@@ -238,14 +238,14 @@
 
   <section>
     <h2 data-i18n="descriptionTitle">Beschreibung</h2>
-    <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur-X PDFs an.</p>
+    <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur-X PDFs an, einschließlich UBL/Peppol-BIS-Dateien.</p>
     <p data-i18n-html="disclaimerText"><strong>Hinweis:</strong> Verarbeitung lokal im Browser. Keine Uploads. Optional lokale Sammlung.</p>
     <p class="muted" data-i18n="shortcutHint">Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute</p>
   </section>
 
   <div id="dropZone" class="drop" role="button" tabindex="0" aria-label="Datei auswählen oder hier ablegen">
     <p data-i18n="dropZoneText">📄 Datei hierher ziehen & fallen lassen oder klicken</p>
-    <p class="muted" data-i18n="supportedFormatsText">Unterstützt: PDF (ZUGFeRD/Factur-X), XML (XRechnung/EN16931)</p>
+    <p class="muted" data-i18n="supportedFormatsText">Unterstützt: PDF (ZUGFeRD/Factur-X), XML (XRechnung/EN16931, UBL/Peppol BIS)</p>
     <label for="fileInput" class="sr-only" data-i18n="fileInputLabel">Rechnungsdateien auswählen</label>
     <input id="fileInput" type="file" accept=".xml,.pdf,application/pdf" multiple class="hidden" aria-label="Rechnungsdateien auswählen">
   </div>
@@ -856,11 +856,15 @@ window.QRCode = (() => {
 
   const $ = (id) => document.getElementById(id);
 
-  // Namespaces (CII/CrossIndustryInvoice)
+  // Namespaces (CII/CrossIndustryInvoice and UBL 2.x)
   const XML_NS = {
     rsm: "urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100",
     ram: "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100",
     udt: "urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100",
+    ublInvoice: "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2",
+    ublCreditNote: "urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2",
+    cac: "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
+    cbc: "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
   };
   const nsResolver = (p) => XML_NS[p] || null;
 
@@ -898,9 +902,9 @@ window.QRCode = (() => {
 
   const LABELS = {
     de:{
-      mainTitle:"E‑Rechnungs‑Reader (ZUGFeRD / XRechnung / EN16931)",
+      mainTitle:"E‑Rechnungs‑Reader (ZUGFeRD / XRechnung / UBL / EN16931)",
       descriptionTitle:"Beschreibung",
-      descriptionText:"Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur‑X PDFs an. Eingebettete XMLs in PDFs werden extrahiert.",
+      descriptionText:"Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur‑X PDFs an. Eingebettete XMLs in PDFs werden extrahiert. UBL/Peppol-BIS-XML wird analysiert.",
       disclaimerText:"<strong>Hinweis:</strong> Verarbeitung vollständig im Browser. Keine Uploads. Optional kann eine lokale Rechnungssammlung aktiviert werden (IndexedDB/LocalStorage), die jederzeit löschbar ist. Keine Gewähr.",
       shortcutHint:"Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute · Ctrl/⌘+V XML einfügen",
       themeDark:"🌙 Dark",
@@ -912,7 +916,7 @@ window.QRCode = (() => {
       sortLabel:"Sortierung",
       commentFieldLabel:"Kommentar bearbeiten",
       dropZoneText:"📄 Datei hierher ziehen & fallen lassen oder klicken",
-      supportedFormatsText:"Unterstützt: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      supportedFormatsText:"Unterstützt: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
       loadSample:"🧪 Beispiel laden",
       restoreLastInvoice:"🕘 Letzte Rechnung öffnen",
       loadingText:"Verarbeitung läuft…",
@@ -1077,9 +1081,9 @@ window.QRCode = (() => {
       overdueHint:"Überfällig",
     },
     en:{
-      mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / EN16931)",
+      mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / UBL / EN16931)",
       descriptionTitle:"Description",
-      descriptionText:"View e-invoices (XML) and ZUGFeRD/Factur‑X PDFs. Embedded XML is extracted.",
+      descriptionText:"View e-invoices (XML) and ZUGFeRD/Factur‑X PDFs. Embedded XML is extracted. UBL/Peppol BIS XML is analyzed.",
       disclaimerText:"<strong>Note:</strong> Fully local in your browser. No uploads. Optional local collection (IndexedDB/LocalStorage), deletable anytime. No warranty.",
       shortcutHint:"Tip: Ctrl/⌘+O open file · Ctrl/⌘+F search · Ctrl/⌘+E export today · Ctrl/⌘+V paste XML",
       themeDark:"🌙 Dark",
@@ -1091,7 +1095,7 @@ window.QRCode = (() => {
       sortLabel:"Sort order",
       commentFieldLabel:"Edit comment",
       dropZoneText:"📄 Drop a file here or click to select",
-      supportedFormatsText:"Supported: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      supportedFormatsText:"Supported: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
       loadSample:"🧪 Load sample",
       restoreLastInvoice:"🕘 Open last invoice",
       loadingText:"Processing…",
@@ -1254,9 +1258,9 @@ window.QRCode = (() => {
       overdueHint:"Overdue",
     },
     fr:{
-      mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / EN16931)",
+      mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / UBL / EN16931)",
       descriptionTitle:"Description",
-      descriptionText:"Afficher des factures (XML) et des PDF ZUGFeRD/Factur‑X. Le XML intégré est extrait.",
+      descriptionText:"Afficher des factures (XML) et des PDF ZUGFeRD/Factur‑X. Le XML intégré est extrait. Les XML UBL/Peppol BIS sont analysés.",
       disclaimerText:"<strong>Remarque :</strong> Traitement local dans le navigateur. Aucun téléversement. Option : collection locale (IndexedDB/LocalStorage), supprimable. Aucune garantie.",
       shortcutHint:"Astuce : Ctrl/⌘+O ouvrir · Ctrl/⌘+F rechercher · Ctrl/⌘+E export aujourd’hui",
       themeDark:"🌙 Sombre",
@@ -1268,7 +1272,7 @@ window.QRCode = (() => {
       sortLabel:"Ordre de tri",
       commentFieldLabel:"Modifier le commentaire",
       dropZoneText:"📄 Déposez un fichier ici ou cliquez pour sélectionner",
-      supportedFormatsText:"Formats : PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      supportedFormatsText:"Formats : PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
       loadSample:"🧪 Charger un exemple",
       restoreLastInvoice:"🕘 Ouvrir la dernière facture",
       loadingText:"Traitement…",
@@ -1431,9 +1435,9 @@ window.QRCode = (() => {
       overdueHint:"En retard",
     },
     it:{
-      mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / EN16931)",
+      mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / UBL / EN16931)",
       descriptionTitle:"Descrizione",
-      descriptionText:"Visualizza fatture (XML) e PDF ZUGFeRD/Factur‑X. L’XML incorporato viene estratto.",
+      descriptionText:"Visualizza fatture (XML) e PDF ZUGFeRD/Factur‑X. L’XML incorporato viene estratto. Gli XML UBL/Peppol BIS vengono analizzati.",
       disclaimerText:"<strong>Nota:</strong> Elaborazione locale nel browser. Nessun upload. Opzione: raccolta locale (IndexedDB/LocalStorage), eliminabile. Nessuna garanzia.",
       shortcutHint:"Suggerimento: Ctrl/⌘+O apri · Ctrl/⌘+F cerca · Ctrl/⌘+E export oggi · Ctrl/⌘+V incolla XML",
       themeDark:"🌙 Scuro",
@@ -1445,7 +1449,7 @@ window.QRCode = (() => {
       sortLabel:"Ordinamento",
       commentFieldLabel:"Modifica commento",
       dropZoneText:"📄 Trascina un file qui o fai clic per selezionare",
-      supportedFormatsText:"Formati: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      supportedFormatsText:"Formati: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
       loadSample:"🧪 Carica esempio",
       restoreLastInvoice:"🕘 Apri ultima fattura",
       loadingText:"Elaborazione…",
@@ -1608,9 +1612,9 @@ window.QRCode = (() => {
       overdueHint:"Scaduta",
     },
     es:{
-      mainTitle:"Lector de facturas electrónicas (ZUGFeRD / XRechnung / EN16931)",
+      mainTitle:"Lector de facturas electrónicas (ZUGFeRD / XRechnung / UBL / EN16931)",
       descriptionTitle:"Descripción",
-      descriptionText:"Visualizar facturas (XML) y PDF ZUGFeRD/Factur‑X. El XML incrustado se extrae.",
+      descriptionText:"Visualizar facturas (XML) y PDF ZUGFeRD/Factur‑X. El XML incrustado se extrae. Se analizan XML UBL/Peppol BIS.",
       disclaimerText:"<strong>Nota:</strong> Procesamiento completamente local en el navegador. Sin carga. Colección local opcional (IndexedDB/LocalStorage), eliminable. Sin garantía.",
       shortcutHint:"Atajo: Ctrl/⌘+O abrir · Ctrl/⌘+F buscar · Ctrl/⌘+E exportar hoy · Ctrl/⌘+V pegar XML",
       themeDark:"🌙 Oscuro",
@@ -1622,7 +1626,7 @@ window.QRCode = (() => {
       sortLabel:"Orden",
       commentFieldLabel:"Editar comentario",
       dropZoneText:"📄 Arrastra un archivo aquí o haz clic para seleccionar",
-      supportedFormatsText:"Admite: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931)",
+      supportedFormatsText:"Admite: PDF (ZUGFeRD/Factur‑X), XML (XRechnung/EN16931, UBL/Peppol BIS)",
       loadSample:"🧪 Cargar ejemplo",
       restoreLastInvoice:"🕘 Abrir última factura",
       loadingText:"Procesando…",
@@ -2200,7 +2204,45 @@ window.QRCode = (() => {
     "SpecifiedTradeSettlementHeaderMonetarySummation/GrandTotalAmount":        "grossAmount",
     "SpecifiedTradeSettlementMonetarySummation/GrandTotalAmount":              "grossAmount",
     "SpecifiedTradeSettlementHeaderMonetarySummation/DuePayableAmount":        "dueAmount",
-    "SpecifiedTradeSettlementMonetarySummation/DuePayableAmount":              "dueAmount"
+    "SpecifiedTradeSettlementMonetarySummation/DuePayableAmount":              "dueAmount",
+    "Invoice/ID":                                                              "invNumber",
+    "CreditNote/ID":                                                           "invNumber",
+    "Invoice/InvoiceTypeCode":                                                 "invType",
+    "CreditNote/CreditNoteTypeCode":                                           "invType",
+    "Invoice/IssueDate":                                                       "invDate",
+    "CreditNote/IssueDate":                                                    "invDate",
+    "Invoice/DueDate":                                                         "invDueDate",
+    "OrderReference/ID":                                                       "invOrderNumber",
+    "Invoice/BuyerReference":                                                  "invOrderNumber",
+    "CreditNote/BuyerReference":                                               "invOrderNumber",
+    "Invoice/Note":                                                            "invNote",
+    "CreditNote/Note":                                                         "invNote",
+    "AccountingSupplierParty/Party/PartyName/Name":                            "sellerName",
+    "AccountingSupplierParty/Party/PartyLegalEntity/RegistrationName":          "sellerName",
+    "AccountingSupplierParty/Party/PostalAddress/StreetName":                  "sellerAddress",
+    "AccountingSupplierParty/Party/Contact/ElectronicMail":                    "sellerEmail",
+    "AccountingSupplierParty/Party/Contact/Telephone":                         "sellerPhone",
+    "AccountingSupplierParty/Party/PartyTaxScheme/CompanyID":                  "sellerTaxID",
+    "AccountingSupplierParty/Party/PartyLegalEntity/CompanyID":                "sellerRegister",
+    "AccountingCustomerParty/Party/PartyName/Name":                            "buyerName",
+    "AccountingCustomerParty/Party/PartyLegalEntity/RegistrationName":          "buyerName",
+    "AccountingCustomerParty/Party/PostalAddress/StreetName":                  "buyerAddress",
+    "AccountingCustomerParty/Party/PostalAddress/AdditionalStreetName":         "buyerAddress2",
+    "AccountingCustomerParty/Party/Contact/ElectronicMail":                    "buyerEmail",
+    "AccountingCustomerParty/Party/Contact/Telephone":                         "buyerPhone",
+    "AccountingCustomerParty/Party/PartyTaxScheme/CompanyID":                  "buyerTaxID",
+    "Invoice/DocumentCurrencyCode":                                            "currency",
+    "CreditNote/DocumentCurrencyCode":                                         "currency",
+    "PaymentMeans/PaymentMeansCode":                                           "paymentType",
+    "PaymentTerms/Note":                                                       "paymentTerms",
+    "PayeeFinancialAccount/ID":                                                "iban",
+    "FinancialInstitutionBranch/ID":                                           "bic",
+    "PayeeFinancialAccount/Name":                                              "accountHolder",
+    "LegalMonetaryTotal/LineExtensionAmount":                                  "netAmount",
+    "LegalMonetaryTotal/TaxExclusiveAmount":                                   "netAmount",
+    "TaxTotal/TaxAmount":                                                      "taxAmount",
+    "LegalMonetaryTotal/TaxInclusiveAmount":                                   "grossAmount",
+    "LegalMonetaryTotal/PayableAmount":                                        "dueAmount"
   };
 
   // Lookup fieldId by element context stack + local element name
@@ -2479,7 +2521,142 @@ window.QRCode = (() => {
     if(!root) return false;
     const name=(root.localName||root.nodeName||"").toLowerCase();
     const ns=(root.namespaceURI||"").toLowerCase();
-    return name==="invoice" && ns.includes("oasis") && ns.includes("ubl");
+    return (name==="invoice" || name==="creditnote") && ns.includes("oasis") && ns.includes("ubl");
+  }
+
+  function firstText(ctx, paths){
+    for(const path of paths){
+      const value = xp1(ctx, path)?.textContent?.trim();
+      if(value) return value;
+    }
+    return "";
+  }
+
+  function parseAmount(value){
+    if(value==null || value==="") return null;
+    const n = parseFloat(String(value).trim().replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function readUblParty(party){
+    if(!party) return {name:"", address:"", address2:"", email:"", phone:"", taxId:"", register:""};
+    const name = firstText(party, [
+      "./cac:PartyLegalEntity/cbc:RegistrationName",
+      "./cac:PartyName/cbc:Name",
+      "./cac:Contact/cbc:Name",
+    ]);
+    const address = xp1(party, "./cac:PostalAddress");
+    const street = firstText(address || party, ["./cbc:StreetName", "./cac:PostalAddress/cbc:StreetName"]);
+    const line2 = firstText(address || party, ["./cbc:AdditionalStreetName", "./cac:PostalAddress/cbc:AdditionalStreetName"]);
+    const zip = firstText(address || party, ["./cbc:PostalZone", "./cac:PostalAddress/cbc:PostalZone"]);
+    const city = firstText(address || party, ["./cbc:CityName", "./cac:PostalAddress/cbc:CityName"]);
+    const country = firstText(address || party, ["./cac:Country/cbc:IdentificationCode", "./cac:PostalAddress/cac:Country/cbc:IdentificationCode"]);
+    const taxIds = xps(party, "./cac:PartyTaxScheme/cbc:CompanyID").map(n=>{
+      const scheme = firstText(n.parentNode, ["./cac:TaxScheme/cbc:ID"]);
+      const id = n.textContent.trim();
+      return scheme ? `${scheme}: ${id}` : id;
+    }).filter(Boolean);
+    return {
+      name,
+      address: [street, (zip||city)?`${zip} ${city}`.trim():"", country].filter(Boolean).join(", "),
+      address2: line2,
+      email: firstText(party, ["./cac:Contact/cbc:ElectronicMail"]),
+      phone: firstText(party, ["./cac:Contact/cbc:Telephone"]),
+      taxId: taxIds.join("\n"),
+      register: firstText(party, ["./cac:PartyLegalEntity/cbc:CompanyID"]),
+    };
+  }
+
+  function parseUblXml(){
+    const rootName=(xmlDoc.documentElement?.localName || "").toLowerCase();
+    const isCredit = rootName === "creditnote";
+    invoiceData = {header:{},seller:{},buyer:{},payment:{},lineItems:[]};
+
+    const docTypeCode = firstText(xmlDoc, [
+      "/ublInvoice:Invoice/cbc:InvoiceTypeCode",
+      "/ublCreditNote:CreditNote/cbc:CreditNoteTypeCode",
+    ]) || (isCredit ? "381" : "380");
+
+    invoiceData.header.number = firstText(xmlDoc, ["/ublInvoice:Invoice/cbc:ID", "/ublCreditNote:CreditNote/cbc:ID"]);
+    invoiceData.header.typeCode = docTypeCode;
+    invoiceData.header.date = formatDate(firstText(xmlDoc, ["/ublInvoice:Invoice/cbc:IssueDate", "/ublCreditNote:CreditNote/cbc:IssueDate"]));
+    invoiceData.header.dueDate = formatDate(firstText(xmlDoc, ["/ublInvoice:Invoice/cbc:DueDate"]));
+    invoiceData.header.orderNumber = firstText(xmlDoc, [
+      "//cac:OrderReference/cbc:ID",
+      "//cbc:BuyerReference",
+    ]);
+    invoiceData.header.notes = xps(xmlDoc, "/ublInvoice:Invoice/cbc:Note | /ublCreditNote:CreditNote/cbc:Note").map(n=>n.textContent.trim()).join("\n");
+
+    invoiceData.seller = readUblParty(xp1(xmlDoc, "//cac:AccountingSupplierParty/cac:Party"));
+    invoiceData.buyer = readUblParty(xp1(xmlDoc, "//cac:AccountingCustomerParty/cac:Party"));
+
+    const currency = firstText(xmlDoc, ["/ublInvoice:Invoice/cbc:DocumentCurrencyCode", "/ublCreditNote:CreditNote/cbc:DocumentCurrencyCode"]) || "EUR";
+    invoiceData.payment.currency = currency;
+    const sym = getCurSym(currency);
+    const pm = xp1(xmlDoc, "//cac:PaymentMeans");
+    const typeCode = pm ? firstText(pm, ["./cbc:PaymentMeansCode"]) : "";
+    invoiceData.payment.type = typeCode ? payTypeName(typeCode) : "";
+    invoiceData.payment.terms = firstText(xmlDoc, ["//cac:PaymentTerms/cbc:Note"]);
+    invoiceData.payment.iban = pm ? firstText(pm, ["./cac:PayeeFinancialAccount/cbc:ID"]) : "";
+    invoiceData.payment.accountHolder = pm ? firstText(pm, ["./cac:PayeeFinancialAccount/cbc:Name"]) : "";
+    invoiceData.payment.bic = pm ? firstText(pm, [
+      "./cac:PayeeFinancialAccount/cac:FinancialInstitutionBranch/cbc:ID",
+      "./cac:PayeeFinancialAccount/cac:FinancialInstitutionBranch/cac:FinancialInstitution/cbc:ID",
+    ]) : "";
+    if(invoiceData.payment.iban && !isValidIBAN(invoiceData.payment.iban)) addWarning("warningsInvalidIban");
+
+    const total = xp1(xmlDoc, "//cac:LegalMonetaryTotal | //cac:RequestedMonetaryTotal");
+    const getTotal = (path) => total ? parseAmount(firstText(total, [path])) : null;
+    invoiceData.payment.netAmount = getTotal("./cbc:LineExtensionAmount") ?? getTotal("./cbc:TaxExclusiveAmount");
+    invoiceData.payment.taxAmount = parseAmount(firstText(xmlDoc, [
+      "/ublInvoice:Invoice/cac:TaxTotal/cbc:TaxAmount",
+      "/ublCreditNote:CreditNote/cac:TaxTotal/cbc:TaxAmount",
+    ]));
+    invoiceData.payment.grossAmount = getTotal("./cbc:TaxInclusiveAmount");
+    invoiceData.payment.dueAmount = getTotal("./cbc:PayableAmount");
+
+    const rows = xps(xmlDoc, isCredit ? "//cac:CreditNoteLine" : "//cac:InvoiceLine");
+    let sumNetLines = 0;
+    rows.forEach((row,i)=>{
+      const qtyEl = xp1(row, isCredit ? "./cbc:CreditedQuantity" : "./cbc:InvoicedQuantity");
+      const qty = parseAmount(qtyEl?.textContent?.trim()) ?? 0;
+      const unitCode = qtyEl?.getAttribute("unitCode") || "";
+      const unitPrice = parseAmount(firstText(row, ["./cac:Price/cbc:PriceAmount"])) ?? 0;
+      const lineNet = parseAmount(firstText(row, ["./cbc:LineExtensionAmount"])) ?? +(unitPrice * qty).toFixed(2);
+      const taxRate = parseAmount(firstText(row, [
+        "./cac:Item/cac:ClassifiedTaxCategory/cbc:Percent",
+        "./cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent",
+      ])) ?? 0;
+      const lineGross = lineNet + lineNet*(taxRate/100);
+      sumNetLines += lineNet;
+      invoiceData.lineItems.push({
+        position:firstText(row, ["./cbc:ID"]) || String(i+1),
+        productName:firstText(row, ["./cac:Item/cbc:Name"]),
+        description:xps(row, "./cac:Item/cbc:Description").map(n=>n.textContent.trim()).join("\n"),
+        notes:xps(row, "./cbc:Note").map(n=>n.textContent.trim()).join("\n"),
+        quantity:qty, unitCode, unit:getUnit(unitCode), unitPrice:+unitPrice.toFixed(2),
+        lineNet:+lineNet.toFixed(2), taxRate:+taxRate.toFixed(2), lineGross:+lineGross.toFixed(2)
+      });
+    });
+
+    if (invoiceData.payment.netAmount != null && rows.length){
+      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > 0.02) addWarning("warningsTotalsMismatch");
+    }
+
+    invoiceData.taxBreakdown = xps(xmlDoc, "/ublInvoice:Invoice/cac:TaxTotal/cac:TaxSubtotal | /ublCreditNote:CreditNote/cac:TaxTotal/cac:TaxSubtotal").map(tn => ({
+      typeCode: firstText(tn, ["./cac:TaxCategory/cac:TaxScheme/cbc:ID"]),
+      categoryCode: firstText(tn, ["./cac:TaxCategory/cbc:ID"]),
+      ratePercent: parseAmount(firstText(tn, ["./cac:TaxCategory/cbc:Percent"])) ?? 0,
+      basisAmount: parseAmount(firstText(tn, ["./cbc:TaxableAmount"])) ?? 0,
+      calculatedAmount: parseAmount(firstText(tn, ["./cbc:TaxAmount"])) ?? 0,
+    }));
+
+    saveLastInvoice(invoiceData);
+    fillFromInvoiceData(invoiceData);
+    buildQrIfPossible(invoiceData, sym);
+    addToCollection(invoiceData, originalPdfBlob || originalXmlBlob);
+    renderWarnings();
+    showSuccess();
   }
 
   function beautifyXml(xml){
@@ -3163,9 +3340,7 @@ window.QRCode = (() => {
 
     // UBL detection
     if(isUbl(xmlDoc)){
-      addWarning("warningsUbl");
-      renderWarnings();
-      showSuccess();
+      parseUblXml();
       return;
     }
 

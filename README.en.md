@@ -5,7 +5,7 @@
 [![GitHub release](https://img.shields.io/github/release/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SimonWaldherr/InvoiceInspector.svg)](https://github.com/SimonWaldherr/InvoiceInspector/stargazers)
 
-A lightweight, client-side web viewer for electronic invoices with support for ZUGFeRD, XRechnung, EN 16931, and other standards.
+A lightweight, client-side web viewer for electronic invoices with support for ZUGFeRD, XRechnung, UBL, Peppol BIS, EN 16931, and other standards.
 
 [Deutsche Version](README.md) | English Version
 
@@ -64,6 +64,7 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 - **XRechnung XML** (all versions)
 - **EN 16931 compatible XML files**
 - **Factur-X** (French ZUGFeRD standard)
+- **UBL 2.x / Peppol BIS Billing 3.0 XML** (Invoice and CreditNote)
 
 ## Tested examples
 
