@@ -24,6 +24,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   the ~1 MB worker a second time without serving any purpose.
 - Reduced third-party CDN dependencies from three (`pdf.min.js`,
   `pdf.worker.min.js`, `qrcode.min.js`) to one (`pdf.min.js`).
+- Refreshed visible standards references across the UI, documentation and
+  public metadata to the current released baselines: ZUGFeRD 2.4 / Factur-X
+  1.0.8, XRechnung 3.0.x, Peppol BIS Billing 3.0, UBL 2.1/2.3 and
+  EN 16931-1:2026.
 
 ### Fixed
 - License badge in `README.en.md` corrected from MIT to GPL-2.0

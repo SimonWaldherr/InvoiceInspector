@@ -40,19 +40,20 @@ description:
     documentation: 'https://github.com/SimonWaldherr/InvoiceInspector/blob/main/README.md'
     shortDescription: >-
       Web-basierter Viewer und Inspector für elektronische Rechnungen wie
-      XRechnung, ZUGFeRD und EN 16931.
+      XRechnung, ZUGFeRD, UBL, Peppol BIS und EN 16931.
     longDescription: >-
       InvoiceInspector ist eine browserbasierte Anwendung zum Visualisieren,
       Validieren und Analysieren elektronischer Rechnungen. Die Software
-      unterstützt Formate wie XRechnung, ZUGFeRD und EN 16931 und richtet sich
-      an Entwickler, Buchhaltung und Prüfer, die strukturierte Rechnungsdaten im
+      unterstützt Formate wie XRechnung, ZUGFeRD, Factur-X, UBL, Peppol BIS und
+      EN 16931 und richtet sich an Entwickler, Buchhaltung und Prüfer, die
+      strukturierte Rechnungsdaten im
       Detail untersuchen möchten. Die Anwendung extrahiert zentrale
       Rechnungsmetadaten, zeigt eingebettetes XML oder Anhänge wie PDF/A-3 an
       und markiert Schemafehler sowie fachliche Warnungen. Sie läuft
       standardmäßig vollständig im Browser ohne Upload der Dokumente und kann
       bei Bedarf in automatisierte Prüfprozesse integriert werden.
     features:
-      - Visualisierung von ZUGFeRD/Factur-X-PDF und XRechnung-XML
+      - Visualisierung von ZUGFeRD/Factur-X-PDF sowie XRechnung-, UBL- und Peppol-BIS-XML
       - 100 % clientseitige Verarbeitung ohne Upload
       - Offline-fähig und ohne Installation nutzbar
       - 'Export als XML, PDF, JSON und CSV'
@@ -67,11 +68,11 @@ description:
     documentation: 'https://github.com/SimonWaldherr/InvoiceInspector/blob/main/README.en.md'
     shortDescription: >-
       Web-based viewer and inspector for electronic invoices such as XRechnung,
-      ZUGFeRD and EN 16931.
+      ZUGFeRD, UBL, Peppol BIS, and EN 16931.
     longDescription: >-
       InvoiceInspector is a browser-based application for visualising,
       validating and analysing electronic invoices. It supports formats such as
-      XRechnung, ZUGFeRD and EN 16931 and is aimed at developers, accounting
+      XRechnung, ZUGFeRD, Factur-X, UBL, Peppol BIS, and EN 16931 and is aimed at developers, accounting
       teams and auditors who need to inspect structured invoice data in detail.
       The application extracts key invoice metadata, displays embedded XML or
       attachments such as PDF/A-3 files, and highlights schema errors as well as
@@ -79,7 +80,7 @@ description:
       without uploading documents and can also be integrated into automated
       validation workflows.
     features:
-      - Visualise ZUGFeRD/Factur-X PDF and XRechnung XML invoices
+      - Visualise ZUGFeRD/Factur-X PDF plus XRechnung, UBL, and Peppol BIS XML invoices
       - 100% client-side processing without uploads
       - Offline capable and usable without installation
       - 'Export as XML, PDF, JSON and CSV'
@@ -93,11 +94,11 @@ description:
     genericName: Visionneuse de factures
     shortDescription: >-
       Visionneuse et inspecteur web pour factures électroniques comme XRechnung,
-      ZUGFeRD et EN 16931.
+      ZUGFeRD, UBL, Peppol BIS et EN 16931.
     longDescription: >-
       InvoiceInspector est une application web permettant de visualiser, valider
       et analyser des factures électroniques. Elle prend en charge des formats
-      tels que XRechnung, ZUGFeRD et EN 16931 et s'adresse aux équipes
+      tels que XRechnung, ZUGFeRD, Factur-X, UBL, Peppol BIS et EN 16931 et s'adresse aux équipes
       techniques, aux services comptables et aux auditeurs souhaitant examiner
       en détail les données structurées des factures. L'application extrait les
       métadonnées essentielles, affiche le XML embarqué ou des pièces jointes
@@ -105,7 +106,7 @@ description:
       que les avertissements métier. Par défaut, elle fonctionne entièrement
       dans le navigateur sans téléversement de documents.
     features:
-      - Visualisation de PDF ZUGFeRD/Factur-X et de XML XRechnung
+      - Visualisation de PDF ZUGFeRD/Factur-X et de XML XRechnung, UBL et Peppol BIS
       - 'Traitement 100 % côté client, sans téléversement'
       - Utilisable hors ligne, sans installation
       - 'Export XML, PDF, JSON et CSV'
@@ -116,19 +117,20 @@ description:
   it:
     genericName: Visualizzatore fatture
     shortDescription: >-
-      Viewer e inspector web per fatture elettroniche come XRechnung, ZUGFeRD ed
-      EN 16931.
+      Viewer e inspector web per fatture elettroniche come XRechnung, ZUGFeRD,
+      UBL, Peppol BIS ed EN 16931.
     longDescription: >-
       InvoiceInspector è un'applicazione web per visualizzare, validare e
-      analizzare fatture elettroniche. Supporta formati come XRechnung, ZUGFeRD
-      ed EN 16931 ed è pensata per sviluppatori, uffici contabili e revisori che
+      analizzare fatture elettroniche. Supporta formati come XRechnung,
+      ZUGFeRD, Factur-X, UBL, Peppol BIS ed EN 16931 ed è pensata per
+      sviluppatori, uffici contabili e revisori che
       devono esaminare in dettaglio i dati strutturati delle fatture.
       L'applicazione estrae i metadati principali, mostra XML incorporato o
       allegati come PDF/A-3 ed evidenzia errori di schema e avvisi relativi alle
       regole di business. Per impostazione predefinita funziona interamente nel
       browser senza caricare documenti.
     features:
-      - Visualizzazione di PDF ZUGFeRD/Factur-X e XML XRechnung
+      - Visualizzazione di PDF ZUGFeRD/Factur-X e XML XRechnung, UBL e Peppol BIS
       - Elaborazione 100% lato client senza upload
       - Utilizzabile offline senza installazione
       - 'Esportazione in XML, PDF, JSON e CSV'
