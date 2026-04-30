@@ -238,7 +238,7 @@
 
   <section>
     <h2 data-i18n="descriptionTitle">Beschreibung</h2>
-    <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur-X PDFs an, einschließlich UBL/Peppol-BIS-Dateien.</p>
+    <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen (XML) sowie ZUGFeRD/Factur-X PDFs an, einschließlich UBL/Peppol BIS-Dateien.</p>
     <p data-i18n-html="disclaimerText"><strong>Hinweis:</strong> Verarbeitung lokal im Browser. Keine Uploads. Optional lokale Sammlung.</p>
     <p class="muted" data-i18n="shortcutHint">Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute</p>
   </section>
@@ -1882,6 +1882,7 @@ window.QRCode = (() => {
   let originalXmlBlob = null;
   let invoiceData = {};
   let warnings = [];
+  const TOTAL_MISMATCH_THRESHOLD = 0.02;
 
   // helpers
   const L = () => LABELS[lang] || LABELS.de;
@@ -2640,7 +2641,7 @@ window.QRCode = (() => {
     });
 
     if (invoiceData.payment.netAmount != null && rows.length){
-      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > 0.02) addWarning("warningsTotalsMismatch");
+      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > TOTAL_MISMATCH_THRESHOLD) addWarning("warningsTotalsMismatch");
     }
 
     invoiceData.taxBreakdown = xps(xmlDoc, "/ublInvoice:Invoice/cac:TaxTotal/cac:TaxSubtotal | /ublCreditNote:CreditNote/cac:TaxTotal/cac:TaxSubtotal").map(tn => ({
@@ -3455,7 +3456,7 @@ window.QRCode = (() => {
     });
 
     if (invoiceData.payment.netAmount != null && rows.length){
-      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > 0.02) addWarning("warningsTotalsMismatch");
+      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > TOTAL_MISMATCH_THRESHOLD) addWarning("warningsTotalsMismatch");
     }
 
     // tax breakdown (BG-23)
