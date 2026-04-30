@@ -13,6 +13,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `index.html`
 - `landingURL`, `features`, maintainer contact and `genericName` for all
   languages in `publiccode.yml`
+- Self-contained inline QR Code encoder (ISO/IEC 18004, byte mode, all
+  versions and ECC levels) replacing the external `qrcode@1.5.1` CDN
+  dependency. EPC SEPA QR generation now works fully offline.
+
+### Changed
+- Removed the redundant `<script src=".../pdf.worker.min.js">` tag in
+  `index.html`. The worker is already instantiated by PDF.js via
+  `GlobalWorkerOptions.workerSrc`, so the extra script tag was downloading
+  the ~1 MB worker a second time without serving any purpose.
+- Reduced third-party CDN dependencies from three (`pdf.min.js`,
+  `pdf.worker.min.js`, `qrcode.min.js`) to one (`pdf.min.js`).
 
 ### Fixed
 - License badge in `README.en.md` corrected from MIT to GPL-2.0
