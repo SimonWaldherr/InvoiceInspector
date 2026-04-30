@@ -2032,6 +2032,9 @@ window.QRCode = (() => {
       warnings.push({severity:"warn", message:L()[msgKey]||msgKey, hint:"", ruleId:"", msgKey});
     }
   }
+  function addWarningOnce(msgKey){
+    if(!warnings.some(w=>w.msgKey===msgKey)) addWarning(msgKey);
+  }
   function renderWarnings(){
     dom.warningsList.innerHTML="";
     dom.warningsList.className="validation-list";
@@ -2546,6 +2549,10 @@ window.QRCode = (() => {
     return Number.isFinite(n) ? n : null;
   }
 
+  function validateLineNetTotal(netAmount, sumNetLines, hasLines){
+    if(netAmount != null && hasLines && Math.abs(netAmount - sumNetLines) > TOTAL_MISMATCH_THRESHOLD) addWarning("warningsTotalsMismatch");
+  }
+
   function readUblParty(party){
     if(!party) return {name:"", address:"", address2:"", email:"", phone:"", taxId:"", register:""};
     const name = firstText(party, [
@@ -2559,9 +2566,9 @@ window.QRCode = (() => {
     const zip = firstText(address || party, ["./cbc:PostalZone", "./cac:PostalAddress/cbc:PostalZone"]);
     const city = firstText(address || party, ["./cbc:CityName", "./cac:PostalAddress/cbc:CityName"]);
     const country = firstText(address || party, ["./cac:Country/cbc:IdentificationCode", "./cac:PostalAddress/cac:Country/cbc:IdentificationCode"]);
-    const taxIds = xps(party, "./cac:PartyTaxScheme/cbc:CompanyID").map(n=>{
-      const scheme = firstText(n.parentNode, ["./cac:TaxScheme/cbc:ID"]);
-      const id = n.textContent.trim();
+    const taxIds = xps(party, "./cac:PartyTaxScheme").map(taxScheme=>{
+      const scheme = firstText(taxScheme, ["./cac:TaxScheme/cbc:ID"]);
+      const id = firstText(taxScheme, ["./cbc:CompanyID"]);
       return scheme ? `${scheme}: ${id}` : id;
     }).filter(Boolean);
     const cityLine = [zip, city].filter(Boolean).join(" ");
@@ -2634,7 +2641,7 @@ window.QRCode = (() => {
       const unitCode = qtyEl?.getAttribute("unitCode") || "";
       const unitPrice = parseAmount(firstText(row, ["./cac:Price/cbc:PriceAmount"])) ?? 0;
       const lineNetAmount = parseAmount(firstText(row, ["./cbc:LineExtensionAmount"]));
-      if(lineNetAmount == null) addWarning("warningsUblLineAmountFallback");
+      if(lineNetAmount == null) addWarningOnce("warningsUblLineAmountFallback");
       const lineNet = lineNetAmount != null ? lineNetAmount : +(unitPrice * qty).toFixed(2);
       const taxRate = parseAmount(firstText(row, [
         "./cac:Item/cac:ClassifiedTaxCategory/cbc:Percent",
@@ -2652,9 +2659,7 @@ window.QRCode = (() => {
       });
     });
 
-    if (invoiceData.payment.netAmount != null && rows.length){
-      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > TOTAL_MISMATCH_THRESHOLD) addWarning("warningsTotalsMismatch");
-    }
+    validateLineNetTotal(invoiceData.payment.netAmount, sumNetLines, rows.length > 0);
 
     invoiceData.taxBreakdown = xps(xmlDoc, "/ublInvoice:Invoice/cac:TaxTotal/cac:TaxSubtotal | /ublCreditNote:CreditNote/cac:TaxTotal/cac:TaxSubtotal").map(tn => ({
       typeCode: firstText(tn, ["./cac:TaxCategory/cac:TaxScheme/cbc:ID"]),
@@ -3467,9 +3472,7 @@ window.QRCode = (() => {
       });
     });
 
-    if (invoiceData.payment.netAmount != null && rows.length){
-      if (Math.abs(invoiceData.payment.netAmount - sumNetLines) > TOTAL_MISMATCH_THRESHOLD) addWarning("warningsTotalsMismatch");
-    }
+    validateLineNetTotal(invoiceData.payment.netAmount, sumNetLines, rows.length > 0);
 
     // tax breakdown (BG-23)
     const taxNodes = xps(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax");
