@@ -2164,7 +2164,14 @@ window.QRCode = (() => {
       en:{msg:"UBL invoice detected. Full field mapping not yet supported.", hint:"XML is displayed. For full analysis use CII/XRechnung format."},
       de:{msg:"UBL-Rechnung erkannt. Vollständige Feldzuordnung noch nicht implementiert.", hint:"XML wird angezeigt. Für vollständige Analyse CII/XRechnung-Format verwenden."},
       fr:{msg:"Facture UBL détectée. Mapping complet non encore supporté.", hint:"XML affiché. Utiliser le format CII/XRechnung pour l'analyse complète."},
-      it:{msg:"Fattura UBL rilevata. Mapping completo non ancora supportato.", hint:"XML visualizzato. Usare il formato CII/XRechnung per l'analisi completa."}}
+      it:{msg:"Fattura UBL rilevata. Mapping completo non ancora supportato.", hint:"XML visualizzato. Usare il formato CII/XRechnung per l'analisi completa."}},
+    warningsUblLineAmountFallback:{
+      id:"INFO-UBL-02", severity:"info",
+      en:{msg:"UBL line amount missing; calculated from quantity and unit price.", hint:"Line-level allowances or charges may not be reflected."},
+      de:{msg:"UBL-Positionsbetrag fehlt; aus Menge und Einzelpreis berechnet.", hint:"Positionsbezogene Zu- oder Abschläge sind eventuell nicht berücksichtigt."},
+      fr:{msg:"Montant de ligne UBL manquant ; calculé depuis quantité et prix unitaire.", hint:"Les remises ou frais de ligne peuvent ne pas être reflétés."},
+      it:{msg:"Importo riga UBL mancante; calcolato da quantità e prezzo unitario.", hint:"Sconti o maggiorazioni di riga potrebbero non essere inclusi."},
+      es:{msg:"Falta el importe de línea UBL; calculado con cantidad y precio unitario.", hint:"Los cargos o descuentos de línea pueden no estar reflejados."}}
   };
 
   // ── Context path → fieldId for interactive XML linking ─────────────────
@@ -2520,9 +2527,9 @@ window.QRCode = (() => {
   function isUbl(doc){
     const root=doc.documentElement;
     if(!root) return false;
-    const name=(root.localName||root.nodeName||"").toLowerCase();
-    const ns=(root.namespaceURI||"").toLowerCase();
-    return (name==="invoice" || name==="creditnote") && ns.includes("oasis") && ns.includes("ubl");
+    const name=root.localName||root.nodeName||"";
+    const ns=root.namespaceURI||"";
+    return (name==="Invoice" && ns===XML_NS.ublInvoice) || (name==="CreditNote" && ns===XML_NS.ublCreditNote);
   }
 
   function firstText(ctx, paths){
@@ -2557,9 +2564,10 @@ window.QRCode = (() => {
       const id = n.textContent.trim();
       return scheme ? `${scheme}: ${id}` : id;
     }).filter(Boolean);
+    const cityLine = [zip, city].filter(Boolean).join(" ");
     return {
       name,
-      address: [street, (zip||city)?`${zip} ${city}`.trim():"", country].filter(Boolean).join(", "),
+      address: [street, cityLine, country].filter(Boolean).join(", "),
       address2: line2,
       email: firstText(party, ["./cac:Contact/cbc:ElectronicMail"]),
       phone: firstText(party, ["./cac:Contact/cbc:Telephone"]),
@@ -2608,7 +2616,9 @@ window.QRCode = (() => {
 
     const total = xp1(xmlDoc, "//cac:LegalMonetaryTotal | //cac:RequestedMonetaryTotal");
     const getTotal = (path) => total ? parseAmount(firstText(total, [path])) : null;
-    invoiceData.payment.netAmount = getTotal("./cbc:LineExtensionAmount") ?? getTotal("./cbc:TaxExclusiveAmount");
+    const lineExtensionTotal = getTotal("./cbc:LineExtensionAmount");
+    const taxExclusiveTotal = getTotal("./cbc:TaxExclusiveAmount");
+    invoiceData.payment.netAmount = lineExtensionTotal != null ? lineExtensionTotal : taxExclusiveTotal;
     invoiceData.payment.taxAmount = parseAmount(firstText(xmlDoc, [
       "/ublInvoice:Invoice/cac:TaxTotal/cbc:TaxAmount",
       "/ublCreditNote:CreditNote/cac:TaxTotal/cbc:TaxAmount",
@@ -2623,7 +2633,9 @@ window.QRCode = (() => {
       const qty = parseAmount(qtyEl?.textContent?.trim()) ?? 0;
       const unitCode = qtyEl?.getAttribute("unitCode") || "";
       const unitPrice = parseAmount(firstText(row, ["./cac:Price/cbc:PriceAmount"])) ?? 0;
-      const lineNet = parseAmount(firstText(row, ["./cbc:LineExtensionAmount"])) ?? +(unitPrice * qty).toFixed(2);
+      const lineNetAmount = parseAmount(firstText(row, ["./cbc:LineExtensionAmount"]));
+      if(lineNetAmount == null) addWarning("warningsUblLineAmountFallback");
+      const lineNet = lineNetAmount != null ? lineNetAmount : +(unitPrice * qty).toFixed(2);
       const taxRate = parseAmount(firstText(row, [
         "./cac:Item/cac:ClassifiedTaxCategory/cbc:Percent",
         "./cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent",
