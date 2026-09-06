@@ -6,9 +6,10 @@ are welcome.
 
 ## Getting started
 
-InvoiceInspector is a **single-file** web application (`index.html`). There is
-no build step, no package manager, and no server-side component. Open the file
-directly in a browser and you're done.
+InvoiceInspector is primarily a **single-file** web application (`index.html`).
+There is no frontend build step or package manager: open the file directly in a
+browser and you're done. The optional sync server in `cmd/sync-server` requires
+Go 1.22 or newer, but has no third-party dependencies.
 
 ```bash
 git clone https://github.com/SimonWaldherr/InvoiceInspector.git
@@ -63,3 +64,39 @@ correct a translation:
 
 By submitting a contribution you agree that your code will be licensed under
 the [GNU General Public License v2.0](LICENSE).
+
+## Browser regression tests
+
+The application still has no build step or runtime package dependency. The
+optional test runner requires Node.js, Playwright, and installed Chrome and Edge:
+
+```bash
+node tests/regression.cjs
+node tests/business.cjs
+# To run a single installed browser:
+BROWSER_CHANNELS=chrome node tests/regression.cjs
+```
+
+Make `playwright` available through your development environment or `NODE_PATH`.
+Tests use synthetic invoices and block external requests. They cover CII and UBL
+Invoice/CreditNote parsing, zero totals, declared versus calculated line amounts,
+price bases, precision, search, printing and the five UI languages.
+
+Business tests additionally exercise the collection using synthetic records in an
+isolated browser profile: due-date/currency filtering, currency totals, persisted
+settings, sorting, all-pages exports, and actual CSV/JSON downloads.
+
+## Optional sync-server tests
+
+The self-hosted sync server is tested with the Go standard-library test runner:
+
+```bash
+go test ./...
+go vet ./...
+```
+
+Keep it intentionally small: it accepts a token-protected JSON backup, never
+parses invoice fields, and must retain its HTTPS/CORS, size-limit, atomic-write,
+workspace isolation, and ETag conflict guarantees. PDF attachments are stored
+only on the backend, remain immutable per invoice ID, and are covered by the
+same token and workspace boundary.

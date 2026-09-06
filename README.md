@@ -40,12 +40,129 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 
 ### Erweiterte Funktionen
 
+- **Positionssuche**: Positionen nach Nummer, Produkt, Beschreibung, Notiz oder Einheit filtern, mit Trefferanzeige in allen fünf UI-Sprachen. Druck und Export enthalten weiterhin alle Positionen.
+- **Präzisere Betragsverarbeitung**: Ausgewiesene Positionssummen, Preisbasismengen und Nullbeträge werden berücksichtigt; der Nettogesamtbetrag wird getrennt von der Positionssumme verarbeitet.
 - **Statistik-Dashboard**: Überblick über Positionen und Summen
 - **Multi-Format Export**: XML, PDF, JSON, CSV
 - **Responsive Design**: Optimiert für Desktop und Mobile
 - **Dark Mode**: Automatische Erkennung der Systemeinstellungen
 - **Mehrsprachig**: Deutsch und Englisch
 - **Loading-Anzeigen**: Benutzerfreundliche Verarbeitungshinweise
+
+### Praktische Arbeit mit der Rechnungssammlung
+
+Aktivieren Sie **Rechnungen lokal merken**, um Ihre importierten Rechnungen zu
+verwalten. Die Sammlung bietet:
+
+- **Fälligkeitsfilter**: offene Zahlbeträge, überfällige Rechnungen, heute bis in
+  sieben Tagen fällige Rechnungen und offene Vorgänge ohne gültiges Fälligkeitsdatum.
+- **Fälligkeitssortierung und Währungsfilter**: offene und überfällige Summen werden
+  je Originalwährung angezeigt. Beglichene/erledigte, stornierte und abgeschlossene
+  Reklamationen sowie Gutschriften und erkannte Duplikate sind aus diesen Summen
+  ausgeschlossen. Es erfolgt keine Währungsumrechnung oder Verrechnung von Gutschriften.
+- **Rechnungsjournal (Treffer)**: CSV mit einer Zeile pro Rechnung, unter anderem
+  Rechnungsnummer, Typ, Fälligkeit, Lieferant, Bestellreferenz, Beträgen, Status,
+  Duplikatverweis, IBAN und Kommentar. Anders als beim Positionsexport werden
+  Rechnungssummen nicht für jede Position wiederholt.
+- **Gezielte Exporte**: CSV- und JSON-Exporte aller gefilterten Treffer, unabhängig
+  von der aktuellen Tabellenseite. Suche auch nach Bestellreferenz oder IBAN.
+- **Tabellenkalkulation**: CSV mit UTF-8-BOM, sprachabhängigem Trennzeichen und
+  Schutz vor der Interpretation von Textfeldern als Formeln. Positionsexporte
+  enthalten auch die Preisbasismenge.
+- **Sicherung und Wiederherstellung**: Ein versioniertes JSON-Backup enthält die
+  gesamte lokale Sammlung samt Status und Kommentaren. Beim Wiederherstellen wird
+  zusammengeführt: neue Rechnungen werden ergänzt, gleiche Kennungen aktualisiert.
+
+Die Filter bleiben im Browser gespeichert. Ohne angegebenen Zahlbetrag verwendet
+die Übersicht den Bruttobetrag; sie berechnet keine Zahlungszuordnungen.
+Das Rechnungsjournal ist ein allgemeiner CSV-Export, kein DATEV-Buchungsstapel.
+
+### Optionaler Sync-Server
+
+Die Anwendung bleibt ohne Konfiguration vollständig lokal. Für eine eigene
+Synchronisierung zwischen Browsern oder Geräten enthält das Repository einen
+kleinen Go-Sync-Server. Er speichert Sicherungen je Buchhaltungsbereich und
+wertet keine einzelnen Rechnungsfelder aus.
+
+```sh
+export INVOICEINSPECTOR_SYNC_TOKEN="ein-langes-zufaelliges-geheimnis"
+go run ./cmd/sync-server
+```
+
+Der Server lauscht standardmäßig nur auf `127.0.0.1:8787` und verlangt ein Token
+mit mindestens 24 Zeichen. In der Sammlung lassen sich unter **Optionaler
+Sync-Server** die Adresse und das persönliche Token eintragen, danach kann die
+Sammlung explizit hoch- oder heruntergeladen werden. Der Download wird wie eine
+Wiederherstellung zusammengeführt. ETags verhindern ein versehentliches
+Überschreiben einer zwischenzeitlich geänderten Server-Sicherung.
+
+Für mehrere Buchhaltungsmitarbeiter wird eine Benutzerdatei verwendet. Personen
+im gleichen `workspace` arbeiten an derselben Sammlung; andere Workspaces sind
+getrennt gespeichert. Jedes Token muss eindeutig und geheim sein:
+
+```json
+{
+  "users": [
+    {"id": "anna", "token": "mindestens-24-zeichen-langes-token-anna", "workspace": "buchhaltung"},
+    {"id": "ben", "token": "mindestens-24-zeichen-langes-token-ben", "workspace": "buchhaltung"},
+    {"id": "clara", "token": "mindestens-24-zeichen-langes-token-clara", "workspace": "tochterfirma"}
+  ]
+}
+```
+
+```sh
+go run ./cmd/sync-server --users-file ./sync-users.json --storage-mode data
+```
+
+Für einen einfachen vollständigen Serverbetrieb lässt sich alles in einer Datei
+konfigurieren; Adresse, Datenpfad, Origin, Speichermodus und PDF-Option können
+bei Bedarf weiterhin per Flag oder Umgebungsvariable überschrieben werden:
+
+```json
+{
+  "address": "127.0.0.1:8787",
+  "dataDir": "./data",
+  "allowedOrigin": "https://rechnungen.example.org",
+  "storageMode": "data",
+  "pdfSync": true,
+  "users": [
+    {"id": "anna", "token": "mindestens-24-zeichen-langes-token-anna", "workspace": "buchhaltung"}
+  ]
+}
+```
+
+```sh
+go run ./cmd/sync-server --config ./sync-server.json
+```
+
+Die UI zeigt nach **Verbindung prüfen** die aktive Serverkonfiguration an und
+deaktiviert die PDF-Option automatisch, wenn `pdfSync` ausgeschaltet ist. Über
+**PDFs beim Import direkt im Backend speichern** wird eine importierte PDF nach
+dem Auslesen direkt an den Server übertragen. Die Datei wird dabei nie in
+IndexedDB, LocalStorage oder einem JSON-Backup gespeichert.
+
+`--storage-mode full` (Standard) bewahrt die vollständige JSON-Sicherungsdatei
+einschließlich Metadaten. `--storage-mode data` speichert nur deren
+`invoices`-Array und erstellt beim Abruf wieder eine kompatible Sicherung. Beide
+Modi speichern die bereits vom Browser erzeugte Sammlung. Bei aktivierter
+PDF-Option werden importierte PDFs direkt und ausschließlich im Backend
+gespeichert; im Browser bleiben sie nur während des aktuellen Imports im
+Arbeitsspeicher. Ein PDF wird nur einmal je Rechnungs-ID gespeichert; erneutes
+Hochladen desselben Inhalts ist sicher, abweichender Inhalt erzeugt einen
+Konflikt statt die vorhandene Datei zu überschreiben. XML-Quelldateien werden
+nicht separat synchronisiert. Bei einem ETag-Konflikt muss zuerst
+heruntergeladen und zusammengeführt werden, bevor erneut hochgeladen wird.
+
+Für den Betrieb über mehrere Geräte sollte der Server hinter HTTPS und einer
+Firewall bzw. einem Reverse Proxy laufen, zum Beispiel mit
+`INVOICEINSPECTOR_SYNC_ADDR=127.0.0.1:8787` und einem TLS-terminierenden Proxy.
+`INVOICEINSPECTOR_SYNC_ALLOWED_ORIGIN` kann auf die URL des Viewers begrenzt
+werden; standardmäßig erlaubt der Dienst Browserzugriffe von allen Origins, die
+weiterhin das Token benötigen. Die Sicherungsdatei liegt standardmäßig in
+`./data` und ist auf dem Server **nicht zusätzlich verschlüsselt**. Der Betreiber
+hat daher für Datenträgerverschlüsselung, Zugriffsschutz und starke, geheime
+Tokens zu sorgen. Die Benutzerdatei enthält Tokens im Klartext und muss ebenso
+mit restriktiven Dateirechten geschützt werden.
 
 ### Technische Merkmale
 

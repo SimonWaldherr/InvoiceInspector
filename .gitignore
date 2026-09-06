@@ -1,3 +1,4 @@
 nohup.out
 *.log
 test-invoice.xml
+data/

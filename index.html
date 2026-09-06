@@ -120,6 +120,12 @@
     .modal-box{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.2);padding:16px;max-width:560px;width:100%;text-align:center}
     .qrbox{display:inline-block;background:#fff;padding:12px;border-radius:10px;border:1px solid #ddd;margin:10px 0}
     textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    .collection-hint{flex-basis:100%;margin:4px 0;font-size:.9em}
+    .sync-settings{flex-basis:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--pre)}
+    .sync-settings summary{cursor:pointer;font-weight:700;color:var(--accent)}
+    .sync-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    .sync-fields input{min-width:min(100%,260px);flex:1}
+    .sync-status{flex-basis:100%;margin:2px 0 0}
     .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
     input[type="search"], input[type="date"], input[type="number"], select{padding:10px 12px;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--text)}
     #collectionTableWrap{max-height:62vh;overflow:auto}
@@ -203,13 +209,16 @@
 
     /* print */
     @media print{
-      .top-actions,.langs,#dropZone,.btns,#collectionSection,#loading,#success,#error,#downloadButtons,#xmlViewer,#proXmlSection,#explainPanel,#qrModal,#textModal{display:none!important}
+      .no-print,.top-actions,.langs,#dropZone,.btns,#collectionSection,#loading,#success,#error,#downloadButtons,#xmlViewer,#proXmlSection,#explainPanel,#qrModal,#textModal{display:none!important}
       body{background:#fff;color:#000;margin:0;font-size:11pt}
       section,details{border:1px solid #aaa;box-shadow:none;break-inside:avoid}
       .field-actions,.bt-badge,.explain-btn{display:none!important}
       table{page-break-inside:avoid;width:100%}
       .table-wrap{overflow:visible!important}
+      #lineItemsTable tbody tr[hidden]{display:table-row!important}
     }
+
+    .line-items-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 
     /* overdue rows */
     .overdue-row>td{color:var(--err)!important}
@@ -269,6 +278,16 @@
       <label for="collectionSearch" class="sr-only" data-i18n="collectionSearchLabel">Rechnungssammlung durchsuchen</label>
       <input id="collectionSearch" type="search" placeholder="Suche…" aria-label="Rechnungssammlung durchsuchen">
       <select id="collectionStatusFilter" aria-label="Status filter"></select>
+      <label for="collectionDueFilter" class="sr-only" data-i18n="dueFilterLabel">Fälligkeit</label>
+      <select id="collectionDueFilter">
+        <option value="all" data-i18n="due_all">Alle Fälligkeiten</option>
+        <option value="pending" data-i18n="due_pending">Offene Zahlbeträge</option>
+        <option value="overdue" data-i18n="due_overdue">Überfällig</option>
+        <option value="week" data-i18n="due_week">Heute / nächste 7 Tage</option>
+        <option value="missing" data-i18n="due_missing">Offen ohne Fälligkeitsdatum</option>
+      </select>
+      <label for="collectionCurrency" class="sr-only" data-i18n="currencyFilterLabel">Währung</label>
+      <select id="collectionCurrency"><option value="all" data-i18n="currency_all">Alle Währungen</option></select>
       <select id="collectionSort" aria-label="Sortierung"></select>
       <label class="muted" style="display:flex;gap:8px;align-items:center">
         <input id="collectionTodayOnly" type="checkbox">
@@ -288,6 +307,36 @@
       <button id="exportAllJson" class="pill" type="button" data-i18n="exportAllJson">JSON alle</button>
       <button id="exportTodayCsv" class="pill" type="button" data-i18n="exportTodayCsv">CSV heute</button>
       <button id="exportAllCsv" class="pill" type="button" data-i18n="exportAllCsv">CSV alle</button>
+      <button id="exportFilteredCsv" class="pill" type="button" data-i18n="exportFilteredCsv">CSV Treffer (Positionen)</button>
+      <button id="exportFilteredJson" class="pill" type="button" data-i18n="exportFilteredJson">JSON Treffer</button>
+      <button id="exportRegisterCsv" class="pill" type="button" data-i18n="exportRegisterCsv">Rechnungsjournal (Treffer)</button>
+      <button id="backupCollection" class="pill" type="button" data-i18n="backupCollection">Sammlung sichern</button>
+      <button id="restoreCollection" class="pill" type="button" data-i18n="restoreCollection">Sicherung wiederherstellen</button>
+      <label for="restoreCollectionInput" class="sr-only" data-i18n="restoreCollection">Sicherung wiederherstellen</label>
+      <input id="restoreCollectionInput" type="file" accept="application/json,.json" class="hidden">
+      <details class="sync-settings no-print" id="syncSettings">
+        <summary data-i18n="syncTitle">Optionaler Sync-Server</summary>
+        <p class="muted" data-i18n="syncHint">Synchronisiert die lokale Sicherung mit einem selbst gehosteten Server. Server-Adresse und Token verbleiben in diesem Browser.</p>
+        <div class="sync-fields">
+          <label for="syncEndpoint" class="sr-only" data-i18n="syncEndpointLabel">Server-Adresse</label>
+          <input id="syncEndpoint" type="url" inputmode="url" autocomplete="url" placeholder="https://sync.example.org" aria-label="Server-Adresse">
+          <label for="syncToken" class="sr-only" data-i18n="syncTokenLabel">Sync-Token</label>
+          <input id="syncToken" type="password" autocomplete="off" placeholder="Sync-Token" aria-label="Sync-Token">
+          <button id="syncCheck" class="pill" type="button" data-i18n="syncCheck">Verbindung prüfen</button>
+          <label class="muted" style="display:flex;gap:8px;align-items:center">
+            <input id="syncPdfWithCollection" type="checkbox">
+            <span data-i18n="syncPdfWithCollection">PDFs beim Import direkt im Backend speichern</span>
+          </label>
+          <button id="syncUpload" class="pill" type="button" data-i18n="syncUpload">Hochladen</button>
+          <button id="syncDownload" class="pill" type="button" data-i18n="syncDownload">Herunterladen</button>
+          <button id="syncForget" class="pill" type="button" data-i18n="syncForget">Zugang entfernen</button>
+          <p id="syncCapabilities" class="muted sync-status" aria-live="polite"></p>
+          <p id="syncStatus" class="muted sync-status" role="status" aria-live="polite"></p>
+        </div>
+      </details>
+      <p class="muted collection-hint" data-i18n="outstandingHint">Offene Summen berücksichtigen nur positive Zahlbeträge ohne erledigte Vorgänge, Gutschriften und erkannte Duplikate. Fehlende Zahlbeträge werden durch den Bruttobetrag ersetzt.</p>
+      <p class="muted collection-hint" data-i18n="collectionExportHint">Exporte umfassen alle Treffer über alle Seiten. Das Journal enthält eine Zeile je Rechnung; Beträge bleiben in der Originalwährung.</p>
+      <p class="muted collection-hint" data-i18n="collectionBackupHint">Die Sicherung enthält die gesamte lokale Sammlung einschließlich Status und Kommentaren. Beim Wiederherstellen werden vorhandene Rechnungen ergänzt; identische Kennungen werden aktualisiert.</p>
       <button id="clearCollection" class="pill" type="button" data-i18n="clearCollection">Sammlung löschen</button>
     </div>
     <div id="collectionSummary" class="muted summary hidden" aria-live="polite"></div>
@@ -309,7 +358,8 @@
     <div id="collectionStats" class="stats hidden" aria-live="polite">
       <div class="stat"><strong id="statTotal">0</strong><span data-i18n="statTotal">Rechnungen gesamt</span></div>
       <div class="stat"><strong id="statToday">0</strong><span data-i18n="statToday">Heute geladen</span></div>
-      <div class="stat"><strong id="statPending">0,00 €</strong><span data-i18n="statPending">Offener Zahlbetrag</span></div>
+      <div class="stat"><strong id="statPending">0,00 €</strong><span data-i18n="statPendingFiltered">Offene Zahlbeträge (Treffer)</span></div>
+      <div class="stat"><strong id="statOverdue">0</strong><span data-i18n="statOverdue">Überfällige Zahlbeträge (Treffer)</span></div>
       <div class="stat"><strong id="statDuplicates">0</strong><span data-i18n="statDuplicates">Duplikate</span></div>
     </div>
 
@@ -323,6 +373,7 @@
             <th scope="col"><button type="button" class="th-sort" data-sort-field="loaded"><span data-i18n="colLoadedAt">Geladen</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="invoice"><span data-i18n="colInvNo">Nr.</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="date"><span data-i18n="colInvDate">Datum</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
+            <th scope="col"><button type="button" class="th-sort" data-sort-field="due"><span data-i18n="dueFilterLabel">Fälligkeit</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="seller"><span data-i18n="colSeller">Verkäufer</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="gross"><span data-i18n="colGross">Brutto</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="status"><span data-i18n="colStatus">Status</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
@@ -442,6 +493,11 @@
 
   <section id="lineItemsSection" class="hidden">
     <h2 data-i18n="lineItems">📦 Positionen</h2>
+    <div class="line-items-tools no-print">
+      <label for="lineItemsSearch" data-i18n="lineItemsSearch">Positionen durchsuchen</label>
+      <input id="lineItemsSearch" type="search" aria-controls="lineItemsTable">
+      <span id="lineItemsCount" role="status" aria-live="polite"></span>
+    </div>
     <div class="table-wrap">
       <table id="lineItemsTable">
         <caption class="sr-only" data-i18n="positionsCaption">Positionen</caption>
@@ -902,6 +958,36 @@ window.QRCode = (() => {
 
   const LABELS = {
     de:{
+      priceBaseQuantity:"Preisbasismenge",
+      outstandingHint:"Offene Summen berücksichtigen nur positive Zahlbeträge ohne erledigte Vorgänge, Gutschriften und erkannte Duplikate. Fehlende Zahlbeträge werden durch den Bruttobetrag ersetzt.",
+      dueFilterLabel:"Fälligkeit",
+      due_all:"Alle Fälligkeiten",
+      due_pending:"Offene Zahlbeträge",
+      due_overdue:"Überfällig",
+      due_week:"Heute / nächste 7 Tage",
+      due_missing:"Offen ohne Fälligkeitsdatum",
+      currencyFilterLabel:"Währung",
+      currency_all:"Alle Währungen",
+      sort_due_asc:"Fälligkeit aufsteigend",
+      sort_due_desc:"Fälligkeit absteigend",
+      exportFilteredCsv:"CSV Treffer (Positionen)",
+      exportFilteredJson:"JSON Treffer",
+      exportRegisterCsv:"Rechnungsjournal (Treffer)",
+      exportEmpty:"Keine passenden Rechnungen für den Export.",
+      collectionExportHint:"Exporte umfassen alle Treffer über alle Seiten. Das Journal enthält eine Zeile je Rechnung; Beträge bleiben in der Originalwährung.",
+      backupCollection:"Sammlung sichern", restoreCollection:"Sicherung wiederherstellen",
+      collectionBackupHint:"Die Sicherung enthält die gesamte lokale Sammlung einschließlich Status und Kommentaren. Beim Wiederherstellen werden vorhandene Rechnungen ergänzt; identische Kennungen werden aktualisiert.",
+      restoreInvalid:"Die Datei enthält keine gültige InvoiceInspector-Sicherung.", restoreSummary:"Sicherung wiederhergestellt: {added} neu, {updated} aktualisiert, {skipped} übersprungen.",
+      restoreStorageError:"Die Sicherung konnte nicht lokal gespeichert werden.",
+      confirmRestoreCollection:"Die Sicherung wird mit der lokalen Sammlung zusammengeführt. Rechnungen mit identischer Kennung werden aktualisiert. Fortfahren?",
+      syncTitle:"Optionaler Sync-Server", syncHint:"Synchronisiert die lokale Sicherung mit einem selbst gehosteten Server. Server-Adresse und Token verbleiben in diesem Browser.",
+      syncEndpointLabel:"Server-Adresse", syncTokenLabel:"Sync-Token", syncUpload:"Hochladen", syncDownload:"Herunterladen", syncForget:"Zugang entfernen",
+      syncCheck:"Verbindung prüfen", syncPdfWithCollection:"PDFs beim Import direkt im Backend speichern", syncChecking:"Server wird geprüft…", syncConnected:"Verbindung hergestellt.", syncServerConfig:"Servermodus: {storage} · PDF-Sync: {pdf}", syncStorageFull:"vollständige Sicherung", syncStorageData:"nur Rechnungsdaten", syncPdfEnabled:"aktiv", syncPdfDisabled:"deaktiviert", syncPdfStored:"PDF wurde ausschließlich im Backend gespeichert.",
+      syncPdfConflict:"Mindestens ein PDF ist auf dem Server unter derselben Rechnung anders vorhanden.",
+      syncConfigMissing:"Bitte Server-Adresse und Sync-Token eingeben.", syncConfigInvalid:"Bitte eine HTTPS-Adresse eingeben (HTTP nur für localhost).", syncUploadSuccess:"Lokale Sammlung hochgeladen.", syncDownloadSuccess:"Server-Sicherung zusammengeführt.", syncEmpty:"Auf dem Server ist noch keine Sicherung vorhanden.", syncConflict:"Die Server-Sicherung wurde zwischenzeitlich geändert. Bitte zuerst herunterladen und zusammenführen.", syncFailed:"Synchronisierung fehlgeschlagen.", syncForgetSuccess:"Lokale Sync-Zugangsdaten entfernt.",
+      statOverdue:"Überfällige Zahlbeträge (Treffer)",
+      statPendingFiltered:"Offene Zahlbeträge (Treffer)",
+
       mainTitle:"E‑Rechnungs‑Reader (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Beschreibung",
       descriptionText:"Dieses Tool zeigt elektronische Rechnungen nach aktuellem ZUGFeRD-, Factur‑X-, XRechnung-, UBL-, Peppol-BIS- und EN-16931-Stand an. Eingebettete XMLs in PDFs werden extrahiert.",
@@ -936,6 +1022,8 @@ window.QRCode = (() => {
       sellerInfo:"🏢 Verkäufer",
       buyerInfo:"👤 Käufer",
       lineItems:"📦 Positionen",
+      lineItemsSearch:"Positionen durchsuchen",
+      lineItemsCount:"{shown} von {total} Positionen",
       invoiceHeaderCaption:"Rechnungs-Kopf",
       paymentCaption:"Zahlungsdaten",
       sellerCaption:"Verkäuferdaten",
@@ -1081,6 +1169,36 @@ window.QRCode = (() => {
       overdueHint:"Überfällig",
     },
     en:{
+      priceBaseQuantity:"Price base quantity",
+      outstandingHint:"Outstanding totals include only positive amounts, excluding completed records, credit notes and detected duplicates. Missing payable amounts fall back to the gross amount.",
+      dueFilterLabel:"Due date",
+      due_all:"All due dates",
+      due_pending:"Outstanding amounts",
+      due_overdue:"Overdue",
+      due_week:"Today / next 7 days",
+      due_missing:"Outstanding without due date",
+      currencyFilterLabel:"Currency",
+      currency_all:"All currencies",
+      sort_due_asc:"Due date ascending",
+      sort_due_desc:"Due date descending",
+      exportFilteredCsv:"CSV matches (items)",
+      exportFilteredJson:"JSON matches",
+      exportRegisterCsv:"Invoice register (matches)",
+      exportEmpty:"No matching invoices to export.",
+      collectionExportHint:"Exports include all matches across all pages. The register contains one row per invoice; amounts remain in their original currency.",
+      backupCollection:"Back up collection", restoreCollection:"Restore backup",
+      collectionBackupHint:"The backup contains the complete local collection, including statuses and comments. Restore adds invoices; matching IDs are updated.",
+      restoreInvalid:"This file is not a valid InvoiceInspector backup.", restoreSummary:"Backup restored: {added} added, {updated} updated, {skipped} skipped.",
+      restoreStorageError:"The backup could not be saved locally.",
+      confirmRestoreCollection:"The backup will be merged with the local collection. Invoices with matching IDs will be updated. Continue?",
+      syncTitle:"Optional sync server", syncHint:"Synchronizes the local backup with a self-hosted server. The server address and token remain in this browser.",
+      syncEndpointLabel:"Server address", syncTokenLabel:"Sync token", syncUpload:"Upload", syncDownload:"Download", syncForget:"Forget access",
+      syncCheck:"Check connection", syncPdfWithCollection:"Store PDFs directly in backend on import", syncChecking:"Checking server…", syncConnected:"Connected.", syncServerConfig:"Server mode: {storage} · PDF sync: {pdf}", syncStorageFull:"full backup", syncStorageData:"invoice data only", syncPdfEnabled:"enabled", syncPdfDisabled:"disabled", syncPdfStored:"PDF was stored exclusively in the backend.",
+      syncPdfConflict:"At least one PDF differs from the server copy for the same invoice.",
+      syncConfigMissing:"Enter a server address and sync token.", syncConfigInvalid:"Enter an HTTPS address (HTTP is only allowed for localhost).", syncUploadSuccess:"Local collection uploaded.", syncDownloadSuccess:"Server backup merged.", syncEmpty:"There is no backup on the server yet.", syncConflict:"The server backup changed in the meantime. Download and merge it first.", syncFailed:"Synchronization failed.", syncForgetSuccess:"Local sync credentials removed.",
+      statOverdue:"Overdue amounts (matches)",
+      statPendingFiltered:"Outstanding amounts (matches)",
+
       mainTitle:"E‑Invoice Reader (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Description",
       descriptionText:"View e-invoices aligned with current ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS, and EN 16931 references. Embedded XML is extracted from PDFs.",
@@ -1115,6 +1233,8 @@ window.QRCode = (() => {
       sellerInfo:"🏢 Seller",
       buyerInfo:"👤 Buyer",
       lineItems:"📦 Line items",
+      lineItemsSearch:"Search line items",
+      lineItemsCount:"{shown} of {total} line items",
       invoiceHeaderCaption:"Invoice header",
       paymentCaption:"Payment data",
       sellerCaption:"Seller details",
@@ -1258,6 +1378,36 @@ window.QRCode = (() => {
       overdueHint:"Overdue",
     },
     fr:{
+      priceBaseQuantity:"Quantité de base du prix",
+      outstandingHint:"Les totaux ouverts incluent uniquement les montants positifs, hors dossiers terminés, avoirs et doublons détectés. Sans montant à payer, le montant brut est utilisé.",
+      dueFilterLabel:"Échéance",
+      due_all:"Toutes les échéances",
+      due_pending:"Montants ouverts",
+      due_overdue:"En retard",
+      due_week:"Aujourd’hui / 7 prochains jours",
+      due_missing:"Ouvert sans échéance",
+      currencyFilterLabel:"Devise",
+      currency_all:"Toutes les devises",
+      sort_due_asc:"Échéance croissante",
+      sort_due_desc:"Échéance décroissante",
+      exportFilteredCsv:"CSV résultats (lignes)",
+      exportFilteredJson:"JSON résultats",
+      exportRegisterCsv:"Journal des factures (résultats)",
+      exportEmpty:"Aucune facture à exporter.",
+      collectionExportHint:"Les exports incluent tous les résultats de toutes les pages. Le journal contient une ligne par facture ; les montants restent dans leur devise d’origine.",
+      backupCollection:"Sauvegarder la collection", restoreCollection:"Restaurer la sauvegarde",
+      collectionBackupHint:"La sauvegarde contient toute la collection locale, y compris les statuts et commentaires. La restauration ajoute les factures ; les identifiants existants sont mis à jour.",
+      restoreInvalid:"Ce fichier n’est pas une sauvegarde InvoiceInspector valide.", restoreSummary:"Sauvegarde restaurée : {added} ajoutées, {updated} mises à jour, {skipped} ignorées.",
+      restoreStorageError:"La sauvegarde n’a pas pu être enregistrée localement.",
+      confirmRestoreCollection:"La sauvegarde sera fusionnée avec la collection locale. Les factures ayant le même identifiant seront mises à jour. Continuer ?",
+      syncTitle:"Serveur de synchronisation facultatif", syncHint:"Synchronise la sauvegarde locale avec un serveur auto-hébergé. L’adresse et le jeton restent dans ce navigateur.",
+      syncEndpointLabel:"Adresse du serveur", syncTokenLabel:"Jeton de synchronisation", syncUpload:"Téléverser", syncDownload:"Télécharger", syncForget:"Supprimer l’accès",
+      syncCheck:"Vérifier la connexion", syncPdfWithCollection:"Enregistrer les PDF directement sur le serveur à l’import", syncChecking:"Vérification du serveur…", syncConnected:"Connexion établie.", syncServerConfig:"Mode serveur : {storage} · Synchronisation PDF : {pdf}", syncStorageFull:"sauvegarde complète", syncStorageData:"données de factures uniquement", syncPdfEnabled:"activée", syncPdfDisabled:"désactivée", syncPdfStored:"Le PDF est enregistré uniquement sur le serveur.",
+      syncPdfConflict:"Au moins un PDF diffère de la copie serveur pour la même facture.",
+      syncConfigMissing:"Saisissez une adresse de serveur et un jeton.", syncConfigInvalid:"Saisissez une adresse HTTPS (HTTP seulement pour localhost).", syncUploadSuccess:"Collection locale téléversée.", syncDownloadSuccess:"Sauvegarde du serveur fusionnée.", syncEmpty:"Il n’y a pas encore de sauvegarde sur le serveur.", syncConflict:"La sauvegarde du serveur a changé. Téléchargez-la et fusionnez-la d’abord.", syncFailed:"Échec de la synchronisation.", syncForgetSuccess:"Identifiants de synchronisation locaux supprimés.",
+      statOverdue:"Montants en retard (résultats)",
+      statPendingFiltered:"Montants ouverts (résultats)",
+
       mainTitle:"Lecteur de factures électroniques (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Description",
       descriptionText:"Afficher des factures électroniques conformes aux références actuelles ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS et EN 16931. Le XML intégré est extrait.",
@@ -1292,6 +1442,8 @@ window.QRCode = (() => {
       sellerInfo:"🏢 Vendeur",
       buyerInfo:"👤 Acheteur",
       lineItems:"📦 Lignes",
+      lineItemsSearch:"Rechercher des lignes",
+      lineItemsCount:"{shown} sur {total} lignes",
       invoiceHeaderCaption:"En-tête",
       paymentCaption:"Paiement",
       sellerCaption:"Vendeur",
@@ -1435,6 +1587,36 @@ window.QRCode = (() => {
       overdueHint:"En retard",
     },
     it:{
+      priceBaseQuantity:"Quantità base del prezzo",
+      outstandingHint:"I totali aperti includono solo importi positivi, esclusi record completati, note di credito e duplicati rilevati. Se manca l’importo da pagare viene usato il lordo.",
+      dueFilterLabel:"Scadenza",
+      due_all:"Tutte le scadenze",
+      due_pending:"Importi aperti",
+      due_overdue:"Scadute",
+      due_week:"Oggi / prossimi 7 giorni",
+      due_missing:"Aperte senza scadenza",
+      currencyFilterLabel:"Valuta",
+      currency_all:"Tutte le valute",
+      sort_due_asc:"Scadenza crescente",
+      sort_due_desc:"Scadenza decrescente",
+      exportFilteredCsv:"CSV risultati (righe)",
+      exportFilteredJson:"JSON risultati",
+      exportRegisterCsv:"Registro fatture (risultati)",
+      exportEmpty:"Nessuna fattura da esportare.",
+      collectionExportHint:"Le esportazioni includono tutti i risultati di tutte le pagine. Il registro contiene una riga per fattura; gli importi restano nella valuta originale.",
+      backupCollection:"Salva raccolta", restoreCollection:"Ripristina backup",
+      collectionBackupHint:"Il backup contiene l’intera raccolta locale, inclusi stati e commenti. Il ripristino aggiunge le fatture; gli ID corrispondenti vengono aggiornati.",
+      restoreInvalid:"Questo file non è un backup InvoiceInspector valido.", restoreSummary:"Backup ripristinato: {added} aggiunte, {updated} aggiornate, {skipped} ignorate.",
+      restoreStorageError:"Impossibile salvare il backup localmente.",
+      confirmRestoreCollection:"Il backup verrà unito alla raccolta locale. Le fatture con ID corrispondenti saranno aggiornate. Continuare?",
+      syncTitle:"Server di sincronizzazione opzionale", syncHint:"Sincronizza il backup locale con un server autogestito. Indirizzo e token restano in questo browser.",
+      syncEndpointLabel:"Indirizzo del server", syncTokenLabel:"Token di sincronizzazione", syncUpload:"Carica", syncDownload:"Scarica", syncForget:"Rimuovi accesso",
+      syncCheck:"Verifica connessione", syncPdfWithCollection:"Salva i PDF direttamente nel backend all’importazione", syncChecking:"Verifica del server…", syncConnected:"Connesso.", syncServerConfig:"Modalità server: {storage} · Sincronizzazione PDF: {pdf}", syncStorageFull:"backup completo", syncStorageData:"solo dati fattura", syncPdfEnabled:"attiva", syncPdfDisabled:"disattivata", syncPdfStored:"Il PDF è salvato esclusivamente nel backend.",
+      syncPdfConflict:"Almeno un PDF differisce dalla copia sul server per la stessa fattura.",
+      syncConfigMissing:"Inserire indirizzo del server e token.", syncConfigInvalid:"Inserire un indirizzo HTTPS (HTTP solo per localhost).", syncUploadSuccess:"Raccolta locale caricata.", syncDownloadSuccess:"Backup del server unito.", syncEmpty:"Non esiste ancora un backup sul server.", syncConflict:"Il backup sul server è cambiato. Scaricarlo e unirlo prima.", syncFailed:"Sincronizzazione non riuscita.", syncForgetSuccess:"Credenziali di sincronizzazione locali rimosse.",
+      statOverdue:"Importi scaduti (risultati)",
+      statPendingFiltered:"Importi aperti (risultati)",
+
       mainTitle:"Lettore di fatture elettroniche (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Descrizione",
       descriptionText:"Visualizza fatture elettroniche allineate agli attuali riferimenti ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS ed EN 16931. L’XML incorporato viene estratto.",
@@ -1469,6 +1651,8 @@ window.QRCode = (() => {
       sellerInfo:"🏢 Venditore",
       buyerInfo:"👤 Acquirente",
       lineItems:"📦 Righe",
+      lineItemsSearch:"Cerca nelle righe",
+      lineItemsCount:"{shown} di {total} righe",
       invoiceHeaderCaption:"Intestazione",
       paymentCaption:"Pagamento",
       sellerCaption:"Venditore",
@@ -1612,6 +1796,36 @@ window.QRCode = (() => {
       overdueHint:"Scaduta",
     },
     es:{
+      priceBaseQuantity:"Cantidad base del precio",
+      outstandingHint:"Los totales pendientes incluyen solo importes positivos, sin registros finalizados, notas de crédito ni duplicados detectados. Si falta el importe a pagar se usa el bruto.",
+      dueFilterLabel:"Vencimiento",
+      due_all:"Todos los vencimientos",
+      due_pending:"Importes pendientes",
+      due_overdue:"Vencidas",
+      due_week:"Hoy / próximos 7 días",
+      due_missing:"Pendientes sin vencimiento",
+      currencyFilterLabel:"Moneda",
+      currency_all:"Todas las monedas",
+      sort_due_asc:"Vencimiento ascendente",
+      sort_due_desc:"Vencimiento descendente",
+      exportFilteredCsv:"CSV resultados (líneas)",
+      exportFilteredJson:"JSON resultados",
+      exportRegisterCsv:"Registro de facturas (resultados)",
+      exportEmpty:"No hay facturas para exportar.",
+      collectionExportHint:"Las exportaciones incluyen todos los resultados de todas las páginas. El registro contiene una fila por factura; los importes mantienen su moneda original.",
+      backupCollection:"Guardar colección", restoreCollection:"Restaurar copia",
+      collectionBackupHint:"La copia contiene toda la colección local, incluidos estados y comentarios. Al restaurar se añaden facturas; los ID coincidentes se actualizan.",
+      restoreInvalid:"Este archivo no es una copia de InvoiceInspector válida.", restoreSummary:"Copia restaurada: {added} añadidas, {updated} actualizadas, {skipped} omitidas.",
+      restoreStorageError:"No se pudo guardar la copia localmente.",
+      confirmRestoreCollection:"La copia se combinará con la colección local. Las facturas con IDs coincidentes se actualizarán. ¿Continuar?",
+      syncTitle:"Servidor de sincronización opcional", syncHint:"Sincroniza la copia local con un servidor autohospedado. La dirección y el token permanecen en este navegador.",
+      syncEndpointLabel:"Dirección del servidor", syncTokenLabel:"Token de sincronización", syncUpload:"Subir", syncDownload:"Descargar", syncForget:"Eliminar acceso",
+      syncCheck:"Comprobar conexión", syncPdfWithCollection:"Guardar PDF directamente en el backend al importar", syncChecking:"Comprobando el servidor…", syncConnected:"Conectado.", syncServerConfig:"Modo del servidor: {storage} · Sincronización PDF: {pdf}", syncStorageFull:"copia completa", syncStorageData:"solo datos de facturas", syncPdfEnabled:"activa", syncPdfDisabled:"desactivada", syncPdfStored:"El PDF se guardó exclusivamente en el backend.",
+      syncPdfConflict:"Al menos un PDF difiere de la copia del servidor para la misma factura.",
+      syncConfigMissing:"Indique la dirección del servidor y el token.", syncConfigInvalid:"Indique una dirección HTTPS (HTTP solo para localhost).", syncUploadSuccess:"Colección local subida.", syncDownloadSuccess:"Copia del servidor combinada.", syncEmpty:"Aún no hay una copia en el servidor.", syncConflict:"La copia del servidor ha cambiado. Descárguela y combínela primero.", syncFailed:"Error de sincronización.", syncForgetSuccess:"Credenciales locales de sincronización eliminadas.",
+      statOverdue:"Importes vencidos (resultados)",
+      statPendingFiltered:"Importes pendientes (resultados)",
+
       mainTitle:"Lector de facturas electrónicas (ZUGFeRD / XRechnung / UBL / EN 16931)",
       descriptionTitle:"Descripción",
       descriptionText:"Visualizar facturas electrónicas alineadas con las referencias actuales de ZUGFeRD, Factur‑X, XRechnung, UBL, Peppol BIS y EN 16931. El XML incrustado se extrae.",
@@ -1647,6 +1861,8 @@ window.QRCode = (() => {
       sellerInfo:"🏢 Vendedor",
       buyerInfo:"👤 Comprador",
       lineItems:"📦 Líneas",
+      lineItemsSearch:"Buscar líneas",
+      lineItemsCount:"{shown} de {total} líneas",
       invoiceHeaderCaption:"Encabezado",
       paymentCaption:"Pago",
       sellerCaption:"Vendedor",
@@ -1817,6 +2033,8 @@ window.QRCode = (() => {
     sellerSection: $("sellerSection"),
     buyerSection: $("buyerSection"),
     lineItemsSection: $("lineItemsSection"),
+    lineItemsSearch: $("lineItemsSearch"),
+    lineItemsCount: $("lineItemsCount"),
     lineItemsTable: $("lineItemsTable"),
     // fields
     invNumber:$("invNumber"), invDate:$("invDate"), invDueDate:$("invDueDate"), invOrderNumber:$("invOrderNumber"), invNote:$("invNote"),
@@ -1824,6 +2042,14 @@ window.QRCode = (() => {
     netAmount:$("netAmount"), taxAmount:$("taxAmount"), grossAmount:$("grossAmount"), dueAmount:$("dueAmount"),
     sellerName:$("sellerName"), sellerAddress:$("sellerAddress"), sellerEmail:$("sellerEmail"), sellerPhone:$("sellerPhone"), sellerTaxID:$("sellerTaxID"), sellerRegister:$("sellerRegister"),
     buyerName:$("buyerName"), buyerAddress:$("buyerAddress"), buyerAddress2:$("buyerAddress2"), buyerEmail:$("buyerEmail"), buyerPhone:$("buyerPhone"), buyerTaxID:$("buyerTaxID"),
+    collectionDueFilter:$("collectionDueFilter"),
+    collectionCurrency:$("collectionCurrency"),
+    statOverdue:$("statOverdue"),
+    exportFilteredCsv:$("exportFilteredCsv"),
+    exportFilteredJson:$("exportFilteredJson"),
+    exportRegisterCsv:$("exportRegisterCsv"),
+    backupCollection:$("backupCollection"), restoreCollection:$("restoreCollection"), restoreCollectionInput:$("restoreCollectionInput"),
+    syncEndpoint:$("syncEndpoint"), syncToken:$("syncToken"), syncCheck:$("syncCheck"), syncPdfWithCollection:$("syncPdfWithCollection"), syncUpload:$("syncUpload"), syncDownload:$("syncDownload"), syncForget:$("syncForget"), syncCapabilities:$("syncCapabilities"), syncStatus:$("syncStatus"),
     // collection
     collectionEnabled:$("collectionEnabled"),
     collectionControls:$("collectionControls"),
@@ -1930,6 +2156,19 @@ window.QRCode = (() => {
     dom.exportAllJson.setAttribute("aria-label", L().exportAllJson);
     dom.exportTodayCsv.setAttribute("aria-label", L().exportTodayCsv);
     dom.exportAllCsv.setAttribute("aria-label", L().exportAllCsv);
+    dom.backupCollection.setAttribute("aria-label", L().backupCollection);
+    dom.restoreCollection.setAttribute("aria-label", L().restoreCollection);
+    dom.syncEndpoint.setAttribute("aria-label", L().syncEndpointLabel);
+    dom.syncToken.setAttribute("aria-label", L().syncTokenLabel);
+    dom.syncEndpoint.placeholder = "https://sync.example.org";
+    dom.syncToken.placeholder = L().syncTokenLabel;
+    dom.syncCheck.setAttribute("aria-label", L().syncCheck);
+    dom.syncPdfWithCollection.setAttribute("aria-label", L().syncPdfWithCollection);
+    dom.syncUpload.setAttribute("aria-label", L().syncUpload);
+    dom.syncDownload.setAttribute("aria-label", L().syncDownload);
+    dom.syncForget.setAttribute("aria-label", L().syncForget);
+    if(syncStatusKey) dom.syncStatus.textContent=L()[syncStatusKey]||syncStatusKey;
+    if(syncServerInfo) updateSyncCapabilities(syncServerInfo);
     dom.clearCollection.setAttribute("aria-label", L().clearCollection);
     // active btn
     document.querySelectorAll(".langs .lang-btn").forEach(b=>b.classList.remove("active"));
@@ -1942,6 +2181,7 @@ window.QRCode = (() => {
     updateSortHeaderIndicators();
     updateRestoreLastButton();
     renderCollection();
+    filterLineItems();
     // refresh BT badges with new language
     if(proMode) applyProModeToFields();
   }
@@ -1976,7 +2216,8 @@ window.QRCode = (() => {
     if(dom.taxBreakdownSection) hide(dom.taxBreakdownSection);
     dom.xmlPre.textContent="";
     dom.lineItemsTable.querySelector("tbody").innerHTML="";
-    Object.values(dom).forEach(v=>{}); // noop
+    dom.lineItemsSearch.value="";
+    dom.lineItemsCount.textContent="";
     originalPdfBlob=null; originalXmlBlob=null; xmlDoc=null; invoiceData={};
     // close modals
     closeModal(dom.qrModal);
@@ -2013,6 +2254,22 @@ window.QRCode = (() => {
     let rem=0;
     for(let i=0;i<e.length;i+=7){ rem=parseInt(String(rem)+e.substr(i,7),10)%97; }
     return rem===1;
+  }
+
+  function csvCell(value){
+    let text=String(value ?? "");
+    // Quoting alone does not stop spreadsheet formula execution. Preserve signed numbers.
+    const numeric=/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(text);
+    if((!numeric && /^[\s\uFEFF]*[=+@-]/.test(text)) || /^[\t\r\n]/.test(text)) text="'"+text;
+    return `"${text.replace(/"/g,'""')}"`;
+  }
+  function buildInvoiceRegisterCsv(list){
+    const headers=["invoice_number","invoice_type","invoice_date","due_date","seller","buyer","order_number","currency","net_amount","tax_amount","gross_amount","due_amount","outstanding_amount","status","overdue","duplicate_of","iban","comment","filename"];
+    const rows=list.map(inv=>{
+      const h=inv.header||{}, p=inv.payment||{};
+      return [h.number,h.typeCode,invoiceDateKey(h.date),invoiceDateKey(h.dueDate),inv.seller?.name,inv.buyer?.name,h.orderNumber,invoiceCurrency(inv),csvNum(p.netAmount),csvNum(p.taxAmount),csvNum(p.grossAmount),csvNum(p.dueAmount),csvNum(outstandingAmount(inv)),inv.user?.status||"open",matchesDueFilter(inv,"overdue")?"true":"false",inv.duplicateOf,p.iban,inv.user?.comment,inv.meta?.filename];
+    });
+    return [headers,...rows].map(row=>row.map(csvCell).join(csvDelimiter())).join("\r\n");
   }
 
   function csvDelimiter(){ return (lang==="en") ? "," : ";"; }
@@ -2542,7 +2799,9 @@ window.QRCode = (() => {
 
   function parseAmount(value){
     if(value==null || value==="") return null;
-    const n = parseFloat(String(value).trim().replace(",", "."));
+    const text = String(value).trim();
+    if(!/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(text)) return null;
+    const n = Number(text.replace(",", "."));
     return Number.isFinite(n) ? n : null;
   }
 
@@ -2623,7 +2882,8 @@ window.QRCode = (() => {
     const getTotal = (path) => total ? parseAmount(firstText(total, [path])) : null;
     const lineExtensionTotal = getTotal("./cbc:LineExtensionAmount");
     const taxExclusiveTotal = getTotal("./cbc:TaxExclusiveAmount");
-    invoiceData.payment.netAmount = lineExtensionTotal != null ? lineExtensionTotal : taxExclusiveTotal;
+    invoiceData.payment.lineTotalAmount = lineExtensionTotal;
+    invoiceData.payment.netAmount = taxExclusiveTotal != null ? taxExclusiveTotal : lineExtensionTotal;
     invoiceData.payment.taxAmount = parseAmount(firstText(xmlDoc, [
       "/ublInvoice:Invoice/cac:TaxTotal/cbc:TaxAmount",
       "/ublCreditNote:CreditNote/cac:TaxTotal/cbc:TaxAmount",
@@ -2641,7 +2901,8 @@ window.QRCode = (() => {
       const unitPrice = parseAmount(firstText(row, ["./cac:Price/cbc:PriceAmount"])) ?? 0;
       const lineNetAmount = parseAmount(firstText(row, ["./cbc:LineExtensionAmount"]));
       if(lineNetAmount == null) usedLineAmountFallback = true;
-      const lineNet = lineNetAmount != null ? lineNetAmount : +(unitPrice * qty).toFixed(2);
+      const priceBaseQuantity = parseAmount(firstText(row, ["./cac:Price/cbc:BaseQuantity"]));
+      const lineNet = lineNetAmount != null ? lineNetAmount : +(unitPrice * qty / (priceBaseQuantity > 0 ? priceBaseQuantity : 1)).toFixed(2);
       const taxRate = parseAmount(firstText(row, [
         "./cac:Item/cac:ClassifiedTaxCategory/cbc:Percent",
         "./cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent",
@@ -2653,13 +2914,13 @@ window.QRCode = (() => {
         productName:firstText(row, ["./cac:Item/cbc:Name"]),
         description:xps(row, "./cac:Item/cbc:Description").map(n=>n.textContent.trim()).join("\n"),
         notes:xps(row, "./cbc:Note").map(n=>n.textContent.trim()).join("\n"),
-        quantity:qty, unitCode, unit:getUnit(unitCode), unitPrice:+unitPrice.toFixed(2),
+        quantity:qty, unitCode, unit:getUnit(unitCode), unitPrice, priceBaseQuantity,
         lineNet:+lineNet.toFixed(2), taxRate:+taxRate.toFixed(2), lineGross:+lineGross.toFixed(2)
       });
     });
     if(usedLineAmountFallback) addWarning("warningsUblLineAmountFallback");
 
-    validateLineNetTotal(invoiceData.payment.netAmount, sumNetLines, rows.length > 0);
+    validateLineNetTotal(invoiceData.payment.lineTotalAmount, sumNetLines, rows.length > 0);
 
     invoiceData.taxBreakdown = xps(xmlDoc, "/ublInvoice:Invoice/cac:TaxTotal/cac:TaxSubtotal | /ublCreditNote:CreditNote/cac:TaxTotal/cac:TaxSubtotal").map(tn => ({
       typeCode: firstText(tn, ["./cac:TaxCategory/cac:TaxScheme/cbc:ID"]),
@@ -2743,6 +3004,8 @@ window.QRCode = (() => {
     enabled:"invoiceInspector.collectionEnabled",
     legacy:"invoiceInspector.legacyInvoices",
     lastInvoice:"invoiceInspector.lastInvoice",
+    collectionDueFilter:"invoiceInspector.collectionDueFilter",
+    collectionCurrency:"invoiceInspector.collectionCurrency",
     collectionSort:"invoiceInspector.collectionSort",
     collectionSearch:"invoiceInspector.collectionSearch",
     collectionStatus:"invoiceInspector.collectionStatus",
@@ -2753,7 +3016,11 @@ window.QRCode = (() => {
     collectionGrossMin:"invoiceInspector.collectionGrossMin",
     collectionGrossMax:"invoiceInspector.collectionGrossMax",
     collectionPageSize:"invoiceInspector.collectionPageSize",
-    collectionPage:"invoiceInspector.collectionPage"
+    collectionPage:"invoiceInspector.collectionPage",
+    syncEndpoint:"invoiceInspector.syncEndpoint",
+    syncToken:"invoiceInspector.syncToken",
+    syncETag:"invoiceInspector.syncETag",
+    syncPdfWithCollection:"invoiceInspector.syncPdfWithCollection"
   };
 
   function lsGet(key, fallback=""){
@@ -2840,6 +3107,14 @@ window.QRCode = (() => {
       tx.onerror=()=>resolve(false);
     });
   }
+  async function dbPutMany(invoices){
+    const db=await openDb(); if(!db) return false;
+    return new Promise((resolve)=>{
+      const tx=db.transaction(DB.store,"readwrite"), store=tx.objectStore(DB.store);
+      invoices.forEach(inv=>store.put(inv));
+      tx.oncomplete=()=>resolve(true); tx.onerror=tx.onabort=()=>resolve(false);
+    });
+  }
   async function dbGetAll(){
     const db=await openDb(); if(!db) return null;
     return new Promise((resolve)=>{
@@ -2868,7 +3143,7 @@ window.QRCode = (() => {
     });
   }
   function lsLoad(){ try{const raw=localStorage.getItem(LS.legacy); return raw?JSON.parse(raw):[]}catch(_){return []} }
-  function lsSave(list){ try{localStorage.setItem(LS.legacy, JSON.stringify(list))}catch(_){} }
+  function lsSave(list){ try{localStorage.setItem(LS.legacy, JSON.stringify(list)); return true;}catch(_){return false;} }
 
   function dayKey(d){ const dt=(d instanceof Date)?d:new Date(d); return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
   function isToday(iso){ return dayKey(iso)===dayKey(new Date()); }
@@ -2887,11 +3162,12 @@ window.QRCode = (() => {
     return [10,25,50,100].includes(n) ? n : 25;
   }
   function invoiceDateKey(v){
-    const s=String(v||"").trim();
-    if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){ const [d,m,y]=s.split("."); return `${y}-${m}-${d}`; }
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-    if(/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
-    return "";
+    let s=String(v||"").trim();
+    if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){ const [d,m,y]=s.split("."); s=`${y}-${m}-${d}`; }
+    if(/^\d{8}$/.test(s)) s=`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return "";
+    const date=new Date(`${s}T12:00:00Z`);
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0,10)===s ? s : "";
   }
   function parseNum(v){
     const txt=String(v??"").trim().replace(",",".");
@@ -2900,6 +3176,8 @@ window.QRCode = (() => {
     return Number.isFinite(n) ? n : null;
   }
   function saveCollectionUiSettings(){
+    lsSet(LS.collectionCurrency, dom.collectionCurrency.value || "all");
+    lsSet(LS.collectionDueFilter, dom.collectionDueFilter.value || "all");
     lsSet(LS.collectionSearch, dom.collectionSearch.value || "");
     lsSet(LS.collectionStatus, dom.collectionStatusFilter.value || "all");
     boolToLs(LS.collectionTodayOnly, !!dom.collectionTodayOnly.checked);
@@ -2911,6 +3189,8 @@ window.QRCode = (() => {
     lsSet(LS.collectionPageSize, dom.collectionPageSize.value || "25");
   }
   function restoreCollectionUiSettings(){
+    dom.collectionDueFilter.value=lsGet(LS.collectionDueFilter,"all");
+    buildCurrencyOptions([], lsGet(LS.collectionCurrency,"all"));
     dom.collectionSearch.value = lsGet(LS.collectionSearch, "");
     dom.collectionStatusFilter.value = lsGet(LS.collectionStatus, "all");
     dom.collectionTodayOnly.checked = boolFromLs(LS.collectionTodayOnly);
@@ -2922,6 +3202,9 @@ window.QRCode = (() => {
     dom.collectionPageSize.value = String(getPageSize());
   }
   function clearCollectionFilters(){
+    clearError();
+    dom.collectionCurrency.value="all";
+    dom.collectionDueFilter.value="all";
     dom.collectionSearch.value="";
     dom.collectionStatusFilter.value="all";
     dom.collectionTodayOnly.checked=false;
@@ -2972,7 +3255,7 @@ window.QRCode = (() => {
   function buildSortOptions(){
     const sel=dom.collectionSort;
     const cur=getSortMode();
-    const items=["loaded_desc","loaded_asc","invoice_asc","invoice_desc","date_desc","date_asc","seller_asc","seller_desc","status_asc","status_desc","gross_desc","gross_asc"];
+    const items=["due_asc","due_desc","loaded_desc","loaded_asc","invoice_asc","invoice_desc","date_desc","date_asc","seller_asc","seller_desc","status_asc","status_desc","gross_desc","gross_asc"];
     sel.innerHTML="";
     items.forEach(k=>{
       const o=document.createElement("option");
@@ -2994,6 +3277,11 @@ window.QRCode = (() => {
       if(mode==="loaded_asc") return String(a?.meta?.loadedAt||"").localeCompare(String(b?.meta?.loadedAt||""));
       if(mode==="invoice_asc") return cmpText(a?.header?.number,b?.header?.number);
       if(mode==="invoice_desc") return cmpText(b?.header?.number,a?.header?.number);
+      if(mode.startsWith("due_")){
+        const aDue=invoiceDateKey(a?.header?.dueDate), bDue=invoiceDateKey(b?.header?.dueDate);
+        if(!aDue || !bDue) return aDue ? -1 : bDue ? 1 : 0;
+        return mode==="due_asc" ? cmpText(aDue,bDue) : cmpText(bDue,aDue);
+      }
       if(mode==="date_asc") return cmpText(invoiceDateKey(a?.header?.date),invoiceDateKey(b?.header?.date));
       if(mode==="date_desc") return cmpText(invoiceDateKey(b?.header?.date),invoiceDateKey(a?.header?.date));
       if(mode==="seller_asc") return cmpText(a?.seller?.name,b?.seller?.name);
@@ -3007,22 +3295,56 @@ window.QRCode = (() => {
     return sorted;
   }
 
-  function sumPending(list){
-    return list.reduce((sum, inv)=>{
-      const status=inv?.user?.status || "open";
-      if(["paid","done","cancelled","claimed"].includes(status)) return sum;
-      const amount=Number(inv?.payment?.dueAmount ?? inv?.payment?.grossAmount);
-      return Number.isFinite(amount) ? sum + amount : sum;
-    }, 0);
+  function invoiceCurrency(inv){ return String(inv?.payment?.currency || "EUR").trim().toUpperCase() || "EUR"; }
+  function outstandingAmount(inv){
+    if(["paid","done","cancelled","claimed"].includes(inv?.user?.status || "open")) return null;
+    if(inv?.duplicateOf) return null;
+    // Credit notes are not outgoing payment obligations.
+    if(["381"].includes(String(inv?.header?.typeCode || ""))) return null;
+    const amount=parseNum(inv?.payment?.dueAmount ?? inv?.payment?.grossAmount);
+    return amount != null && amount > 0 ? amount : null;
   }
-
+  function matchesDueFilter(inv, mode, now=new Date()){
+    if(mode==="all") return true;
+    if(outstandingAmount(inv)==null) return false;
+    const due=invoiceDateKey(inv?.header?.dueDate);
+    const today=dayKey(now);
+    const end=new Date(now); end.setDate(end.getDate()+7);
+    if(mode==="overdue") return !!due && due < today;
+    if(mode==="week") return !!due && due >= today && due <= dayKey(end);
+    if(mode==="missing") return !due;
+    return mode==="pending";
+  }
+  function sumPending(list){
+    const totals=new Map();
+    list.forEach(inv=>{
+      const amount=outstandingAmount(inv);
+      if(amount==null) return;
+      const currency=invoiceCurrency(inv);
+      totals.set(currency,(totals.get(currency)||0)+amount);
+    });
+    return totals;
+  }
+  function formatCurrencyTotals(totals){
+    return [...totals].sort(([a],[b])=>a.localeCompare(b)).map(([currency,amount])=>fmtMoney(amount,currency)).join(" · ") || "—";
+  }
+  function buildCurrencyOptions(list, selected=dom.collectionCurrency.value || "all"){
+    const currencies=new Set(list.map(invoiceCurrency));
+    if(selected!=="all") currencies.add(selected);
+    dom.collectionCurrency.replaceChildren();
+    const all=document.createElement("option"); all.value="all"; all.textContent=L().currency_all;
+    dom.collectionCurrency.appendChild(all);
+    [...currencies].sort().forEach(currency=>{
+      const option=document.createElement("option"); option.value=currency; option.textContent=currency;
+      dom.collectionCurrency.appendChild(option);
+    });
+    dom.collectionCurrency.value=selected;
+  }
   function updateCollectionStats(all, filtered){
-    const pending=sumPending(filtered);
-    const source=filtered.length ? filtered : all;
-    const currency=source.find(inv=>inv?.payment?.currency)?.payment?.currency || "EUR";
     dom.statTotal.textContent=String(all.length);
     dom.statToday.textContent=String(all.filter(inv=>isToday(inv?.meta?.loadedAt)).length);
-    dom.statPending.textContent=fmtMoney(pending, getCurSym(currency));
+    dom.statPending.textContent=formatCurrencyTotals(sumPending(filtered));
+    dom.statOverdue.textContent=formatCurrencyTotals(sumPending(filtered.filter(inv=>matchesDueFilter(inv,"overdue"))));
     dom.statDuplicates.textContent=String(all.filter(inv=>inv?.duplicateOf).length);
     dom.collectionStats.classList.toggle("hidden", !enabled() || all.length===0);
   }
@@ -3129,6 +3451,175 @@ window.QRCode = (() => {
     return sortInvoices(lsLoad());
   }
 
+  function backupRecords(payload){
+    if(Array.isArray(payload)) return payload; // compatible with earlier JSON-all exports
+    if(payload && payload.format==="InvoiceInspector collection backup" && payload.version===1 && Array.isArray(payload.invoices)) return payload.invoices;
+    return null;
+  }
+  async function collectionBackup(){
+    return {format:"InvoiceInspector collection backup",version:1,exportedAt:new Date().toISOString(),invoices:await allInvoices()};
+  }
+  function isBackupInvoice(record){
+    return !!record && typeof record==="object" && !Array.isArray(record) && !!record.header && typeof record.header==="object";
+  }
+  async function backupCollection(){
+    if(!enabled()) return;
+    const backup=await collectionBackup();
+    downloadBlob(new Blob([JSON.stringify(backup,null,2)],{type:"application/json"}), `invoiceinspector_backup_${dayKey(new Date())}.json`);
+  }
+  async function restoreCollection(payload){
+    const records=backupRecords(payload);
+    if(!records){ showError(L().restoreInvalid); return false; }
+    const existing=await allInvoices();
+    const byId=new Map(existing.map(inv=>[inv.id,inv]));
+    const dedupeOwners=new Map(existing.filter(inv=>!inv.duplicateOf).map(inv=>[inv.dedupeKey||dedupeKey(inv),inv.id]));
+    const changes=[];
+    let added=0, updated=0, skipped=0;
+    records.forEach(record=>{
+      if(!isBackupInvoice(record)){ skipped++; return; }
+      const inv=normalizeForStorage(record);
+      if(byId.get(inv.id)){
+        updated++;
+      }else{
+        added++;
+        const owner=dedupeOwners.get(inv.dedupeKey);
+        if(owner) inv.duplicateOf=owner;
+        else if(!inv.duplicateOf) dedupeOwners.set(inv.dedupeKey, inv.id);
+      }
+      byId.set(inv.id,inv);
+      changes.push(inv);
+    });
+    if(changes.length){
+      let stored=await dbPutMany(changes);
+      if(!stored) stored=lsSave(Array.from(byId.values()));
+      if(!stored){ showError(L().restoreStorageError); return false; }
+    }
+    clearError();
+    showSuccess(tpl("restoreSummary",{added,updated,skipped}));
+    renderCollection();
+    return true;
+  }
+  async function restoreCollectionFile(file){
+    if(!file) return;
+    try{
+      const payload=JSON.parse(await file.text());
+      if(!backupRecords(payload)){ showError(L().restoreInvalid); return; }
+      if(confirm(L().confirmRestoreCollection)) await restoreCollection(payload);
+    }catch(_){
+      showError(L().restoreInvalid);
+    }
+  }
+  let syncStatusKey="";
+  let syncServerInfo=null;
+  function setSyncStatus(key){
+    syncStatusKey=key;
+    dom.syncStatus.textContent=key ? (L()[key]||key) : "";
+  }
+  function restoreSyncSettings(){
+    dom.syncEndpoint.value=lsGet(LS.syncEndpoint,"");
+    dom.syncToken.value=lsGet(LS.syncToken,"");
+    dom.syncPdfWithCollection.checked=boolFromLs(LS.syncPdfWithCollection);
+  }
+  function saveSyncSettings(){
+    lsSet(LS.syncEndpoint,dom.syncEndpoint.value.trim().replace(/\/+$/,""));
+    lsSet(LS.syncToken,dom.syncToken.value);
+    boolToLs(LS.syncPdfWithCollection,dom.syncPdfWithCollection.checked);
+  }
+  function syncConfig(){
+    const endpoint=dom.syncEndpoint.value.trim().replace(/\/+$/,"");
+    const token=dom.syncToken.value;
+    if(!endpoint || !token){ setSyncStatus("syncConfigMissing"); return null; }
+    let url;
+    try{ url=new URL(endpoint); }catch(_){ setSyncStatus("syncConfigInvalid"); return null; }
+    const isLocal=["localhost","127.0.0.1","[::1]","::1"].includes(url.hostname);
+    if(url.protocol!=="https:" && !(url.protocol==="http:" && isLocal)){ setSyncStatus("syncConfigInvalid"); return null; }
+    saveSyncSettings();
+    return {endpoint,token};
+  }
+  function syncHeaders(config, extra={}){
+    return Object.assign({Authorization:`Bearer ${config.token}`},extra);
+  }
+  function updateSyncCapabilities(info){
+    syncServerInfo=info;
+    const pdfEnabled=!!info?.pdfSync;
+    dom.syncPdfWithCollection.disabled=!pdfEnabled;
+    if(!pdfEnabled){ dom.syncPdfWithCollection.checked=false; boolToLs(LS.syncPdfWithCollection,false); }
+    const storage=info?.storageMode==="data" ? L().syncStorageData : L().syncStorageFull;
+    dom.syncCapabilities.textContent=tpl("syncServerConfig",{storage,pdf:pdfEnabled?L().syncPdfEnabled:L().syncPdfDisabled});
+  }
+  async function checkSyncServer(providedConfig){
+    const config=providedConfig||syncConfig(); if(!config) return null;
+    setSyncStatus("syncChecking");
+    try{
+      const response=await fetch(`${config.endpoint}/v1/config`,{headers:syncHeaders(config)});
+      if(!response.ok) throw new Error("HTTP "+response.status);
+      const info=await response.json();
+      if(!["full","data"].includes(info?.storageMode) || typeof info?.pdfSync!=="boolean") throw new Error("invalid config");
+      updateSyncCapabilities(info);
+      setSyncStatus("syncConnected");
+      return info;
+    }catch(_){
+      syncServerInfo=null;
+      dom.syncCapabilities.textContent="";
+      setSyncStatus("syncFailed");
+      return null;
+    }
+  }
+  async function ensureSyncServerInfo(config){
+    return syncServerInfo || checkSyncServer(config);
+  }
+  async function uploadToSyncServer(){
+    if(!enabled()) return;
+    const config=syncConfig(); if(!config) return;
+    setSyncStatus("");
+    try{
+      const headers=syncHeaders(config,{"Content-Type":"application/json"});
+      const etag=lsGet(LS.syncETag,"");
+      if(etag) headers["If-Match"]=etag;
+      const response=await fetch(`${config.endpoint}/v1/backup`,{method:"PUT",headers,body:JSON.stringify(await collectionBackup())});
+      if(response.status===412){ setSyncStatus("syncConflict"); return; }
+      if(!response.ok) throw new Error("HTTP "+response.status);
+      lsSet(LS.syncETag,response.headers.get("ETag")||"");
+      setSyncStatus("syncUploadSuccess");
+    }catch(_){ setSyncStatus("syncFailed"); }
+  }
+  async function downloadFromSyncServer(){
+    if(!enabled()) return;
+    const config=syncConfig(); if(!config) return;
+    setSyncStatus("");
+    try{
+      const response=await fetch(`${config.endpoint}/v1/backup`,{headers:syncHeaders(config)});
+      if(response.status===404){ setSyncStatus("syncEmpty"); return; }
+      if(!response.ok) throw new Error("HTTP "+response.status);
+      const payload=await response.json();
+      if(!backupRecords(payload)){ showError(L().restoreInvalid); return; }
+      if(!confirm(L().confirmRestoreCollection)) return;
+      if(await restoreCollection(payload)){
+        lsSet(LS.syncETag,response.headers.get("ETag")||"");
+        setSyncStatus("syncDownloadSuccess");
+      }
+    }catch(_){ setSyncStatus("syncFailed"); }
+  }
+  function syncPdfUrl(config, invoiceId){ return `${config.endpoint}/v1/files/${encodeURIComponent(invoiceId)}`; }
+  async function uploadImportedPdf(invoiceId, pdf){
+    if(!dom.syncPdfWithCollection.checked || !pdf || !invoiceId) return;
+    const config=syncConfig(); if(!config) return;
+    if(!(await ensureSyncServerInfo(config))?.pdfSync) return;
+    try{
+      const response=await fetch(syncPdfUrl(config,invoiceId),{method:"PUT",headers:syncHeaders(config,{"Content-Type":"application/pdf"}),body:pdf});
+      if(response.status===409){ setSyncStatus("syncPdfConflict"); return; }
+      if(!response.ok) throw new Error("HTTP "+response.status);
+      setSyncStatus("syncPdfStored");
+    }catch(_){ setSyncStatus("syncFailed"); }
+  }
+  function forgetSyncServer(){
+    dom.syncEndpoint.value=""; dom.syncToken.value="";
+    lsSet(LS.syncEndpoint,""); lsSet(LS.syncToken,""); lsSet(LS.syncETag,"");
+    syncServerInfo=null; dom.syncCapabilities.textContent="";
+    dom.syncPdfWithCollection.disabled=false;
+    setSyncStatus("syncForgetSuccess");
+  }
+
   function filterInvoices(list){
     const q=(dom.collectionSearch.value||"").trim().toLowerCase();
     const st=dom.collectionStatusFilter.value||"all";
@@ -3139,6 +3630,8 @@ window.QRCode = (() => {
     const minGross=parseNum(dom.collectionGrossMin.value);
     const maxGross=parseNum(dom.collectionGrossMax.value);
     return list.filter(inv=>{
+      if(!matchesDueFilter(inv, dom.collectionDueFilter.value || "all")) return false;
+      if(dom.collectionCurrency.value!=="all" && invoiceCurrency(inv)!==dom.collectionCurrency.value) return false;
       if(today && !isToday(inv?.meta?.loadedAt)) return false;
       if(dupOnly && !inv?.duplicateOf) return false;
       const loadedDate=inv?.meta?.loadedAt ? new Date(inv.meta.loadedAt) : null;
@@ -3150,15 +3643,19 @@ window.QRCode = (() => {
       if(maxGross!=null && (!Number.isFinite(gross) || gross>maxGross)) return false;
       if(st!=="all" && (inv?.user?.status||"open")!==st) return false;
       if(!q) return true;
-      const hay=[inv?.header?.number,inv?.header?.date,inv?.seller?.name,inv?.buyer?.name,inv?.meta?.filename,inv?.user?.comment,getStatusLabel(inv?.user?.status||"open")].filter(Boolean).join(" ").toLowerCase();
+      const hay=[inv?.header?.number,inv?.header?.date,inv?.header?.orderNumber,inv?.payment?.iban,inv?.seller?.name,inv?.buyer?.name,inv?.meta?.filename,inv?.user?.comment,getStatusLabel(inv?.user?.status||"open")].filter(Boolean).join(" ").toLowerCase();
       return hay.includes(q);
     });
   }
 
+  let collectionRenderVersion=0;
   async function renderCollection(){
+    const version=++collectionRenderVersion;
     dom.collectionEnabled.checked = enabled();
     dom.collectionControls.classList.toggle("hidden", !enabled());
     const list = enabled() ? await allInvoices() : [];
+    if(version!==collectionRenderVersion) return;
+    buildCurrencyOptions(list);
     const filtered = enabled() ? filterInvoices(list) : [];
     const pageData = paginate(filtered);
     updateCollectionStats(list, filtered);
@@ -3168,7 +3665,6 @@ window.QRCode = (() => {
     dom.collectionTableWrap.classList.toggle("hidden", !enabled() || filtered.length===0);
     const tb=dom.collectionTable.querySelector("tbody");
     tb.innerHTML="";
-    const todayKey=dayKey(new Date());
     pageData.slice.forEach(inv=>{
       const tr=document.createElement("tr");
       const loaded=new Date(inv.meta.loadedAt||Date.now()).toLocaleString();
@@ -3180,16 +3676,13 @@ window.QRCode = (() => {
       const grossTxt=(gross!=null && gross!=="") ? fmtMoney(gross,sym) : "";
       const status=inv?.user?.status||"open";
       const dueDate=inv?.header?.dueDate||"";
-      const isOverdue=(()=>{
-        if(!dueDate || ["paid","done","cancelled","claimed"].includes(status)) return false;
-        const dk=invoiceDateKey(dueDate);
-        return dk ? dk < todayKey : false;
-      })();
+      const isOverdue=matchesDueFilter(inv,"overdue");
       if(isOverdue) tr.classList.add("overdue-row");
       tr.innerHTML = `
         <td>${escapeHtml(loaded)}</td>
         <td>${escapeHtml(invNo)}${inv.duplicateOf?` <span class="dup">${escapeHtml(L().dupHint)}</span>`:""}</td>
-        <td>${escapeHtml(invDate)}${isOverdue?` <span class="overdue-badge">${escapeHtml(L().overdueHint||"Overdue")}</span>`:""}</td>
+        <td>${escapeHtml(invDate)}</td>
+        <td>${escapeHtml(dueDate)}${isOverdue?` <span class="overdue-badge">${escapeHtml(L().overdueHint||"Overdue")}</span>`:""}</td>
         <td>${escapeHtml(seller)}</td>
         <td>${escapeHtml(grossTxt)}</td>
         <td class="st"></td>
@@ -3253,32 +3746,40 @@ window.QRCode = (() => {
     const ok=await dbPut(x);
     if(!ok){ const l=lsLoad(); l.unshift(x); lsSave(l); }
     renderCollection();
+    if(file && (file.type==="application/pdf" || file.name?.toLowerCase().endsWith(".pdf"))) uploadImportedPdf(x.id,file);
+    return x;
   }
 
   async function exportCollection(scope, fmt){
     if(!enabled()) return;
     const all=await allInvoices();
-    const list = (scope==="today") ? all.filter(x=>isToday(x?.meta?.loadedAt)) : all;
+    const list = scope==="filtered" ? filterInvoices(all) : (scope==="today") ? all.filter(x=>isToday(x?.meta?.loadedAt)) : all;
+    if(!list.length){ showError(L().exportEmpty); return; }
+    clearError();
+    if(fmt==="register"){
+      downloadBlob(new Blob(["\uFEFF", buildInvoiceRegisterCsv(list)],{type:"text/csv;charset=utf-8;"}), `invoice_register_${dayKey(new Date())}.csv`);
+      return;
+    }
     if(fmt==="json"){
       downloadBlob(new Blob([JSON.stringify(list,null,2)],{type:"application/json"}), `invoice_collection_${scope}_${dayKey(new Date())}.json`);
       return;
     }
     // CSV: one row per line item (header+positions)
     const sep=csvDelimiter();
-    const headers=["loaded_at","status","comment","invoice_number","invoice_date","due_date","order_number","seller_name","buyer_name","currency","net_total","tax_total","gross_total","due_total","pos","product_name","description","notes","qty","unit","unit_price","line_net","tax_rate","line_gross"];
-    const esc=(v)=> `"${String(v??"").replace(/"/g,'""')}"`;
+    const headers=["loaded_at","status","comment","invoice_number","invoice_date","due_date","order_number","seller_name","buyer_name","currency","net_total","tax_total","gross_total","due_total","pos","product_name","description","notes","qty","unit","unit_price","price_base_quantity","line_net","tax_rate","line_gross"];
+    const esc=csvCell;
     const rows=[];
     list.forEach(inv=>{
       const meta=inv.meta||{}, user=inv.user||{}, h=inv.header||{}, s=inv.seller||{}, b=inv.buyer||{}, p=inv.payment||{};
       const base=[meta.loadedAt||"", user.status||"open", user.comment||"", h.number||"", h.date||"", h.dueDate||"", h.orderNumber||"", s.name||"", b.name||"", p.currency||"", csvNum(p.netAmount??""), csvNum(p.taxAmount??""), csvNum(p.grossAmount??""), csvNum(p.dueAmount??"")];
       const items=(inv.lineItems && inv.lineItems.length)?inv.lineItems:[null];
       items.forEach(li=>{
-        const row=base.concat(li?[li.position??"", li.productName??"", li.description??"", li.notes??"", csvNum(li.quantity??""), li.unit??"", csvNum(li.unitPrice??""), csvNum(li.lineNet??""), csvNum(li.taxRate??""), csvNum(li.lineGross??"")]:["","","","","","","","","",""]);
+        const row=base.concat(li?[li.position??"", li.productName??"", li.description??"", li.notes??"", csvNum(li.quantity??""), li.unit??"", csvNum(li.unitPrice??""), csvNum(li.priceBaseQuantity??""), csvNum(li.lineNet??""), csvNum(li.taxRate??""), csvNum(li.lineGross??"")]:["","","","","","","","","","",""]);
         rows.push(row.map(esc).join(sep));
       });
     });
-    const csv=[headers.join(sep), ...rows].join("\n");
-    downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8;"}), `invoice_collection_${scope}_${dayKey(new Date())}.csv`);
+    const csv=[headers.join(sep), ...rows].join("\r\n");
+    downloadBlob(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8;"}), `invoice_collection_${scope}_${dayKey(new Date())}.csv`);
   }
 
   function openTextModal(inv){
@@ -3327,15 +3828,15 @@ window.QRCode = (() => {
     const items=invoiceData.lineItems||[];
     if(!items.length){ alert(L().noPositionsToExport); return; }
     const sep=csvDelimiter();
-    const esc=(v)=> `"${String(v??"").replace(/"/g,'""')}"`;
-    const headers=[L().posNr,L().productName,L().description,L().notes,L().quantity,L().unit,L().unitPrice,L().lineNet,L().taxRate,L().lineGross].map(esc).join(sep);
+    const esc=csvCell;
+    const headers=[L().posNr,L().productName,L().description,L().notes,L().quantity,L().unit,L().unitPrice,L().priceBaseQuantity,L().lineNet,L().taxRate,L().lineGross].map(esc).join(sep);
     const rows=items.map(li=>[
       esc(li.position), esc(li.productName), esc(li.description), esc(li.notes),
       esc(csvNum(li.quantity)), esc(li.unit),
-      esc(csvNum(li.unitPrice)), esc(csvNum(li.lineNet)),
+      esc(csvNum(li.unitPrice)), esc(csvNum(li.priceBaseQuantity)), esc(csvNum(li.lineNet)),
       esc(csvNum(li.taxRate)), esc(csvNum(li.lineGross)),
     ].join(sep));
-    downloadBlob(new Blob([[headers,...rows].join("\n")],{type:"text/csv;charset=utf-8;"}), `invoice_${invoiceData?.header?.number||"unknown"}_positions.csv`);
+    downloadBlob(new Blob(["\uFEFF",[headers,...rows].join("\r\n")],{type:"text/csv;charset=utf-8;"}), `invoice_${invoiceData?.header?.number||"unknown"}_positions.csv`);
   }
 
   // Parse XML and display
@@ -3441,10 +3942,11 @@ window.QRCode = (() => {
     // totals
     const sum = xp1(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementMonetarySummation | //ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation");
     const getAmt = (path) => sum ? (xp1(sum, path)?.textContent?.trim() || "") : "";
-    invoiceData.payment.netAmount = parseFloat(getAmt(".//ram:LineTotalAmount")||"") || null;
-    invoiceData.payment.taxAmount = parseFloat(getAmt(".//ram:TaxTotalAmount")||"") || null;
-    invoiceData.payment.grossAmount = parseFloat(getAmt(".//ram:GrandTotalAmount")||"") || null;
-    invoiceData.payment.dueAmount = parseFloat(getAmt(".//ram:DuePayableAmount")||"") || null;
+    invoiceData.payment.lineTotalAmount = parseAmount(getAmt("./ram:LineTotalAmount"));
+    invoiceData.payment.netAmount = parseAmount(getAmt("./ram:TaxBasisTotalAmount")) ?? invoiceData.payment.lineTotalAmount;
+    invoiceData.payment.taxAmount = parseAmount(getAmt("./ram:TaxTotalAmount"));
+    invoiceData.payment.grossAmount = parseAmount(getAmt("./ram:GrandTotalAmount"));
+    invoiceData.payment.dueAmount = parseAmount(getAmt("./ram:DuePayableAmount"));
 
     // items
     const rows = xps(xmlDoc, "//ram:IncludedSupplyChainTradeLineItem");
@@ -3461,18 +3963,20 @@ window.QRCode = (() => {
       const unitPrice = parseFloat(xp1(row, "./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount")?.textContent?.trim()||"0") || 0;
       const taxRate = parseFloat(xp1(row, "./ram:SpecifiedLineTradeSettlement/ram:ApplicableTradeTax/ram:RateApplicablePercent")?.textContent?.trim()||"0") || 0;
 
-      const lineNet = unitPrice*qty;
+      const priceBaseQuantity = parseAmount(firstText(row, ["./ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:BasisQuantity"]));
+      const statedLineNet = parseAmount(firstText(row, ["./ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation/ram:LineTotalAmount"]));
+      const lineNet = statedLineNet ?? +(unitPrice * qty / (priceBaseQuantity > 0 ? priceBaseQuantity : 1)).toFixed(2);
       const lineGross = lineNet + lineNet*(taxRate/100);
       sumNetLines += lineNet;
 
       invoiceData.lineItems.push({
         position:pos, productName:name, description:desc, notes:note,
-        quantity:qty, unitCode, unit, unitPrice:+unitPrice.toFixed(2),
+        quantity:qty, unitCode, unit, unitPrice, priceBaseQuantity,
         lineNet:+lineNet.toFixed(2), taxRate:+taxRate.toFixed(2), lineGross:+lineGross.toFixed(2)
       });
     });
 
-    validateLineNetTotal(invoiceData.payment.netAmount, sumNetLines, rows.length > 0);
+    validateLineNetTotal(invoiceData.payment.lineTotalAmount, sumNetLines, rows.length > 0);
 
     // tax breakdown (BG-23)
     const taxNodes = xps(xmlDoc, "//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax");
@@ -3556,9 +4060,9 @@ window.QRCode = (() => {
     dom.dueAmount.textContent = (d.payment?.dueAmount!=null) ? fmtMoney(d.payment.dueAmount, sym) : "";
     show(dom.paymentSection);
 
-    // items table
+    // Build rows off-DOM, then replace the table in one operation.
     const tb=dom.lineItemsTable.querySelector("tbody");
-    tb.innerHTML="";
+    const fragment=document.createDocumentFragment();
     (d.lineItems||[]).forEach(li=>{
       const tr=document.createElement("tr");
       tr.innerHTML = `
@@ -3568,13 +4072,16 @@ window.QRCode = (() => {
         <td>${escapeHtml(li.notes)}</td>
         <td>${escapeHtml((li.quantity ?? 0).toFixed ? li.quantity.toFixed(2) : li.quantity)}</td>
         <td>${escapeHtml(li.unit)}</td>
-        <td>${escapeHtml(fmtMoney(li.unitPrice, sym))}</td>
+        <td>${escapeHtml(fmtMoney(li.unitPrice, sym))}${li.priceBaseQuantity > 0 && li.priceBaseQuantity !== 1 ? ` / ${escapeHtml(li.priceBaseQuantity)} ${escapeHtml(li.unitCode || "")}` : ""}</td>
         <td>${escapeHtml(fmtMoney(li.lineNet, sym))}</td>
         <td>${escapeHtml(li.taxRate)}%</td>
         <td>${escapeHtml(fmtMoney(li.lineGross, sym))}</td>
       `;
-      tb.appendChild(tr);
+      tr.dataset.search = [li.position, li.productName, li.description, li.notes, li.unit].join(" ").toLocaleLowerCase();
+      fragment.appendChild(tr);
     });
+    tb.replaceChildren(fragment);
+    filterLineItems();
     if((d.lineItems||[]).length) show(dom.lineItemsSection);
 
     // tax breakdown (BG-23) – only show when more than 1 rate, or rate is meaningful
@@ -3607,6 +4114,18 @@ window.QRCode = (() => {
       buildProXmlView();
     }
   }
+
+  function filterLineItems(){
+    const query=dom.lineItemsSearch.value.trim().toLocaleLowerCase();
+    const rows=dom.lineItemsTable.querySelectorAll("tbody tr");
+    let shown=0;
+    rows.forEach(row=>{
+      row.hidden = !row.dataset.search.includes(query);
+      if(!row.hidden) shown++;
+    });
+    dom.lineItemsCount.textContent=tpl("lineItemsCount", {shown, total:rows.length});
+  }
+  dom.lineItemsSearch.addEventListener("input", filterLineItems);
 
   function buildQrIfPossible(d, sym){
     const iban = d.payment?.iban;
@@ -3651,7 +4170,7 @@ window.QRCode = (() => {
     resetView();
     showLoading();
     try{
-      if(file.type==="application/pdf"){
+      if(file.type==="application/pdf" || file.name.toLowerCase().endsWith(".pdf")){
         originalPdfBlob=file;
         const xml = await extractXmlFromPdf(file);
         if(!xml){ showError(L().noFileFound); return; }
@@ -3728,6 +4247,8 @@ window.QRCode = (() => {
   dom.collectionEnabled.addEventListener("change",()=>{ setEnabled(dom.collectionEnabled.checked); renderCollection(); });
   dom.collectionSearch.addEventListener("input",rerenderFromFilters);
   dom.collectionStatusFilter.addEventListener("change",rerenderFromFilters);
+  dom.collectionDueFilter.addEventListener("change",rerenderFromFilters);
+  dom.collectionCurrency.addEventListener("change",rerenderFromFilters);
   dom.collectionSort.addEventListener("change",()=>{
     setSortMode(dom.collectionSort.value);
     lsSet(LS.collectionPage, "1");
@@ -3760,6 +4281,23 @@ window.QRCode = (() => {
   dom.exportAllJson.addEventListener("click",()=>exportCollection("all","json"));
   dom.exportTodayCsv.addEventListener("click",()=>exportCollection("today","csv"));
   dom.exportAllCsv.addEventListener("click",()=>exportCollection("all","csv"));
+  dom.exportFilteredCsv.addEventListener("click",()=>exportCollection("filtered","csv"));
+  dom.exportFilteredJson.addEventListener("click",()=>exportCollection("filtered","json"));
+  dom.exportRegisterCsv.addEventListener("click",()=>exportCollection("filtered","register"));
+  dom.backupCollection.addEventListener("click",backupCollection);
+  dom.restoreCollection.addEventListener("click",()=>dom.restoreCollectionInput.click());
+  dom.restoreCollectionInput.addEventListener("change",async ()=>{
+    const file=dom.restoreCollectionInput.files?.[0];
+    dom.restoreCollectionInput.value=""; // allow selecting the same backup again
+    await restoreCollectionFile(file);
+  });
+  dom.syncUpload.addEventListener("click",uploadToSyncServer);
+  dom.syncDownload.addEventListener("click",downloadFromSyncServer);
+  dom.syncCheck.addEventListener("click",()=>checkSyncServer());
+  dom.syncEndpoint.addEventListener("change",()=>{ syncServerInfo=null; dom.syncCapabilities.textContent=""; lsSet(LS.syncETag,""); saveSyncSettings(); });
+  dom.syncToken.addEventListener("change",()=>{ syncServerInfo=null; dom.syncCapabilities.textContent=""; lsSet(LS.syncETag,""); saveSyncSettings(); });
+  dom.syncPdfWithCollection.addEventListener("change",saveSyncSettings);
+  dom.syncForget.addEventListener("click",forgetSyncServer);
   dom.clearCollection.addEventListener("click",()=>{ if(confirm(L().confirmClearAll)) clearAll(); });
 
   // keyboard shortcuts
@@ -3804,6 +4342,7 @@ window.QRCode = (() => {
   // init
   applyTheme(getThemeMode());
   restoreCollectionUiSettings();
+  restoreSyncSettings();
   const saved = (()=>{ try{return localStorage.getItem("invoiceInspector.lang")}catch(_){return null} })();
   const nav = (navigator.language||"en").toLowerCase();
   const auto = nav.startsWith("de")?"de":nav.startsWith("fr")?"fr":nav.startsWith("it")?"it":nav.startsWith("es")?"es":"en";

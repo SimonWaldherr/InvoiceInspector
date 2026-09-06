@@ -37,6 +37,8 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 
 ### Advanced features
 
+- **Line-item search**: Filter by position, product, description, note or unit, with a result count in all five UI languages. Printing and exports still include all items.
+- **More accurate amount handling**: Respects declared line totals, price base quantities and zero amounts; keeps the invoice net total separate from the sum of its lines.
 - **Statistics Dashboard**: Overview of line items and totals
 - **Multi-format Export**: XML, PDF, JSON, CSV
 - **Responsive Design**: Optimized for desktop and mobile
@@ -50,6 +52,105 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 - **Robust XML Parsing**: Support for various namespaces
 - **Error Handling**: Detailed error messages
 - **Accessibility**: Semantic HTML and ARIA labels
+
+## Working with the local invoice collection
+
+Enable local invoice storage to use due-date filters (outstanding, overdue,
+today through the next seven days, or missing a valid due date), due-date sorting,
+and a currency filter. Outstanding and overdue totals stay separate by currency;
+completed, paid, cancelled and closed claims, credit notes and detected duplicates
+are excluded. No currency conversion or credit-note offsetting is performed.
+When the payable amount is missing, the gross amount is used.
+
+**Invoice register (matches)** exports one CSV row per invoice, including its type,
+due date, supplier, order reference, amounts, status, duplicate reference, IBAN and
+comment. Filtered CSV/JSON exports include all matching pages. Search also covers
+order references and IBANs; filters persist locally. CSV files include a UTF-8 BOM,
+localized delimiters and protection against text being interpreted as formulas.
+Line-item exports also include the price base quantity.
+
+**Back up collection** creates a versioned JSON copy of the complete local
+collection, including statuses and comments. Restoring a backup merges it: new
+invoices are added and records with matching IDs are updated.
+
+The register is a general CSV export, not a DATEV posting batch.
+
+## Optional sync server
+
+The viewer remains fully local unless configured otherwise. To sync a collection
+between browsers or devices, the repository includes a small self-hosted Go
+server. It stores backups per accounting workspace and does not inspect
+individual invoice fields.
+
+```sh
+export INVOICEINSPECTOR_SYNC_TOKEN="a-long-random-secret"
+go run ./cmd/sync-server
+```
+
+It listens on `127.0.0.1:8787` by default and requires a token of at least 24
+characters. Enter its address and personal token under **Optional sync server**
+in the collection, then explicitly upload or download. Downloads merge into the
+local collection; ETags prevent overwriting a backup that has changed on the
+server.
+
+For several accounting staff, use a users file. People in the same `workspace`
+share one collection; other workspaces are stored separately. Every token must
+be unique and secret:
+
+```json
+{
+  "users": [
+    {"id": "anna", "token": "at-least-24-characters-long-token-anna", "workspace": "accounting"},
+    {"id": "ben", "token": "at-least-24-characters-long-token-ben", "workspace": "accounting"},
+    {"id": "clara", "token": "at-least-24-characters-long-token-clara", "workspace": "subsidiary"}
+  ]
+}
+```
+
+```sh
+go run ./cmd/sync-server --users-file ./sync-users.json --storage-mode data
+```
+
+For a simple complete server setup, put everything in one file; address, data
+directory, origin, storage mode, and the PDF option can still be overridden by
+flags or environment variables:
+
+```json
+{
+  "address": "127.0.0.1:8787",
+  "dataDir": "./data",
+  "allowedOrigin": "https://invoices.example.org",
+  "storageMode": "data",
+  "pdfSync": true,
+  "users": [
+    {"id": "anna", "token": "at-least-24-characters-long-token-anna", "workspace": "accounting"}
+  ]
+}
+```
+
+```sh
+go run ./cmd/sync-server --config ./sync-server.json
+```
+
+After **Check connection**, the UI displays the active server capabilities and
+automatically disables the PDF option when `pdfSync` is off. With **Store PDFs
+directly in backend on import**, an imported PDF is sent directly to the server
+after parsing. It is never stored in IndexedDB, LocalStorage, or a JSON backup.
+
+`--storage-mode full` (the default) preserves the complete JSON backup,
+including metadata. `--storage-mode data` stores only its `invoices` array and
+rebuilds a compatible backup on download. With PDF sync enabled, imported PDFs
+are stored directly and exclusively in the backend; they remain in browser memory
+only during the active import. A PDF is stored once per invoice ID; uploading
+identical content again is safe, while different content causes a conflict instead
+of overwriting the existing file. Source XML files are not synced separately. On
+an ETag conflict, download and merge before uploading again.
+
+For multi-device use, put it behind HTTPS and a firewall or reverse proxy. Set
+`INVOICEINSPECTOR_SYNC_ALLOWED_ORIGIN` to the viewer URL to restrict browser
+origins. The backup file in `./data` is **not additionally encrypted** on the
+server, so the operator must protect storage and keep the token secret. A users
+file contains plaintext tokens and also needs restrictive file permissions.
 
 ## Usage
 
