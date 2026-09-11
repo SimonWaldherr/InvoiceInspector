@@ -53,6 +53,13 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 - **Error Handling**: Detailed error messages
 - **Accessibility**: Semantic HTML and ARIA labels
 
+## Updated workspace and batch actions
+
+- Responsive light and dark layouts, summary cards above search, and collapsible advanced filters, exports and backups.
+- Quick filters for all invoices, outstanding amounts, overdue invoices, invoices due today or within seven days, and duplicates. Quick filters reset other search and filter conditions.
+- Select individual invoices, the current page or all matches. Selection spans pages; records hidden by filters are deselected. Reloading clears the selection.
+- Apply a status to selected invoices while retaining comments, or export the selection as JSON or an invoice register CSV.
+
 ## Working with the local invoice collection
 
 Enable local invoice storage to use due-date filters (outstanding, overdue,

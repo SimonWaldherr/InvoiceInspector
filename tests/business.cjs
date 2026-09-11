@@ -44,6 +44,7 @@ function parseCsv(text,sep=';'){
    await page.locator('#collectionCurrency').selectOption('EUR');
    await page.waitForFunction(()=>document.querySelectorAll('#collectionTable tbody tr').length===1);
    const download=async id=>{
+    await page.locator('#exportSettings').evaluate(el=>el.open=true);
     const pending=page.waitForEvent('download');await page.locator(id).click();
     const file=await pending;return readFileSync(await file.path(),'utf8');
    };

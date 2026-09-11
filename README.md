@@ -54,6 +54,10 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 Aktivieren Sie **Rechnungen lokal merken**, um Ihre importierten Rechnungen zu
 verwalten. Die Sammlung bietet:
 
+- **Übersichtliche Oberfläche**: Kennzahlen vor der Suche, aufklappbare Bereiche für weitere Filter, Exporte und Sicherungen sowie angepasste Hell-/Dunkeldarstellung auf Desktop und Mobilgeräten.
+- **Schnellfilter**: Mit einem Klick alle, offene, überfällige, in den nächsten sieben Tagen fällige Rechnungen oder Duplikate anzeigen. Schnellfilter setzen die übrigen Such- und Filterbedingungen zurück.
+- **Mehrfachauswahl**: Einzelne Rechnungen, eine Tabellenseite oder alle Treffer auswählen. Die Auswahl bleibt beim Seitenwechsel erhalten; durch Filter ausgeblendete Rechnungen werden aus der Auswahl entfernt. Beim Neuladen wird die Auswahl zurückgesetzt.
+- **Sammelaktionen**: Den Status ausgewählter Rechnungen gemeinsam ändern oder die Auswahl als JSON bzw. Rechnungsjournal (CSV) exportieren. Kommentare bleiben bei Statusänderungen erhalten.
 - **Fälligkeitsfilter**: offene Zahlbeträge, überfällige Rechnungen, heute bis in
   sieben Tagen fällige Rechnungen und offene Vorgänge ohne gültiges Fälligkeitsdatum.
 - **Fälligkeitssortierung und Währungsfilter**: offene und überfällige Summen werden

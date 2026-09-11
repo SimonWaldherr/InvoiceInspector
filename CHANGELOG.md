@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Collection quick filters, selection across pages, batch status changes, and JSON/register CSV exports of selected invoices in all five languages.
+- Workspace browser tests for selection, persistence, storage errors and responsive light/dark layouts.
 - Due-date and currency filters, due-date column and sorting, and overdue totals in all five languages.
 - Filtered CSV/JSON exports across all pages and an invoice register with one row per invoice.
 - Versioned JSON backups for the complete local invoice collection, with a safe merge restore for browser or device changes.
@@ -28,6 +30,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   dependency. EPC SEPA QR generation now works fully offline.
 
 ### Changed
+- Refined the workspace layout, typography, theme colors and mobile controls; grouped advanced filters, exports and backups into collapsible panels.
+- Keep page-size controls available for small collections and distinguish empty collections from searches with no matches.
 - Build line-item rows in a document fragment and cache searchable text.
 - Preserve unit-price precision in parsed data and include price base quantities.
 - Removed the redundant `<script src=".../pdf.worker.min.js">` tag in

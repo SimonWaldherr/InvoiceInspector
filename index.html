@@ -226,12 +226,58 @@
 
     /* tax breakdown column alignment */
     .tax-breakdown th:nth-child(n+3),.tax-breakdown td:nth-child(n+3){text-align:right}
+
+    /* Workspace layout */
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0 auto;padding:28px 32px;max-width:1600px;line-height:1.5}
+    :root,:root[data-theme="light"]{--bg:#f3f6fa;--text:#192c40;--card:#fff;--border:#d6dfe9;--shadow:rgba(25,44,64,.04);--accent:#215dc7;--accent2:#174697;--muted:#536579;--pre:#f7f9fc;--thead:#eef3f9;--dragbg:#eaf1ff}
+    :root[data-theme="dark"]{--bg:#101923;--text:#e3ebf4;--card:#182430;--border:#344658;--shadow:rgba(0,0,0,.12);--accent:#80b3ff;--accent2:#a9ccff;--muted:#a9b9cb;--pre:#14202c;--thead:#203142;--dragbg:#213c59}
+    @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101923;--text:#e3ebf4;--card:#182430;--border:#344658;--accent:#80b3ff;--accent2:#a9ccff;--muted:#a9b9cb;--pre:#14202c;--thead:#203142;--dragbg:#213c59}}
+    section,details{border-radius:14px;padding:22px;box-shadow:0 3px 12px var(--shadow);margin:16px 0}
+    h1{font-size:1.55rem;letter-spacing:-.05em} h2{font-size:1.12rem;letter-spacing:-.02em}
+    .top{padding-bottom:22px;border-bottom:1px solid var(--border)}
+    .brand{display:flex;gap:12px;align-items:center}.brand-mark{flex-shrink:0;display:grid;place-items:center;width:40px;height:44px;border-radius:10px;background:var(--accent);color:var(--bg);font-weight:800;font-size:22px}
+    .brand p{margin:2px 0 0;font-size:.8rem;color:var(--muted)}
+    .lang-btn,.mode-btn,.pill,.small{border:1px solid var(--border);border-radius:8px;font-weight:600;color:var(--text);min-height:36px}
+    .lang-btn.active,.mode-btn.pro-active,.btn{background:var(--accent);color:var(--bg)}
+    .intro{background:none;border:0;box-shadow:none;padding:12px 0 0}.intro h2{font-size:1.9rem;letter-spacing:-.04em;margin-bottom:8px}.intro p{margin:8px 0;max-width:900px}.about-viewer{padding:0;border:0;background:none;box-shadow:none;margin:10px 0}.about-viewer summary{cursor:pointer;font-size:.9rem;color:var(--muted)}
+    .drop{border:2px dashed var(--border);border-radius:14px;padding:24px;background:var(--card)}
+    .drop:hover{border-color:var(--accent);background:var(--dragbg)}.drop p:first-child{font-weight:650;font-size:1.1rem}
+    .btns{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.btn{margin:0;border-radius:8px}
+    input[type="search"],input[type="date"],input[type="number"],input[type="url"],input[type="password"],select{font:inherit;max-width:100%;min-height:40px;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    input[type="checkbox"]{width:17px;height:17px;accent-color:var(--accent);flex-shrink:0}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    #collectionControls{gap:12px}#collectionSearch{flex:1 1 260px}
+    .quick-filters{display:flex;gap:8px;flex-wrap:wrap;flex-basis:100%;padding-bottom:4px}
+    .quick-filters button[aria-pressed="true"]{background:var(--dragbg);border-color:var(--accent);color:var(--accent)}
+    .toolbar-panel{flex-basis:100%;margin:0;padding:12px 14px;box-shadow:none;background:var(--pre);border-radius:10px}
+    .toolbar-panel summary{cursor:pointer;font-weight:600}.toolbar-panel .controls{margin-bottom:0}
+    .filter-field{display:flex;flex-direction:column;gap:5px;font-size:.88rem;color:var(--muted);flex:1 1 150px}
+    .filter-field input{width:100%}
+    #collectionStats{margin:18px 0}.stat{background:var(--pre);box-shadow:none;padding:18px}.stat strong{font-size:1.45rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+    #collectionPagination{justify-content:flex-end;margin:12px 0}
+    #collectionTable{font-size:.88rem;min-width:1120px}#collectionTable td:nth-child(2),#collectionTable td:nth-child(3){white-space:nowrap}th,td{padding:12px;border:0;border-bottom:1px solid var(--border)}
+    #collectionTable .st select{font-size:.85rem;min-width:130px}#collectionTable .ac{min-width:175px}
+    #collectionTable td:nth-child(3){font-weight:650}#collectionTable td:nth-child(7){white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+    #collectionTable tr.is-selected{background:var(--dragbg)}.overdue-row>td{color:inherit!important}
+    .selection-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--dragbg)}
+    #selectionCount{font-weight:650;margin-right:auto}.selection-tools label{font-size:.88rem}
+    #collectionEmpty{padding:30px;text-align:center;border:1px dashed var(--border);border-radius:10px;background:var(--pre)}
+    .danger{color:var(--err)}.table-wrap{border-radius:10px}.grid>*{min-width:0}
+    .field-value span{overflow-wrap:anywhere}section{scroll-margin-top:20px}
+    .skip-link{position:absolute;top:-100px;left:20px;background:var(--card);padding:10px;z-index:10000}.skip-link:focus{top:10px}
+    .hidden{display:none!important}
+    @media(min-width:1000px){.grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:680px){body{padding:18px 12px}.top{gap:16px}.top-actions{gap:6px}.langs{gap:4px}.lang-btn{padding:7px 9px}section{padding:16px}.intro h2{font-size:1.55rem}.drop{padding:18px 12px}#collectionControls>select{flex:1 1 140px;min-width:0}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:12px}.stat strong{font-size:1.12rem}.selection-tools>*{max-width:100%}#collectionPagination{justify-content:flex-start}.line-items-tools input{width:100%}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+    @media print{body{max-width:none;padding:0}.intro,.skip-link,.brand-mark{display:none!important}.grid{display:block}.top{border:0}.stat{background:#fff}section{padding:12px}}
   </style>
 </head>
 <body>
+  <a class="skip-link no-print" href="#collectionSection" data-i18n="skipCollection">Zur Rechnungssammlung</a>
 
-  <div class="top">
-    <h1 data-i18n="mainTitle">InvoiceInspector</h1>
+  <header class="top">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">I</span><div><h1>InvoiceInspector</h1><p data-i18n="workspaceSubtitle">E-Rechnungen · lokal im Browser</p></div></div>
     <div class="top-actions">
       <button id="modeToggle" class="mode-btn" type="button">🔧 Pro</button>
       <button id="themeToggle" class="lang-btn" type="button" aria-label="Darstellung umschalten">🌙 Dark</button>
@@ -243,12 +289,15 @@
         <button id="langEs" class="lang-btn" type="button" aria-label="Español">🇪🇸 ES</button>
       </div>
     </div>
-  </div>
+  </header>
 
-  <section>
-    <h2 data-i18n="descriptionTitle">Beschreibung</h2>
+  <section class="intro">
+    <h2 data-i18n="workspaceTitle">Rechnungen verstehen. Überblick behalten.</h2>
+    <p data-i18n="workspaceIntro"></p>
+    <details class="about-viewer"><summary data-i18n="aboutViewer"></summary>
     <p data-i18n="descriptionText">Dieses Tool zeigt elektronische Rechnungen nach aktuellem ZUGFeRD-, Factur-X-, XRechnung-, UBL-, Peppol-BIS- und EN-16931-Stand an.</p>
     <p data-i18n-html="disclaimerText"><strong>Hinweis:</strong> Verarbeitung lokal im Browser. Keine Uploads. Optional lokale Sammlung.</p>
+    </details>
     <p class="muted" data-i18n="shortcutHint">Tipp: Ctrl/⌘+O Datei öffnen · Ctrl/⌘+F Suche · Ctrl/⌘+E Export heute</p>
   </section>
 
@@ -274,7 +323,23 @@
       <span id="collectionHint" class="muted" data-i18n="collectionEnableHint">Nur im Browser (IndexedDB/LocalStorage). Löschbar.</span>
     </div>
 
+    <div id="collectionStats" class="stats hidden" aria-live="polite">
+      <div class="stat"><strong id="statTotal">0</strong><span data-i18n="statTotal">Rechnungen gesamt</span></div>
+      <div class="stat"><strong id="statToday">0</strong><span data-i18n="statToday">Heute geladen</span></div>
+      <div class="stat"><strong id="statPending">0,00 €</strong><span data-i18n="statPendingFiltered">Offene Zahlbeträge (Treffer)</span></div>
+      <div class="stat"><strong id="statOverdue">0</strong><span data-i18n="statOverdue">Überfällige Zahlbeträge (Treffer)</span></div>
+      <div class="stat"><strong id="statDuplicates">0</strong><span data-i18n="statDuplicates">Duplikate</span></div>
+    </div>
+
     <div id="collectionControls" class="controls hidden">
+      <div class="quick-filters" role="group" aria-label="Schnellfilter" id="quickFilters">
+        <button class="pill" type="button" data-quick-filter="all" aria-pressed="false" data-i18n="quickAll"></button>
+        <button class="pill" type="button" data-quick-filter="pending" aria-pressed="false" data-i18n="due_pending"></button>
+        <button class="pill" type="button" data-quick-filter="overdue" aria-pressed="false" data-i18n="due_overdue"></button>
+        <button class="pill" type="button" data-quick-filter="week" aria-pressed="false" data-i18n="due_week"></button>
+        <button class="pill" type="button" data-quick-filter="duplicates" aria-pressed="false" data-i18n="collectionDuplicatesOnly"></button>
+      </div>
+
       <label for="collectionSearch" class="sr-only" data-i18n="collectionSearchLabel">Rechnungssammlung durchsuchen</label>
       <input id="collectionSearch" type="search" placeholder="Suche…" aria-label="Rechnungssammlung durchsuchen">
       <select id="collectionStatusFilter" aria-label="Status filter"></select>
@@ -289,6 +354,8 @@
       <label for="collectionCurrency" class="sr-only" data-i18n="currencyFilterLabel">Währung</label>
       <select id="collectionCurrency"><option value="all" data-i18n="currency_all">Alle Währungen</option></select>
       <select id="collectionSort" aria-label="Sortierung"></select>
+      <button id="collectionResetFilters" class="pill" type="button" data-i18n="resetFilters">Filter zurücksetzen</button>
+      <details id="advancedFilters" class="toolbar-panel"><summary data-i18n="advancedFilters">Weitere Filter</summary><div class="controls">
       <label class="muted" style="display:flex;gap:8px;align-items:center">
         <input id="collectionTodayOnly" type="checkbox">
         <span data-i18n="collectionTodayOnly">nur heute</span>
@@ -297,12 +364,14 @@
         <input id="collectionDuplicatesOnly" type="checkbox">
         <span data-i18n="collectionDuplicatesOnly">nur Duplikate</span>
       </label>
-      <input id="collectionDateFrom" type="date" aria-label="Von Datum">
-      <input id="collectionDateTo" type="date" aria-label="Bis Datum">
-      <input id="collectionGrossMin" type="number" inputmode="decimal" step="0.01" placeholder="Min">
-      <input id="collectionGrossMax" type="number" inputmode="decimal" step="0.01" placeholder="Max">
-      <button id="collectionResetFilters" class="pill" type="button" data-i18n="resetFilters">Filter zurücksetzen</button>
+      <label class="filter-field"><span data-i18n="filterDateFrom"></span><input id="collectionDateFrom" type="date" aria-label="Von Datum"></label>
+      <label class="filter-field"><span data-i18n="filterDateTo"></span><input id="collectionDateTo" type="date" aria-label="Bis Datum"></label>
+      <label class="filter-field"><span data-i18n="filterGrossMin"></span><input id="collectionGrossMin" type="number" inputmode="decimal" step="0.01" placeholder="Min"></label>
+      <label class="filter-field"><span data-i18n="filterGrossMax"></span><input id="collectionGrossMax" type="number" inputmode="decimal" step="0.01" placeholder="Max"></label>
 
+      </div></details>
+
+      <details id="exportSettings" class="toolbar-panel"><summary data-i18n="exportSettings">Export & Sicherung</summary><div class="controls">
       <button id="exportTodayJson" class="pill" type="button" data-i18n="exportTodayJson">JSON heute</button>
       <button id="exportAllJson" class="pill" type="button" data-i18n="exportAllJson">JSON alle</button>
       <button id="exportTodayCsv" class="pill" type="button" data-i18n="exportTodayCsv">CSV heute</button>
@@ -314,7 +383,11 @@
       <button id="restoreCollection" class="pill" type="button" data-i18n="restoreCollection">Sicherung wiederherstellen</button>
       <label for="restoreCollectionInput" class="sr-only" data-i18n="restoreCollection">Sicherung wiederherstellen</label>
       <input id="restoreCollectionInput" type="file" accept="application/json,.json" class="hidden">
-      <details class="sync-settings no-print" id="syncSettings">
+      </div>
+      <p class="muted" data-i18n="collectionExportHint"></p><p class="muted" data-i18n="collectionBackupHint"></p>
+      <button id="clearCollection" class="pill danger" type="button" data-i18n="clearCollection">Sammlung löschen</button>
+      </details>
+      <details class="sync-settings toolbar-panel no-print" id="syncSettings">
         <summary data-i18n="syncTitle">Optionaler Sync-Server</summary>
         <p class="muted" data-i18n="syncHint">Synchronisiert die lokale Sicherung mit einem selbst gehosteten Server. Server-Adresse und Token verbleiben in diesem Browser.</p>
         <div class="sync-fields">
@@ -335,9 +408,6 @@
         </div>
       </details>
       <p class="muted collection-hint" data-i18n="outstandingHint">Offene Summen berücksichtigen nur positive Zahlbeträge ohne erledigte Vorgänge, Gutschriften und erkannte Duplikate. Fehlende Zahlbeträge werden durch den Bruttobetrag ersetzt.</p>
-      <p class="muted collection-hint" data-i18n="collectionExportHint">Exporte umfassen alle Treffer über alle Seiten. Das Journal enthält eine Zeile je Rechnung; Beträge bleiben in der Originalwährung.</p>
-      <p class="muted collection-hint" data-i18n="collectionBackupHint">Die Sicherung enthält die gesamte lokale Sammlung einschließlich Status und Kommentaren. Beim Wiederherstellen werden vorhandene Rechnungen ergänzt; identische Kennungen werden aktualisiert.</p>
-      <button id="clearCollection" class="pill" type="button" data-i18n="clearCollection">Sammlung löschen</button>
     </div>
     <div id="collectionSummary" class="muted summary hidden" aria-live="polite"></div>
     <div id="collectionPagination" class="pagination hidden" aria-live="polite">
@@ -355,21 +425,23 @@
       </label>
     </div>
 
-    <div id="collectionStats" class="stats hidden" aria-live="polite">
-      <div class="stat"><strong id="statTotal">0</strong><span data-i18n="statTotal">Rechnungen gesamt</span></div>
-      <div class="stat"><strong id="statToday">0</strong><span data-i18n="statToday">Heute geladen</span></div>
-      <div class="stat"><strong id="statPending">0,00 €</strong><span data-i18n="statPendingFiltered">Offene Zahlbeträge (Treffer)</span></div>
-      <div class="stat"><strong id="statOverdue">0</strong><span data-i18n="statOverdue">Überfällige Zahlbeträge (Treffer)</span></div>
-      <div class="stat"><strong id="statDuplicates">0</strong><span data-i18n="statDuplicates">Duplikate</span></div>
-    </div>
-
     <div id="collectionEmpty" class="muted hidden" data-i18n="collectionEmpty">Keine lokal gespeicherten Rechnungen.</div>
 
+    <div id="selectionTools" class="selection-tools hidden no-print">
+      <span id="selectionCount" role="status" aria-live="polite"></span>
+      <button id="selectAllMatches" type="button" class="small" data-i18n="selectAllMatches"></button>
+      <label for="bulkStatus" data-i18n="colStatus">Status</label><select id="bulkStatus"></select>
+      <button id="applyBulkStatus" type="button" class="small" data-i18n="applyBulkStatus"></button>
+      <button id="exportSelectedJson" type="button" class="small" data-i18n="exportSelectedJson"></button>
+      <button id="exportSelectedRegister" type="button" class="small" data-i18n="exportSelectedRegister"></button>
+      <button id="clearSelection" type="button" class="small" data-i18n="clearSelection"></button>
+    </div>
     <div id="collectionTableWrap" class="table-wrap hidden">
       <table id="collectionTable">
         <caption class="sr-only" data-i18n="collectionTableCaption">Lokale Rechnungsliste</caption>
         <thead>
           <tr>
+            <th scope="col"><input type="checkbox" id="selectPage" aria-label="Seite auswählen"></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="loaded"><span data-i18n="colLoadedAt">Geladen</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="invoice"><span data-i18n="colInvNo">Nr.</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
             <th scope="col"><button type="button" class="th-sort" data-sort-field="date"><span data-i18n="colInvDate">Datum</span><span class="sort-arrow" aria-hidden="true"></span></button></th>
@@ -958,6 +1030,26 @@ window.QRCode = (() => {
 
   const LABELS = {
     de:{
+      workspaceIntro:"PDF oder XML öffnen, Rechnungen prüfen und lokal organisieren.",
+      aboutViewer:"Formate & Datenschutz",
+      workspaceSubtitle:"E-Rechnungen · lokal im Browser",
+      workspaceTitle:"Rechnungen verstehen. Überblick behalten.",
+      skipCollection:"Zur Rechnungssammlung",
+      advancedFilters:"Weitere Filter",
+      exportSettings:"Export & Sicherung",
+      quickAll:"Alle Rechnungen",
+      quickFilters:"Schnellfilter",
+      selectPage:"Alle Rechnungen dieser Seite auswählen",
+      selectInvoice:"Rechnung {number} auswählen",
+      selectedCount:"{count} von {total} Treffern ausgewählt",
+      selectAllMatches:"Alle Treffer auswählen",
+      applyBulkStatus:"Status anwenden",
+      exportSelectedJson:"JSON Auswahl",
+      exportSelectedRegister:"Journal Auswahl",
+      clearSelection:"Auswahl aufheben",
+      bulkStatusSaved:"Status für {count} Rechnungen gespeichert.",
+      noMatches:"Keine Treffer. Passe die Suche an oder setze die Filter zurück.",
+
       priceBaseQuantity:"Preisbasismenge",
       outstandingHint:"Offene Summen berücksichtigen nur positive Zahlbeträge ohne erledigte Vorgänge, Gutschriften und erkannte Duplikate. Fehlende Zahlbeträge werden durch den Bruttobetrag ersetzt.",
       dueFilterLabel:"Fälligkeit",
@@ -1169,6 +1261,26 @@ window.QRCode = (() => {
       overdueHint:"Überfällig",
     },
     en:{
+      workspaceIntro:"Open PDF or XML files, inspect invoices and organize them locally.",
+      aboutViewer:"Formats & privacy",
+      workspaceSubtitle:"E-invoices · local in your browser",
+      workspaceTitle:"Understand invoices. Stay on top of them.",
+      skipCollection:"Skip to collection",
+      advancedFilters:"More filters",
+      exportSettings:"Export & backup",
+      quickAll:"All invoices",
+      quickFilters:"Quick filters",
+      selectPage:"Select all invoices on this page",
+      selectInvoice:"Select invoice {number}",
+      selectedCount:"{count} of {total} matches selected",
+      selectAllMatches:"Select all matches",
+      applyBulkStatus:"Apply status",
+      exportSelectedJson:"Selected JSON",
+      exportSelectedRegister:"Selected register",
+      clearSelection:"Clear selection",
+      bulkStatusSaved:"Status saved for {count} invoices.",
+      noMatches:"No matches. Adjust your search or reset the filters.",
+
       priceBaseQuantity:"Price base quantity",
       outstandingHint:"Outstanding totals include only positive amounts, excluding completed records, credit notes and detected duplicates. Missing payable amounts fall back to the gross amount.",
       dueFilterLabel:"Due date",
@@ -1378,6 +1490,26 @@ window.QRCode = (() => {
       overdueHint:"Overdue",
     },
     fr:{
+      workspaceIntro:"Ouvrez des fichiers PDF ou XML, examinez et organisez vos factures localement.",
+      aboutViewer:"Formats et confidentialité",
+      workspaceSubtitle:"Factures électroniques · dans votre navigateur",
+      workspaceTitle:"Comprendre vos factures. Garder une vue d’ensemble.",
+      skipCollection:"Aller à la collection",
+      advancedFilters:"Autres filtres",
+      exportSettings:"Export et sauvegarde",
+      quickAll:"Toutes les factures",
+      quickFilters:"Filtres rapides",
+      selectPage:"Sélectionner toutes les factures de cette page",
+      selectInvoice:"Sélectionner la facture {number}",
+      selectedCount:"{count} sur {total} résultats sélectionnés",
+      selectAllMatches:"Sélectionner tous les résultats",
+      applyBulkStatus:"Appliquer le statut",
+      exportSelectedJson:"JSON sélection",
+      exportSelectedRegister:"Registre sélection",
+      clearSelection:"Effacer la sélection",
+      bulkStatusSaved:"Statut enregistré pour {count} factures.",
+      noMatches:"Aucun résultat. Modifiez la recherche ou réinitialisez les filtres.",
+
       priceBaseQuantity:"Quantité de base du prix",
       outstandingHint:"Les totaux ouverts incluent uniquement les montants positifs, hors dossiers terminés, avoirs et doublons détectés. Sans montant à payer, le montant brut est utilisé.",
       dueFilterLabel:"Échéance",
@@ -1587,6 +1719,26 @@ window.QRCode = (() => {
       overdueHint:"En retard",
     },
     it:{
+      workspaceIntro:"Apri file PDF o XML, esamina le fatture e organizzale localmente.",
+      aboutViewer:"Formati e privacy",
+      workspaceSubtitle:"Fatture elettroniche · nel browser",
+      workspaceTitle:"Comprendi le fatture. Mantieni il controllo.",
+      skipCollection:"Vai alla raccolta",
+      advancedFilters:"Altri filtri",
+      exportSettings:"Esportazione e backup",
+      quickAll:"Tutte le fatture",
+      quickFilters:"Filtri rapidi",
+      selectPage:"Seleziona tutte le fatture di questa pagina",
+      selectInvoice:"Seleziona fattura {number}",
+      selectedCount:"{count} di {total} risultati selezionati",
+      selectAllMatches:"Seleziona tutti i risultati",
+      applyBulkStatus:"Applica stato",
+      exportSelectedJson:"JSON selezione",
+      exportSelectedRegister:"Registro selezione",
+      clearSelection:"Annulla selezione",
+      bulkStatusSaved:"Stato salvato per {count} fatture.",
+      noMatches:"Nessun risultato. Modifica la ricerca o reimposta i filtri.",
+
       priceBaseQuantity:"Quantità base del prezzo",
       outstandingHint:"I totali aperti includono solo importi positivi, esclusi record completati, note di credito e duplicati rilevati. Se manca l’importo da pagare viene usato il lordo.",
       dueFilterLabel:"Scadenza",
@@ -1796,6 +1948,26 @@ window.QRCode = (() => {
       overdueHint:"Scaduta",
     },
     es:{
+      workspaceIntro:"Abre archivos PDF o XML, revisa facturas y organízalas localmente.",
+      aboutViewer:"Formatos y privacidad",
+      workspaceSubtitle:"Facturas electrónicas · en tu navegador",
+      workspaceTitle:"Comprende tus facturas. Mantén el control.",
+      skipCollection:"Ir a la colección",
+      advancedFilters:"Más filtros",
+      exportSettings:"Exportación y copia de seguridad",
+      quickAll:"Todas las facturas",
+      quickFilters:"Filtros rápidos",
+      selectPage:"Seleccionar todas las facturas de esta página",
+      selectInvoice:"Seleccionar factura {number}",
+      selectedCount:"{count} de {total} resultados seleccionados",
+      selectAllMatches:"Seleccionar todos los resultados",
+      applyBulkStatus:"Aplicar estado",
+      exportSelectedJson:"JSON selección",
+      exportSelectedRegister:"Registro selección",
+      clearSelection:"Borrar selección",
+      bulkStatusSaved:"Estado guardado para {count} facturas.",
+      noMatches:"Sin resultados. Ajusta la búsqueda o restablece los filtros.",
+
       priceBaseQuantity:"Cantidad base del precio",
       outstandingHint:"Los totales pendientes incluyen solo importes positivos, sin registros finalizados, notas de crédito ni duplicados detectados. Si falta el importe a pagar se usa el bruto.",
       dueFilterLabel:"Vencimiento",
@@ -2174,6 +2346,13 @@ window.QRCode = (() => {
     document.querySelectorAll(".langs .lang-btn").forEach(b=>b.classList.remove("active"));
     (lang==="de"?$("langDe"):lang==="fr"?$("langFr"):lang==="it"?$("langIt"):lang==="es"?$("langEs"):$("langEn")).classList.add("active");
 
+    $("quickFilters").setAttribute("aria-label", L().quickFilters);
+    $("selectPage").setAttribute("aria-label", L().selectPage);
+    const selectedStatus=$("bulkStatus").value || "checked";
+    $("bulkStatus").replaceChildren(...STATUS_KEYS.map(key=>{
+      const option=document.createElement("option"); option.value=key; option.textContent=getStatusLabel(key); return option;
+    }));
+    $("bulkStatus").value=selectedStatus;
     buildStatusFilterOptions();
     buildSortOptions();
     updateThemeButton();
@@ -3200,6 +3379,7 @@ window.QRCode = (() => {
     dom.collectionGrossMin.value = lsGet(LS.collectionGrossMin, "");
     dom.collectionGrossMax.value = lsGet(LS.collectionGrossMax, "");
     dom.collectionPageSize.value = String(getPageSize());
+    $("advancedFilters").open=dom.collectionTodayOnly.checked || dom.collectionDuplicatesOnly.checked || !!(dom.collectionDateFrom.value || dom.collectionDateTo.value || dom.collectionGrossMin.value || dom.collectionGrossMax.value);
   }
   function clearCollectionFilters(){
     clearError();
@@ -3367,7 +3547,7 @@ window.QRCode = (() => {
     dom.collectionPageInfo.textContent=tpl("pageInfo", {page:pageData.page, pages:pageData.pages});
     dom.collectionPrevPage.disabled=pageData.page<=1;
     dom.collectionNextPage.disabled=pageData.page>=pageData.pages;
-    dom.collectionPagination.classList.toggle("hidden", !enabled() || filtered.length===0 || filtered.length<=pageData.size);
+    dom.collectionPagination.classList.toggle("hidden", !enabled() || filtered.length===0);
   }
 
   function saveLastInvoice(inv){
@@ -3648,6 +3828,43 @@ window.QRCode = (() => {
     });
   }
 
+  const selectedInvoiceIds=new Set();
+  let collectionMatches=[], collectionPageRecords=[], bulkStatusBusy=false;
+  function updateSelectionTools(){
+    $("selectionTools").classList.toggle("hidden", !enabled() || !selectedInvoiceIds.size);
+    $("selectionCount").textContent=tpl("selectedCount",{count:selectedInvoiceIds.size,total:collectionMatches.length});
+    $("selectPage").checked=collectionPageRecords.length>0 && collectionPageRecords.every(inv=>selectedInvoiceIds.has(inv.id));
+    $("selectPage").indeterminate=collectionPageRecords.some(inv=>selectedInvoiceIds.has(inv.id)) && !$("selectPage").checked;
+    $("selectAllMatches").disabled=selectedInvoiceIds.size===collectionMatches.length;
+    $("applyBulkStatus").disabled=bulkStatusBusy;
+    dom.collectionTable.querySelectorAll("input[data-invoice-id]").forEach(input=>{
+      input.checked=selectedInvoiceIds.has(input.dataset.invoiceId);
+      input.closest("tr").classList.toggle("is-selected",input.checked);
+    });
+  }
+  async function applyBulkStatus(){
+    const status=$("bulkStatus").value;
+    if(bulkStatusBusy || !enabled() || !STATUS_KEYS.includes(status)) return;
+    bulkStatusBusy=true; updateSelectionTools();
+    const ids=new Set(selectedInvoiceIds);
+    try{
+      const all=await allInvoices();
+      const changes=filterInvoices(all).filter(inv=>ids.has(inv.id)).map(inv=>({...inv,user:{...inv.user,status}}));
+      if(!changes.length) return;
+      let stored=await dbPutMany(changes);
+      if(!stored){
+        // A failed IndexedDB transaction must not be reported as a successful fallback.
+        if(await dbGetAll()!==null) throw new Error("storage");
+        const updates=new Map(changes.map(inv=>[inv.id,inv]));
+        stored=lsSave(all.map(inv=>updates.get(inv.id)||inv));
+      }
+      if(!stored) throw new Error("storage");
+      clearError();
+      $("selectionCount").textContent=tpl("bulkStatusSaved",{count:changes.length});
+      showSuccess(tpl("bulkStatusSaved",{count:changes.length}));
+    }catch(_){ showError(L().restoreStorageError); }
+    finally{bulkStatusBusy=false; await renderCollection();}
+  }
   let collectionRenderVersion=0;
   async function renderCollection(){
     const version=++collectionRenderVersion;
@@ -3658,6 +3875,16 @@ window.QRCode = (() => {
     buildCurrencyOptions(list);
     const filtered = enabled() ? filterInvoices(list) : [];
     const pageData = paginate(filtered);
+    collectionMatches=filtered; collectionPageRecords=pageData.slice;
+    const visibleIds=new Set(filtered.map(inv=>inv.id));
+    for(const id of selectedInvoiceIds) if(!visibleIds.has(id)) selectedInvoiceIds.delete(id);
+    $("quickFilters").querySelectorAll("button").forEach(button=>{
+      const key=button.dataset.quickFilter;
+      const otherFilters=dom.collectionSearch.value.trim() || dom.collectionStatusFilter.value!=="all" || dom.collectionCurrency.value!=="all" || dom.collectionTodayOnly.checked || dom.collectionDateFrom.value || dom.collectionDateTo.value || dom.collectionGrossMin.value || dom.collectionGrossMax.value;
+      const active=!otherFilters && (key==="duplicates" ? dom.collectionDuplicatesOnly.checked && dom.collectionDueFilter.value==="all" : !dom.collectionDuplicatesOnly.checked && dom.collectionDueFilter.value===key);
+      button.setAttribute("aria-pressed",String(active));
+    });
+    dom.collectionEmpty.textContent=list.length ? L().noMatches : L().collectionEmpty;
     updateCollectionStats(list, filtered);
     updateCollectionSummary(list, filtered, pageData);
     updateSortHeaderIndicators();
@@ -3679,6 +3906,7 @@ window.QRCode = (() => {
       const isOverdue=matchesDueFilter(inv,"overdue");
       if(isOverdue) tr.classList.add("overdue-row");
       tr.innerHTML = `
+        <td class="selection-cell"></td>
         <td>${escapeHtml(loaded)}</td>
         <td>${escapeHtml(invNo)}${inv.duplicateOf?` <span class="dup">${escapeHtml(L().dupHint)}</span>`:""}</td>
         <td>${escapeHtml(invDate)}</td>
@@ -3690,6 +3918,13 @@ window.QRCode = (() => {
         <td class="ac"></td>
       `;
 
+      const checkbox=document.createElement("input"); checkbox.type="checkbox"; checkbox.dataset.invoiceId=inv.id;
+      checkbox.setAttribute("aria-label",tpl("selectInvoice",{number:invNo || inv.id}));
+      checkbox.addEventListener("change",()=>{
+        if(checkbox.checked) selectedInvoiceIds.add(inv.id); else selectedInvoiceIds.delete(inv.id);
+        updateSelectionTools();
+      });
+      tr.querySelector(".selection-cell").appendChild(checkbox);
       tr.querySelector(".st").appendChild(buildStatusSelect(inv?.user?.status||"open", async (newStatus)=>{
         inv.user=inv.user||{}; inv.user.status=newStatus;
         const ok=await dbPut(inv);
@@ -3721,8 +3956,10 @@ window.QRCode = (() => {
       tr.querySelector(".ac").appendChild(openBtn);
       tr.querySelector(".ac").appendChild(delBtn);
 
+      tr.querySelector(".st select").setAttribute("aria-label",`${L().colStatus}: ${invNo}`);
       tb.appendChild(tr);
     });
+    updateSelectionTools();
   }
 
   async function deleteInvoice(id){
@@ -3753,7 +3990,7 @@ window.QRCode = (() => {
   async function exportCollection(scope, fmt){
     if(!enabled()) return;
     const all=await allInvoices();
-    const list = scope==="filtered" ? filterInvoices(all) : (scope==="today") ? all.filter(x=>isToday(x?.meta?.loadedAt)) : all;
+    const list = scope==="selected" ? filterInvoices(all).filter(inv=>selectedInvoiceIds.has(inv.id)) : scope==="filtered" ? filterInvoices(all) : (scope==="today") ? all.filter(x=>isToday(x?.meta?.loadedAt)) : all;
     if(!list.length){ showError(L().exportEmpty); return; }
     clearError();
     if(fmt==="register"){
@@ -4237,6 +4474,25 @@ window.QRCode = (() => {
       hideLoading();
     }
   });
+
+  $("quickFilters").addEventListener("click",event=>{
+    const button=event.target.closest("button[data-quick-filter]"); if(!button) return;
+    clearCollectionFilters();
+    const key=button.dataset.quickFilter;
+    if(key==="duplicates") dom.collectionDuplicatesOnly.checked=true;
+    else dom.collectionDueFilter.value=key;
+    rerenderFromFilters();
+  });
+  $("selectPage").addEventListener("change",()=>{
+    collectionPageRecords.forEach(inv=>{
+      if($("selectPage").checked) selectedInvoiceIds.add(inv.id); else selectedInvoiceIds.delete(inv.id);
+    }); updateSelectionTools();
+  });
+  $("selectAllMatches").addEventListener("click",()=>{collectionMatches.forEach(inv=>selectedInvoiceIds.add(inv.id)); updateSelectionTools();});
+  $("clearSelection").addEventListener("click",()=>{selectedInvoiceIds.clear(); updateSelectionTools();});
+  $("applyBulkStatus").addEventListener("click",applyBulkStatus);
+  $("exportSelectedJson").addEventListener("click",()=>exportCollection("selected","json"));
+  $("exportSelectedRegister").addEventListener("click",()=>exportCollection("selected","register"));
 
   // collection events
   const rerenderFromFilters=()=>{
