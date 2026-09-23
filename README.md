@@ -40,6 +40,12 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 
 ### Erweiterte Funktionen
 
+- **Nachvollziehbarer Mehrfachimport**: Ein Importprotokoll zeigt für jede Datei Erfolg, Duplikat, Speicherfehler oder Ablehnungsgrund. Fortschritt und Abbruch nach der laufenden Datei sind verfügbar; bereits gespeicherte Rechnungen bleiben erhalten. Bei Teilfehlern bleibt die letzte erfolgreich gelesene Rechnung derselben Auswahl geöffnet. Das Protokoll bleibt bis zum nächsten Import, Schließen oder Neuladen sichtbar und wird nicht gespeichert.
+- **Verlässliche Importverarbeitung**: Dateien werden einschließlich lokaler Speicherung nacheinander verarbeitet. Fremde XML-Dokumente werden zurückgewiesen; bei PDFs werden die XML-Anhänge auf ein unterstütztes Rechnungsformat geprüft. Duplikate werden unter Berücksichtigung von Währung und Dokumenttyp erkannt. Bestehende Duplikatmarkierungen werden dabei nicht rückwirkend geändert.
+- **Rechnungsübersicht**: Geöffnete Rechnungen zeigen Nummer, Geschäftspartner, Netto-/Bruttobetrag, ausgewiesenen Zahlbetrag und Fälligkeit auf einen Blick. Sprunglinks führen zu den Details und zurück zur Sammlung. Fehlende Beträge werden als „—“ angezeigt, Nullbeträge bleiben sichtbar.
+- **Gezielte Navigation**: Öffnen und Schließen einer Rechnung verschiebt den Tastaturfokus zum passenden Bereich; die Filter der Sammlung bleiben erhalten. Sprachwechsel aktualisieren auch die Rechnungsansicht.
+- **Verfügbare Downloads**: Original-XML und -PDF sind nur aktiv, wenn sie in der aktuellen Ansicht vorliegen. Gespeicherte Rechnungen enthalten keine Originaldateien; ein Positionsexport wird nur bei vorhandenen Positionen angeboten.
+
 - **Positionssuche**: Positionen nach Nummer, Produkt, Beschreibung, Notiz oder Einheit filtern, mit Trefferanzeige in allen fünf UI-Sprachen. Druck und Export enthalten weiterhin alle Positionen.
 - **Präzisere Betragsverarbeitung**: Ausgewiesene Positionssummen, Preisbasismengen und Nullbeträge werden berücksichtigt; der Nettogesamtbetrag wird getrennt von der Positionssumme verarbeitet.
 - **Statistik-Dashboard**: Überblick über Positionen und Summen

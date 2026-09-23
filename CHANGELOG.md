@@ -7,6 +7,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Per-file import report in all five languages, with progress, cancellation after the current file and retained results for mixed-success batches.
+- Import browser tests for persistence, duplicates, failure reporting, source preservation, cancellation and PDF attachment handling.
+- Current-invoice summary with totals, due date, section navigation and close/restore workflow.
+- Invoice-view browser tests for source availability, keyboard focus, zero/missing amounts, language changes and printing.
 - Collection quick filters, selection across pages, batch status changes, and JSON/register CSV exports of selected invoices in all five languages.
 - Workspace browser tests for selection, persistence, storage errors and responsive light/dark layouts.
 - Due-date and currency filters, due-date column and sorting, and overdue totals in all five languages.
@@ -30,6 +34,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   dependency. EPC SEPA QR generation now works fully offline.
 
 ### Changed
+- Await local persistence before processing the next file and refresh the collection once per batch.
+- Select supported invoice XML from PDF attachments and release PDF.js resources after extraction.
+- Disable unavailable original-file and empty line-item downloads; explain source availability in all five languages.
+- Refresh the invoice view on language changes while preserving line-item searches, and render saved items with missing quantities safely.
 - Refined the workspace layout, typography, theme colors and mobile controls; grouped advanced filters, exports and backups into collapsible panels.
 - Keep page-size controls available for small collections and distinguish empty collections from searches with no matches.
 - Build line-item rows in a document fragment and cache searchable text.
@@ -46,6 +54,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   EN 16931-1:2026.
 
 ### Fixed
+- Reject unrelated XML instead of importing empty CII invoices; retain the last successful invoice source when later files in the same batch fail.
+- Distinguish currency and document type in duplicate matching, and recompute keys when matching older collection records.
+- Report failed import persistence instead of silently claiming success; allow selecting the same file again.
+- Reject sync backups whose invoices field is null while continuing to accept empty arrays in both storage modes.
 - Keep outstanding totals separate by currency; exclude credit notes, detected duplicates, zero amounts and completed records.
 - Validate calendar dates before overdue classification and put missing due dates last when sorting.
 - Avoid stale asynchronous collection renders overwriting newer filter results.

@@ -53,6 +53,31 @@ https://simonwaldherr.github.io/InvoiceGenerator/
 - **Error Handling**: Detailed error messages
 - **Accessibility**: Semantic HTML and ARIA labels
 
+## Current invoice overview
+
+Batch imports provide a persistent on-screen report with each filename, result,
+duplicate status, storage failure or rejection reason. Progress and stopping after
+the current file are supported; completed saves remain available. If some files
+fail, the last successfully read invoice from that batch remains open with its
+original source. The report is kept until the next import, dismissal or reload
+and is not stored.
+
+Files are processed sequentially, including local persistence. Unrelated XML is
+rejected, and PDF XML attachments are checked for a supported invoice format.
+Duplicate matching distinguishes currencies and document types, including when
+working with older collections. Existing duplicate flags are not changed
+retroactively.
+
+The current invoice shows its number, parties, net/gross totals, stated payable
+amount and due date together. Missing amounts display “—”; zero amounts remain
+visible. Navigation links move keyboard focus to invoice sections or back to the
+collection. Closing an invoice preserves the collection filters, and changing
+languages refreshes the invoice view while retaining the line-item search.
+
+Original XML/PDF downloads are enabled only when their source files are available
+in the current view. Saved invoices do not retain original files. The line-item
+CSV export is enabled only when the invoice has line items.
+
 ## Updated workspace and batch actions
 
 - Responsive light and dark layouts, summary cards above search, and collapsible advanced filters, exports and backups.

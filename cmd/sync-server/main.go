@@ -365,7 +365,7 @@ func (s *syncServer) responseBackup(data []byte) ([]byte, error) {
 
 func isJSONArray(value json.RawMessage) bool {
 	var entries []json.RawMessage
-	return len(value) > 0 && json.Unmarshal(value, &entries) == nil
+	return len(value) > 0 && json.Unmarshal(value, &entries) == nil && entries != nil
 }
 
 func (s *syncServer) workspacePath(workspace string) string {

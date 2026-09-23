@@ -21,6 +21,12 @@ const html=readFileSync(join(__dirname,'../index.html'),'utf8')
         for(let i=0;i<23;i++) await workspaceTest.dbPut({id:`INV-${i}`,header:{number:`RE-2026-${String(i).padStart(3,'0')}`,date:date(-5),dueDate:date(i<12?-1:3),typeCode:'380'},seller:{name:i%2?'Nordlicht Design GmbH':'Atelier Weber'},buyer:{name:'Beispiel GmbH'},payment:{currency:'EUR',netAmount:100,taxAmount:19,grossAmount:119,dueAmount:119},meta:{loadedAt:new Date().toISOString(),filename:'test.xml'},user:{status:'open',comment:`Notiz ${i}`},lineItems:[]});
         await workspaceTest.renderCollection();
       });
+      // Opening from the collection must move keyboard focus to the current invoice.
+      await page.locator('#collectionTable .ac button').first().click();
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'invoiceOverview');
+      assert.equal(await page.locator('#btnXml').isDisabled(),true);
+      await page.locator('#closeInvoice').click();
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'collectionSection');
       await page.locator('#collectionPageSize').selectOption('10');
       await page.waitForFunction(()=>document.querySelectorAll('#collectionTable tbody tr').length===10);
       const rows=page.locator('#collectionTable input[data-invoice-id]');

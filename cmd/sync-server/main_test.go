@@ -73,6 +73,77 @@ func TestBackupRejectsMalformedJSON(t *testing.T) {
 	}
 }
 
+func TestBackupRequiresInvoicesArray(t *testing.T) {
+	for _, mode := range []storageMode{storageFull, storageData} {
+		for _, tc := range []struct {
+			name     string
+			invoices string
+			wantCode int
+		}{
+			{name: "null", invoices: "null", wantCode: http.StatusBadRequest},
+			{name: "object", invoices: "{}", wantCode: http.StatusBadRequest},
+			{name: "empty array", invoices: "[]", wantCode: http.StatusNoContent},
+		} {
+			t.Run(string(mode)+"/"+tc.name, func(t *testing.T) {
+				user := syncUser{ID: "test", Token: testToken, Workspace: "test"}
+				server, err := newConfiguredSyncServer([]syncUser{user}, t.TempDir(), "*", mode)
+				if err != nil {
+					t.Fatal(err)
+				}
+				backup := `{"format":"InvoiceInspector collection backup","version":1,"invoices":` + tc.invoices + `}`
+				r := httptest.NewRequest(http.MethodPut, "/v1/backup", strings.NewReader(backup))
+				r.Header.Set("Authorization", "Bearer "+testToken)
+				w := httptest.NewRecorder()
+				server.ServeHTTP(w, r)
+				if w.Code != tc.wantCode {
+					t.Fatalf("PUT = %d, want %d: %s", w.Code, tc.wantCode, w.Body.String())
+				}
+				if tc.wantCode == http.StatusBadRequest {
+					if _, err := os.Stat(server.workspacePath(user.Workspace)); !os.IsNotExist(err) {
+						t.Fatalf("invalid backup was stored: %v", err)
+					}
+				}
+			})
+		}
+	}
+}
+
+func TestStoredBackupRequiresInvoicesArray(t *testing.T) {
+	for _, mode := range []storageMode{storageFull, storageData} {
+		for _, tc := range []struct {
+			name     string
+			invoices string
+			wantCode int
+		}{
+			{name: "null", invoices: "null", wantCode: http.StatusInternalServerError},
+			{name: "object", invoices: "{}", wantCode: http.StatusInternalServerError},
+			{name: "empty array", invoices: "[]", wantCode: http.StatusOK},
+		} {
+			t.Run(string(mode)+"/"+tc.name, func(t *testing.T) {
+				user := syncUser{ID: "test", Token: testToken, Workspace: "test"}
+				server, err := newConfiguredSyncServer([]syncUser{user}, t.TempDir(), "*", mode)
+				if err != nil {
+					t.Fatal(err)
+				}
+				stored := `{"invoices":` + tc.invoices + `}`
+				if mode == storageFull {
+					stored = `{"format":"InvoiceInspector collection backup","version":1,"invoices":` + tc.invoices + `}`
+				}
+				if err := atomicWrite(server.workspacePath(user.Workspace), []byte(stored)); err != nil {
+					t.Fatal(err)
+				}
+				r := httptest.NewRequest(http.MethodGet, "/v1/backup", nil)
+				r.Header.Set("Authorization", "Bearer "+testToken)
+				w := httptest.NewRecorder()
+				server.ServeHTTP(w, r)
+				if w.Code != tc.wantCode {
+					t.Fatalf("GET = %d, want %d: %s", w.Code, tc.wantCode, w.Body.String())
+				}
+			})
+		}
+	}
+}
+
 func TestUsersShareWorkspaceButCannotReadOtherWorkspaces(t *testing.T) {
 	users := []syncUser{
 		{ID: "alice", Token: "alice-token-that-is-long-enough-0001", Workspace: "finance"},

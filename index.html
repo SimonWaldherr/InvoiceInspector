@@ -92,6 +92,24 @@
     .err{background:var(--errbg);color:var(--err);padding:10px;border-radius:6px}
     .warn{background:var(--thead);border:1px solid var(--border);padding:10px;border-radius:6px}
     .warn ul{margin:0;padding-left:18px}
+    #importReport progress{width:100%;accent-color:var(--accent)}
+    #importReport td{overflow-wrap:anywhere}
+    #importReport .table-wrap{max-height:320px;overflow:auto}
+    #importReport table{table-layout:fixed}
+    #importReport .import-error{color:var(--err)}
+    #importResults th:first-child{width:34%}
+    #importResults th:nth-child(2){width:20%}
+    #importReport .table-wrap{overscroll-behavior:contain}
+    .drop[aria-disabled="true"]{opacity:.65;cursor:wait}
+    @media(max-width:600px){
+      #importResults,#importResults tbody{display:block}
+      #importResults thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+      #importResults tr{display:block;padding:8px 0;border-bottom:1px solid var(--border)}
+      #importResults tr:last-child{border-bottom:0}
+      #importResults td{display:block;border:0;padding:3px 12px}
+      #importResults td:first-child{font-weight:700}
+      #importResults td::before{content:attr(data-label) ": ";color:var(--muted);font-weight:600}
+    }
 
     .loading{display:inline-block;width:18px;height:18px;border:3px solid var(--border);border-top:3px solid var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin-right:8px}
     @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
@@ -271,6 +289,18 @@
     @media(max-width:680px){body{padding:18px 12px}.top{gap:16px}.top-actions{gap:6px}.langs{gap:4px}.lang-btn{padding:7px 9px}section{padding:16px}.intro h2{font-size:1.55rem}.drop{padding:18px 12px}#collectionControls>select{flex:1 1 140px;min-width:0}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:12px}.stat strong{font-size:1.12rem}.selection-tools>*{max-width:100%}#collectionPagination{justify-content:flex-start}.line-items-tools input{width:100%}}
     @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
     @media print{body{max-width:none;padding:0}.intro,.skip-link,.brand-mark{display:none!important}.grid{display:block}.top{border:0}.stat{background:#fff}section{padding:12px}}
+
+    /* Current invoice: summary, source availability and keyboard navigation. */
+    .invoice-overview{border-top:3px solid var(--accent)}
+    .invoice-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .invoice-heading h2{font-size:1.5rem;overflow-wrap:anywhere;margin:4px 0}.invoice-heading>div{min-width:0;flex:1}
+    .invoice-heading p{margin:4px 0;overflow-wrap:anywhere}.invoice-eyebrow{font-size:.8rem;color:var(--muted);font-weight:650}
+    .invoice-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}
+    .invoice-totals>div{padding:14px;background:var(--pre);border-radius:10px;min-width:0}.invoice-totals dt{color:var(--muted);font-size:.85rem}.invoice-totals dd{margin:6px 0 0;font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+    .invoice-nav{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:14px}.invoice-nav a{text-decoration:none;display:inline-flex;align-items:center}
+    #invoiceOverview .btns{justify-content:flex-start;margin-top:16px}#sourceAvailability{margin:8px 0 0}
+    @media(max-width:680px){.invoice-totals{grid-template-columns:repeat(2,minmax(0,1fr))}.invoice-totals dd{font-size:1.05rem}.invoice-heading h2{font-size:1.25rem}}
+    @media print{.invoice-totals{grid-template-columns:repeat(4,minmax(0,1fr))}.invoice-overview{color:#000;background:#fff}.invoice-totals>div{background:#fff}.invoice-totals dt,.invoice-eyebrow{color:#333}}
   </style>
 </head>
 <body>
@@ -313,7 +343,23 @@
     <button id="restoreLastInvoice" class="pill hidden" type="button" data-i18n="restoreLastInvoice">🕘 Letzte Rechnung öffnen</button>
   </div>
 
-  <section id="collectionSection">
+  <section id="importReport" class="hidden no-print" tabindex="-1" aria-labelledby="importTitle">
+    <h2 id="importTitle" data-i18n="importTitle">Importprotokoll</h2>
+    <p id="importSummary" role="status" aria-live="polite"></p>
+    <progress id="importProgress" value="0" max="1" aria-labelledby="importTitle"></progress>
+    <div class="controls">
+      <button id="importCancel" class="pill hidden" type="button" data-i18n="importCancel">Nach dieser Datei abbrechen</button>
+      <button id="importDismiss" class="pill" type="button" data-i18n="importDismiss">Protokoll schließen</button>
+    </div>
+    <div class="table-wrap">
+      <table id="importResults" role="table">
+        <thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" data-i18n="importFilename">Datei</th><th role="columnheader" scope="col" data-i18n="importResult">Ergebnis</th><th role="columnheader" scope="col" data-i18n="importDetails">Rechnung / Hinweis</th></tr></thead>
+        <tbody role="rowgroup"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="collectionSection" tabindex="-1">
     <h2 data-i18n="collectionTitle">🗂️ Rechnungssammlung (optional)</h2>
     <div class="controls">
       <label for="collectionEnabled" class="muted" style="display:flex;gap:8px;align-items:center">
@@ -458,6 +504,36 @@
     </div>
   </section>
 
+  <section id="invoiceOverview" class="invoice-overview hidden" tabindex="-1" aria-labelledby="currentInvoiceNumber">
+    <div class="invoice-heading">
+      <div><span class="invoice-eyebrow" data-i18n="currentInvoice">Geöffnete Rechnung</span><h2 id="currentInvoiceNumber"></h2><p id="currentInvoiceParties" class="muted"></p></div>
+      <button id="closeInvoice" class="pill no-print" type="button" data-i18n="closeInvoice">Rechnung schließen</button>
+    </div>
+    <dl class="invoice-totals">
+      <div><dt data-i18n="netAmount">Gesamt netto</dt><dd id="overviewNet"></dd></div>
+      <div><dt data-i18n="grossAmount">Gesamt brutto</dt><dd id="overviewGross"></dd></div>
+      <div><dt data-i18n="dueAmount">Fälliger Betrag</dt><dd id="overviewDue"></dd></div>
+      <div><dt data-i18n="invDueDate">Fälligkeitsdatum</dt><dd id="overviewDueDate"></dd></div>
+    </dl>
+    <nav id="invoiceNavigation" class="invoice-nav no-print" aria-label="Rechnungsbereiche">
+      <a class="pill" href="#headerSection" data-i18n="invoiceInfo"></a>
+      <a class="pill" href="#paymentSection" data-i18n="paymentInfo"></a>
+      <a class="pill" href="#sellerSection" data-i18n="sellerInfo"></a>
+      <a class="pill" href="#buyerSection" data-i18n="buyerInfo"></a>
+      <a id="jumpLineItems" class="pill" href="#lineItemsSection" data-i18n="lineItems"></a>
+      <a id="jumpCollection" class="pill" href="#collectionSection" data-i18n="backToCollection"></a>
+    </nav>
+  <div class="btns hidden" id="downloadButtons">
+    <button id="btnXml" class="btn" type="button" data-i18n="downloadXml" aria-label="XML speichern">📄 XML</button>
+    <button id="btnPdf" class="btn" type="button" data-i18n="downloadPdf" aria-label="PDF speichern">📋 PDF</button>
+    <button id="btnJson" class="btn" type="button" data-i18n="downloadJson" aria-label="JSON exportieren">📊 JSON</button>
+    <button id="btnCsv" class="btn" type="button" data-i18n="downloadCsv" aria-label="CSV exportieren">📈 CSV</button>
+    <button id="btnPrint" class="btn" type="button" data-i18n="downloadPrint" aria-label="Drucken">🖨️ Drucken</button>
+  </div>
+
+    <p id="sourceAvailability" class="muted no-print"></p>
+  </section>
+
   <section id="warningsSection" class="warn hidden" aria-live="polite" aria-atomic="true">
     <h2 data-i18n="warningsTitle">⚠️ Hinweise</h2>
     <ul id="warningsList"></ul>
@@ -473,14 +549,6 @@
 
   <section id="error" class="err hidden" role="alert" aria-live="assertive" aria-atomic="true"></section>
 
-  <div class="btns hidden" id="downloadButtons">
-    <button id="btnXml" class="btn" type="button" data-i18n="downloadXml" aria-label="XML speichern">📄 XML</button>
-    <button id="btnPdf" class="btn" type="button" data-i18n="downloadPdf" aria-label="PDF speichern">📋 PDF</button>
-    <button id="btnJson" class="btn" type="button" data-i18n="downloadJson" aria-label="JSON exportieren">📊 JSON</button>
-    <button id="btnCsv" class="btn" type="button" data-i18n="downloadCsv" aria-label="CSV exportieren">📈 CSV</button>
-    <button id="btnPrint" class="btn" type="button" data-i18n="downloadPrint" aria-label="Drucken">🖨️ Drucken</button>
-  </div>
-
   <details id="xmlViewer" class="hidden">
     <summary data-i18n="xmlViewerSummary">XML anzeigen</summary>
     <pre id="xmlPre"></pre>
@@ -492,7 +560,7 @@
   </section>
 
   <div class="grid">
-    <section id="headerSection" class="hidden">
+    <section id="headerSection" tabindex="-1" class="hidden">
       <h2 data-i18n="invoiceInfo">📋 Rechnungsinformationen</h2>
       <div class="table-wrap">
         <table>
@@ -507,7 +575,7 @@
       </div>
     </section>
 
-    <section id="paymentSection" class="hidden">
+    <section id="paymentSection" tabindex="-1" class="hidden">
       <h2 data-i18n="paymentInfo">💳 Zahlungsinformationen</h2>
       <div class="table-wrap">
         <table>
@@ -532,7 +600,7 @@
   </div>
 
   <div class="grid">
-    <section id="sellerSection" class="hidden">
+    <section id="sellerSection" tabindex="-1" class="hidden">
       <h2 data-i18n="sellerInfo">🏢 Verkäufer</h2>
       <div class="table-wrap">
         <table>
@@ -547,7 +615,7 @@
       </div>
     </section>
 
-    <section id="buyerSection" class="hidden">
+    <section id="buyerSection" tabindex="-1" class="hidden">
       <h2 data-i18n="buyerInfo">👤 Käufer</h2>
       <div class="table-wrap">
         <table>
@@ -563,7 +631,7 @@
     </section>
   </div>
 
-  <section id="lineItemsSection" class="hidden">
+  <section id="lineItemsSection" tabindex="-1" class="hidden">
     <h2 data-i18n="lineItems">📦 Positionen</h2>
     <div class="line-items-tools no-print">
       <label for="lineItemsSearch" data-i18n="lineItemsSearch">Positionen durchsuchen</label>
@@ -1030,6 +1098,35 @@ window.QRCode = (() => {
 
   const LABELS = {
     de:{
+      importTitle:"Importprotokoll",
+      importFilename:"Datei",
+      importResult:"Ergebnis",
+      importDetails:"Rechnung / Hinweis",
+      importCancel:"Nach dieser Datei abbrechen",
+      importDismiss:"Protokoll schließen",
+      importProgress:"Datei {current} von {total}: {name}",
+      importFinished:"{done} gelesen · {saved} gespeichert · {failed} Fehler · {skipped} übersprungen",
+      importPending:"Wartet",
+      importReading:"Wird verarbeitet",
+      importViewed:"Gelesen",
+      importSaved:"Gespeichert",
+      importDuplicate:"Als Duplikat gespeichert",
+      importFailed:"Fehlgeschlagen",
+      importStorageFailed:"Gelesen, nicht gespeichert",
+      importSkipped:"Übersprungen",
+      importBusy:"Ein Import läuft bereits. Bitte warten Sie, bis er abgeschlossen ist.",
+      importCancelled:"Abbruch angefordert. Die laufende Datei wird noch verarbeitet.",
+      unsupportedXml:"Kein unterstütztes Rechnungs-XML (CII, UBL Invoice oder CreditNote).",
+      currentInvoice:"Geöffnete Rechnung",
+      unnumberedInvoice:"Rechnung ohne Nummer",
+      closeInvoice:"Rechnung schließen",
+      backToCollection:"Zur Sammlung",
+      invoiceNavigation:"Rechnungsbereiche",
+      savedSourceHint:"Gespeicherte Rechnungsdaten. Originaldateien sind in dieser Ansicht nicht vorhanden.",
+      xmlSourceHint:"XML-Quelle verfügbar. Eine Original-PDF liegt für diese Rechnung nicht vor.",
+      pdfSourceHint:"Original-PDF und extrahierte XML verfügbar.",
+      sourceUnavailable:"Originaldatei in dieser Ansicht nicht verfügbar",
+
       workspaceIntro:"PDF oder XML öffnen, Rechnungen prüfen und lokal organisieren.",
       aboutViewer:"Formate & Datenschutz",
       workspaceSubtitle:"E-Rechnungen · lokal im Browser",
@@ -1261,6 +1358,35 @@ window.QRCode = (() => {
       overdueHint:"Überfällig",
     },
     en:{
+      importTitle:"Import report",
+      importFilename:"File",
+      importResult:"Result",
+      importDetails:"Invoice / details",
+      importCancel:"Stop after this file",
+      importDismiss:"Close report",
+      importProgress:"File {current} of {total}: {name}",
+      importFinished:"{done} read · {saved} saved · {failed} errors · {skipped} skipped",
+      importPending:"Pending",
+      importReading:"Processing",
+      importViewed:"Read",
+      importSaved:"Saved",
+      importDuplicate:"Saved as duplicate",
+      importFailed:"Failed",
+      importStorageFailed:"Read, not saved",
+      importSkipped:"Skipped",
+      importBusy:"An import is already running. Please wait until it finishes.",
+      importCancelled:"Stop requested. The current file will finish processing.",
+      unsupportedXml:"Not a supported invoice XML (CII, UBL Invoice or CreditNote).",
+      currentInvoice:"Current invoice",
+      unnumberedInvoice:"Invoice without a number",
+      closeInvoice:"Close invoice",
+      backToCollection:"Back to collection",
+      invoiceNavigation:"Invoice sections",
+      savedSourceHint:"Saved invoice data. Original files are not available in this view.",
+      xmlSourceHint:"XML source available. This invoice has no original PDF.",
+      pdfSourceHint:"Original PDF and extracted XML available.",
+      sourceUnavailable:"Original file unavailable in this view",
+
       workspaceIntro:"Open PDF or XML files, inspect invoices and organize them locally.",
       aboutViewer:"Formats & privacy",
       workspaceSubtitle:"E-invoices · local in your browser",
@@ -1490,6 +1616,35 @@ window.QRCode = (() => {
       overdueHint:"Overdue",
     },
     fr:{
+      importTitle:"Rapport d’import",
+      importFilename:"Fichier",
+      importResult:"Résultat",
+      importDetails:"Facture / détails",
+      importCancel:"Arrêter après ce fichier",
+      importDismiss:"Fermer le rapport",
+      importProgress:"Fichier {current} sur {total} : {name}",
+      importFinished:"{done} lus · {saved} enregistrés · {failed} erreurs · {skipped} ignorés",
+      importPending:"En attente",
+      importReading:"Traitement en cours",
+      importViewed:"Lu",
+      importSaved:"Enregistré",
+      importDuplicate:"Enregistré comme doublon",
+      importFailed:"Échec",
+      importStorageFailed:"Lu, non enregistré",
+      importSkipped:"Ignoré",
+      importBusy:"Un import est déjà en cours. Veuillez attendre sa fin.",
+      importCancelled:"Arrêt demandé. Le traitement du fichier actuel va se terminer.",
+      unsupportedXml:"XML de facture non pris en charge (CII, UBL Invoice ou CreditNote).",
+      currentInvoice:"Facture ouverte",
+      unnumberedInvoice:"Facture sans numéro",
+      closeInvoice:"Fermer la facture",
+      backToCollection:"Retour à la collection",
+      invoiceNavigation:"Rubriques de la facture",
+      savedSourceHint:"Données de facture enregistrées. Les fichiers originaux ne sont pas disponibles dans cette vue.",
+      xmlSourceHint:"Source XML disponible. Cette facture ne contient pas de PDF original.",
+      pdfSourceHint:"PDF original et XML extrait disponibles.",
+      sourceUnavailable:"Fichier original indisponible dans cette vue",
+
       workspaceIntro:"Ouvrez des fichiers PDF ou XML, examinez et organisez vos factures localement.",
       aboutViewer:"Formats et confidentialité",
       workspaceSubtitle:"Factures électroniques · dans votre navigateur",
@@ -1719,6 +1874,35 @@ window.QRCode = (() => {
       overdueHint:"En retard",
     },
     it:{
+      importTitle:"Resoconto importazione",
+      importFilename:"File",
+      importResult:"Risultato",
+      importDetails:"Fattura / dettagli",
+      importCancel:"Interrompi dopo questo file",
+      importDismiss:"Chiudi resoconto",
+      importProgress:"File {current} di {total}: {name}",
+      importFinished:"{done} letti · {saved} salvati · {failed} errori · {skipped} saltati",
+      importPending:"In attesa",
+      importReading:"Elaborazione",
+      importViewed:"Letto",
+      importSaved:"Salvato",
+      importDuplicate:"Salvato come duplicato",
+      importFailed:"Non riuscito",
+      importStorageFailed:"Letto, non salvato",
+      importSkipped:"Saltato",
+      importBusy:"Un’importazione è già in corso. Attendi il completamento.",
+      importCancelled:"Interruzione richiesta. Il file corrente verrà completato.",
+      unsupportedXml:"XML di fattura non supportato (CII, UBL Invoice o CreditNote).",
+      currentInvoice:"Fattura aperta",
+      unnumberedInvoice:"Fattura senza numero",
+      closeInvoice:"Chiudi fattura",
+      backToCollection:"Torna alla raccolta",
+      invoiceNavigation:"Sezioni della fattura",
+      savedSourceHint:"Dati della fattura salvati. I file originali non sono disponibili in questa vista.",
+      xmlSourceHint:"Sorgente XML disponibile. Questa fattura non ha un PDF originale.",
+      pdfSourceHint:"PDF originale e XML estratto disponibili.",
+      sourceUnavailable:"File originale non disponibile in questa vista",
+
       workspaceIntro:"Apri file PDF o XML, esamina le fatture e organizzale localmente.",
       aboutViewer:"Formati e privacy",
       workspaceSubtitle:"Fatture elettroniche · nel browser",
@@ -1948,6 +2132,35 @@ window.QRCode = (() => {
       overdueHint:"Scaduta",
     },
     es:{
+      importTitle:"Informe de importación",
+      importFilename:"Archivo",
+      importResult:"Resultado",
+      importDetails:"Factura / detalles",
+      importCancel:"Detener después de este archivo",
+      importDismiss:"Cerrar informe",
+      importProgress:"Archivo {current} de {total}: {name}",
+      importFinished:"{done} leídos · {saved} guardados · {failed} errores · {skipped} omitidos",
+      importPending:"Pendiente",
+      importReading:"Procesando",
+      importViewed:"Leído",
+      importSaved:"Guardado",
+      importDuplicate:"Guardado como duplicado",
+      importFailed:"Fallido",
+      importStorageFailed:"Leído, sin guardar",
+      importSkipped:"Omitido",
+      importBusy:"Ya hay una importación en curso. Espera a que termine.",
+      importCancelled:"Se ha solicitado detener. El archivo actual terminará de procesarse.",
+      unsupportedXml:"XML de factura no compatible (CII, UBL Invoice o CreditNote).",
+      currentInvoice:"Factura abierta",
+      unnumberedInvoice:"Factura sin número",
+      closeInvoice:"Cerrar factura",
+      backToCollection:"Volver a la colección",
+      invoiceNavigation:"Secciones de la factura",
+      savedSourceHint:"Datos de factura guardados. Los archivos originales no están disponibles en esta vista.",
+      xmlSourceHint:"Fuente XML disponible. Esta factura no tiene PDF original.",
+      pdfSourceHint:"PDF original y XML extraído disponibles.",
+      sourceUnavailable:"Archivo original no disponible en esta vista",
+
       workspaceIntro:"Abre archivos PDF o XML, revisa facturas y organízalas localmente.",
       aboutViewer:"Formatos y privacidad",
       workspaceSubtitle:"Facturas electrónicas · en tu navegador",
@@ -2361,6 +2574,11 @@ window.QRCode = (() => {
     updateRestoreLastButton();
     renderCollection();
     filterLineItems();
+    renderImportReport();
+    if(!$("invoiceOverview").classList.contains("hidden")){
+      fillFromInvoiceData(invoiceData);
+      renderWarnings();
+    }
     // refresh BT badges with new language
     if(proMode) applyProModeToFields();
   }
@@ -2388,6 +2606,7 @@ window.QRCode = (() => {
   function resetView(){
     warnings=[]; renderWarnings();
     clearError();
+    hide($("invoiceOverview"));
     hide(dom.downloadButtons);
     hide(dom.xmlViewer);
     const proSec=$("proXmlSection"); if(proSec) proSec.classList.add("hidden");
@@ -2967,6 +3186,10 @@ window.QRCode = (() => {
     const ns=root.namespaceURI||"";
     return (name==="Invoice" && ns===XML_NS.ublInvoice) || (name==="CreditNote" && ns===XML_NS.ublCreditNote);
   }
+  function isSupportedInvoiceXml(doc){
+    const root=doc.documentElement;
+    return isUblInvoiceOrCreditNote(doc) || (root?.localName==="CrossIndustryInvoice" && root.namespaceURI===XML_NS.rsm);
+  }
 
   function firstText(ctx, paths){
     for(const path of paths){
@@ -3112,9 +3335,7 @@ window.QRCode = (() => {
     saveLastInvoice(invoiceData);
     fillFromInvoiceData(invoiceData);
     buildQrIfPossible(invoiceData, sym);
-    addToCollection(invoiceData, originalPdfBlob || originalXmlBlob);
     renderWarnings();
-    showSuccess();
   }
 
   function beautifyXml(xml){
@@ -3134,13 +3355,20 @@ window.QRCode = (() => {
   // PDF -> XML attachment
   async function extractXmlFromPdf(file){
     const buf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({data:new Uint8Array(buf)}).promise;
-    const att = await pdf.getAttachments();
-    if(!att) return null;
-    for(const [name,a] of Object.entries(att)){
-      if(name.toLowerCase().endsWith(".xml")) return new TextDecoder("utf-8").decode(a.content);
+    const task = pdfjsLib.getDocument({data:new Uint8Array(buf)});
+    try{
+      const pdf = await task.promise;
+      const attachments = await pdf.getAttachments();
+      for(const [name,attachment] of Object.entries(attachments || {})){
+        if(!name.toLowerCase().endsWith(".xml") && !attachment.filename?.toLowerCase().endsWith(".xml")) continue;
+        const xml = new TextDecoder("utf-8").decode(attachment.content);
+        const doc = new DOMParser().parseFromString(xml,"application/xml");
+        if(!doc.querySelector("parsererror") && isSupportedInvoiceXml(doc)) return xml;
+      }
+      return null;
+    }finally{
+      await task.destroy();
     }
-    return null;
   }
 
   // Modals (ARIA focus trap)
@@ -3265,7 +3493,8 @@ window.QRCode = (() => {
   function openDb(){
     return new Promise((resolve)=>{
       if(!("indexedDB" in window)) return resolve(null);
-      const req=indexedDB.open(DB.name, DB.version);
+      let req;
+      try{req=indexedDB.open(DB.name, DB.version);}catch(_){return resolve(null);}
       req.onupgradeneeded=(ev)=>{
         const db=ev.target.result;
         if(!db.objectStoreNames.contains(DB.store)){
@@ -3280,10 +3509,12 @@ window.QRCode = (() => {
   async function dbPut(inv){
     const db=await openDb(); if(!db) return false;
     return new Promise((resolve)=>{
-      const tx=db.transaction(DB.store,"readwrite");
-      tx.objectStore(DB.store).put(inv);
-      tx.oncomplete=()=>resolve(true);
-      tx.onerror=()=>resolve(false);
+      try{
+        const tx=db.transaction(DB.store,"readwrite");
+        tx.oncomplete=()=>{db.close();resolve(true);};
+        tx.onerror=tx.onabort=()=>{db.close();resolve(false);};
+        tx.objectStore(DB.store).put(inv);
+      }catch(_){db.close();resolve(false);}
     });
   }
   async function dbPutMany(invoices){
@@ -3297,10 +3528,12 @@ window.QRCode = (() => {
   async function dbGetAll(){
     const db=await openDb(); if(!db) return null;
     return new Promise((resolve)=>{
-      const tx=db.transaction(DB.store,"readonly");
-      const req=tx.objectStore(DB.store).getAll();
-      req.onsuccess=()=>resolve(req.result||[]);
-      req.onerror=()=>resolve([]);
+      try{
+        const tx=db.transaction(DB.store,"readonly");
+        const req=tx.objectStore(DB.store).getAll();
+        tx.oncomplete=()=>{db.close();resolve(req.result||[]);};
+        tx.onerror=tx.onabort=()=>{db.close();resolve(null);};
+      }catch(_){db.close();resolve(null);}
     });
   }
   async function dbDel(id){
@@ -3329,9 +3562,10 @@ window.QRCode = (() => {
   function dedupeKey(inv){
     const no=(inv?.header?.number||"").trim().toLowerCase();
     const seller=(inv?.seller?.name||"").trim().toLowerCase();
-    const date=(inv?.header?.date||"").trim();
+    const date=invoiceDateKey(inv?.header?.date) || String(inv?.header?.date || "").trim();
     const gross=String(inv?.payment?.grossAmount ?? inv?.payment?.dueAmount ?? "");
-    return [no,seller,date,gross].join("|");
+    const type=String(inv?.header?.typeCode || "");
+    return JSON.stringify([no,seller,date,gross,invoiceCurrency(inv),type]);
   }
   function getStatusLabel(k){ return L()["status_"+k]||k; }
   function getSortMode(){ return lsGet(LS.collectionSort, "loaded_desc"); }
@@ -3652,7 +3886,7 @@ window.QRCode = (() => {
     if(!records){ showError(L().restoreInvalid); return false; }
     const existing=await allInvoices();
     const byId=new Map(existing.map(inv=>[inv.id,inv]));
-    const dedupeOwners=new Map(existing.filter(inv=>!inv.duplicateOf).map(inv=>[inv.dedupeKey||dedupeKey(inv),inv.id]));
+    const dedupeOwners=new Map(existing.filter(inv=>!inv.duplicateOf).map(inv=>[dedupeKey(inv),inv.id]));
     const changes=[];
     let added=0, updated=0, skipped=0;
     records.forEach(record=>{
@@ -3974,16 +4208,23 @@ window.QRCode = (() => {
     renderCollection();
   }
 
-  async function addToCollection(inv, file){
+  async function addToCollection(inv, file, refresh=true){
     if(!enabled()) return;
     const x=normalizeForStorage(inv, file);
     const all=await allInvoices();
-    const existing=all.find(i=>i.dedupeKey===x.dedupeKey);
+    // Recompute keys so older collections also gain currency/type-aware matching.
+    const matches=all.filter(i=>dedupeKey(i)===x.dedupeKey);
+    const existing=matches.find(i=>!i.duplicateOf) || matches[0];
     if(existing) x.duplicateOf = existing.id;
     const ok=await dbPut(x);
-    if(!ok){ const l=lsLoad(); l.unshift(x); lsSave(l); }
-    renderCollection();
-    if(file && (file.type==="application/pdf" || file.name?.toLowerCase().endsWith(".pdf"))) uploadImportedPdf(x.id,file);
+    if(!ok){
+      // A write failure in an available database must not create an invisible fallback record.
+      if(await dbGetAll()!==null) throw new Error("storage");
+      const l=lsLoad(); l.unshift(x);
+      if(!lsSave(l)) throw new Error("storage");
+    }
+    if(refresh) await renderCollection();
+    if(file && (file.type==="application/pdf" || file.name?.toLowerCase().endsWith(".pdf"))) await uploadImportedPdf(x.id,file);
     return x;
   }
 
@@ -4037,6 +4278,7 @@ window.QRCode = (() => {
 
   // Invoice rendering from saved collection
   function renderInvoiceFromSaved(inv){
+    if(importBusy) return;
     resetView();
     invoiceData = JSON.parse(JSON.stringify(inv||{}));
     saveLastInvoice(invoiceData);
@@ -4049,6 +4291,7 @@ window.QRCode = (() => {
     dom.btnCsv.onclick=downloadInvoiceCsv;
     if(dom.btnPrint) dom.btnPrint.onclick=()=>window.print();
     showSuccess();
+    focusInvoiceSection("invoiceOverview");
   }
 
   function downloadBlob(blob, name){
@@ -4077,10 +4320,10 @@ window.QRCode = (() => {
   }
 
   // Parse XML and display
-  function parseXml(xmlStr){
-    const parser=new DOMParser();
-    xmlDoc=parser.parseFromString(xmlStr,"application/xml");
+  function parseXml(xmlStr, parsedDoc=null){
+    xmlDoc=parsedDoc || new DOMParser().parseFromString(xmlStr,"application/xml");
     if(xmlDoc.querySelector("parsererror")){ showError(L().invalidXml); return; }
+    if(!isSupportedInvoiceXml(xmlDoc)){ showError(L().unsupportedXml); return; }
 
     // xml viewer always
     dom.xmlPre.textContent = beautifyXml(xmlStr);
@@ -4232,12 +4475,45 @@ window.QRCode = (() => {
     // QR
     buildQrIfPossible(invoiceData, sym);
 
-    // save to collection (optional)
-    addToCollection(invoiceData, originalPdfBlob || originalXmlBlob);
-
     renderWarnings();
-    showSuccess();
   }
+
+  function focusInvoiceSection(id){
+    const section=$(id);
+    if(!section || section.classList.contains("hidden")) return;
+    section.focus({preventScroll:true});
+    section.scrollIntoView({block:"start",behavior:"instant"});
+  }
+  function updateInvoiceOverview(d){
+    $("currentInvoiceNumber").textContent=d.header?.number || L().unnumberedInvoice;
+    $("currentInvoiceParties").textContent=[d.seller?.name,d.buyer?.name].filter(Boolean).join(" → ");
+    const currency=d.payment?.currency || "";
+    for(const [id,key] of [["overviewNet","netAmount"],["overviewGross","grossAmount"],["overviewDue","dueAmount"]]){
+      const amount=d.payment?.[key];
+      $(id).textContent=amount!=null && amount!=="" ? fmtMoney(amount,currency).trim() : "—";
+    }
+    $("overviewDueDate").textContent=d.header?.dueDate || "—";
+    $("invoiceNavigation").setAttribute("aria-label",L().invoiceNavigation);
+    $("jumpLineItems").classList.toggle("hidden",!(d.lineItems||[]).length);
+    $("jumpCollection").classList.toggle("hidden",!enabled());
+    dom.btnXml.disabled=!originalXmlBlob && !xmlDoc;
+    dom.btnPdf.disabled=!originalPdfBlob;
+    dom.btnCsv.disabled=!(d.lineItems||[]).length;
+    dom.btnXml.title=dom.btnXml.disabled ? L().sourceUnavailable : L().downloadXml;
+    dom.btnPdf.title=dom.btnPdf.disabled ? L().sourceUnavailable : L().downloadPdf;
+    dom.btnCsv.title=dom.btnCsv.disabled ? L().noPositionsToExport : L().downloadCsv;
+    $("sourceAvailability").textContent=L()[originalPdfBlob ? "pdfSourceHint" : (originalXmlBlob || xmlDoc) ? "xmlSourceHint" : "savedSourceHint"];
+    show($("invoiceOverview"));
+  }
+  $("invoiceNavigation").addEventListener("click",event=>{
+    const link=event.target.closest("a[href^='#']"); if(!link) return;
+    event.preventDefault(); focusInvoiceSection(link.getAttribute("href").slice(1));
+  });
+  $("closeInvoice").addEventListener("click",()=>{
+    if(importBusy) return;
+    resetView(); hide(dom.success);
+    focusInvoiceSection(enabled() ? "collectionSection" : "dropZone");
+  });
 
   function fillFromInvoiceData(d){
     // header
@@ -4307,7 +4583,7 @@ window.QRCode = (() => {
         <td>${escapeHtml(li.productName)}</td>
         <td>${escapeHtml(li.description)}</td>
         <td>${escapeHtml(li.notes)}</td>
-        <td>${escapeHtml((li.quantity ?? 0).toFixed ? li.quantity.toFixed(2) : li.quantity)}</td>
+        <td>${escapeHtml(typeof li.quantity==="number" ? li.quantity.toFixed(2) : (li.quantity ?? ""))}</td>
         <td>${escapeHtml(li.unit)}</td>
         <td>${escapeHtml(fmtMoney(li.unitPrice, sym))}${li.priceBaseQuantity > 0 && li.priceBaseQuantity !== 1 ? ` / ${escapeHtml(li.priceBaseQuantity)} ${escapeHtml(li.unitCode || "")}` : ""}</td>
         <td>${escapeHtml(fmtMoney(li.lineNet, sym))}</td>
@@ -4344,6 +4620,8 @@ window.QRCode = (() => {
         hide(dom.taxBreakdownSection);
       }
     }
+
+    updateInvoiceOverview(d);
 
     // Pro mode: apply BT badges and build interactive XML
     if(proMode){
@@ -4403,50 +4681,167 @@ window.QRCode = (() => {
     };
   }
 
+  let importBusy=false, importCancelRequested=false, importRun=null, importRows=[];
+
+  function renderImportReport(onlyIndex=null){
+    if(!importRun) return;
+    const results=importRun.results;
+    if(importBusy){
+      $("importSummary").textContent=importCancelRequested
+        ? L().importCancelled
+        : tpl("importProgress",{current:importRun.current+1,total:results.length,name:results[importRun.current]?.name || ""});
+    }else{
+      const counts=results.reduce((total,result)=>{
+        if(result.parsed) total.done++;
+        if(result.saved) total.saved++;
+        if(result.status==="importFailed" || result.status==="importStorageFailed") total.failed++;
+        if(result.status==="importSkipped") total.skipped++;
+        return total;
+      },{done:0,saved:0,failed:0,skipped:0});
+      $("importSummary").textContent=tpl("importFinished",counts);
+    }
+    $("importProgress").max=results.length;
+    $("importProgress").value=importBusy
+      ? importRun.current + (!["importPending","importReading"].includes(results[importRun.current]?.status) ? 1 : 0)
+      : results.length;
+    $("importProgress").classList.toggle("hidden",!importBusy);
+    $("importCancel").classList.toggle("hidden",!importBusy);
+    $("importCancel").disabled=importCancelRequested;
+    $("importDismiss").disabled=importBusy;
+    const tbody=$("importResults").querySelector("tbody");
+    const headings=$("importResults").tHead.rows[0].cells;
+    let initializeRows=false;
+    if(importRows.length!==results.length || importRows.some(row=>row.parentElement!==tbody)){
+      initializeRows=true;
+      importRows=[];
+      const fragment=document.createDocumentFragment();
+      results.forEach(()=>{
+        const row=document.createElement("tr");
+        row.setAttribute("role","row");
+        for(let i=0;i<3;i++) row.insertCell().setAttribute("role","cell");
+        importRows.push(row);
+        fragment.appendChild(row);
+      });
+      tbody.replaceChildren(fragment);
+    }
+    const indexes=initializeRows || onlyIndex==null ? results.map((_,index)=>index) : [onlyIndex];
+    indexes.forEach(index=>{
+      const result=results[index], row=importRows[index];
+      if(!result || !row) return;
+      row.cells[0].dataset.label=headings[0].textContent;
+      row.cells[0].textContent=result.name;
+      row.cells[1].dataset.label=headings[1].textContent;
+      row.cells[1].textContent=L()[result.status];
+      row.cells[2].dataset.label=headings[2].textContent;
+      row.cells[2].textContent=[result.number,result.reason ? L()[result.reason] : "",result.detail].filter(Boolean).join(" · ");
+      row.classList.toggle("import-error",["importFailed","importStorageFailed"].includes(result.status));
+    });
+  }
+  function setImportBusy(busy){
+    importBusy=busy;
+    dom.fileInput.disabled=busy;
+    dom.loadSample.disabled=busy;
+    dom.restoreLastInvoice.disabled=busy;
+    dom.dropZone.setAttribute("aria-disabled",String(busy));
+    $("collectionSection").inert=busy;
+    $("invoiceOverview").inert=busy;
+    $("closeInvoice").disabled=busy;
+    if(busy){hide(dom.success);showLoading();}else hideLoading();
+  }
+  $("importCancel").addEventListener("click",()=>{importCancelRequested=true;renderImportReport();});
+  $("importDismiss").addEventListener("click",()=>{if(!importBusy){hide($("importReport"));focusInvoiceSection("dropZone");}});
+
+  function captureInvoiceView(){
+    return {data:invoiceData,doc:xmlDoc,pdf:originalPdfBlob,xml:originalXmlBlob,warnings:[...warnings],text:dom.xmlPre.textContent};
+  }
+  function restoreImportedView(view){
+    invoiceData=view.data;xmlDoc=view.doc;originalPdfBlob=view.pdf;originalXmlBlob=view.xml;warnings=view.warnings;
+    dom.xmlPre.textContent=view.text;show(dom.xmlViewer);show(dom.downloadButtons);
+    fillFromInvoiceData(invoiceData);
+    buildQrIfPossible(invoiceData,getCurSym(invoiceData.payment?.currency));
+    renderWarnings();
+  }
+
   async function handleFile(file){
     resetView();
-    showLoading();
+    const result={name:file.name,status:"importFailed",parsed:false,saved:false};
     try{
+      let xml;
       if(file.type==="application/pdf" || file.name.toLowerCase().endsWith(".pdf")){
+        xml=await extractXmlFromPdf(file);
+        if(!xml){result.reason="noFileFound";return result;}
         originalPdfBlob=file;
-        const xml = await extractXmlFromPdf(file);
-        if(!xml){ showError(L().noFileFound); return; }
-        originalXmlBlob = new Blob([xml],{type:"application/xml"});
-        parseXml(xml);
-      } else if(file.name.toLowerCase().endsWith(".xml") || (file.type||"").includes("xml")){
+        originalXmlBlob=new Blob([xml],{type:"application/xml"});
+      }else if(file.name.toLowerCase().endsWith(".xml") || (file.type||"").includes("xml")){
+        xml=await file.text();
         originalXmlBlob=file;
-        const txt = await file.text();
-        parseXml(txt);
-      } else {
-        showError(L().unsupportedFormat);
+      }else{
+        result.reason="unsupportedFormat";return result;
       }
-    } catch(e){
-      showError(L().processingError + (e?.message||String(e)));
-      console.error(e);
-    } finally {
-      hideLoading();
+      // Validate before rendering or persisting any invoice data.
+      const doc=new DOMParser().parseFromString(xml,"application/xml");
+      if(doc.querySelector("parsererror")){result.reason="invalidXml";return result;}
+      if(!isSupportedInvoiceXml(doc)){result.reason="unsupportedXml";return result;}
+      parseXml(xml,doc);
+      result.parsed=true;
+      result.number=invoiceData.header?.number || "";
+      result.status="importViewed";
+      try{
+        const stored=await addToCollection(invoiceData,file,false);
+        if(stored){result.saved=true;result.status=stored.duplicateOf ? "importDuplicate" : "importSaved";}
+      }catch(_){result.status="importStorageFailed";}
+      return result;
+    }catch(e){
+      result.reason="processingError";
+      result.detail=e?.message || String(e);
+      return result;
     }
   }
 
   async function handleFiles(files){
     const list=Array.from(files||[]);
     if(!list.length) return;
-    clearError();
-    showLoading();
-    let done=0;
-    for(const file of list){
-      await handleFile(file);
-      if(dom.error.classList.contains("hidden")) done += 1;
-    }
-    hideLoading();
-    if(list.length > 1){
-      showSuccess(tpl("importSummary",{done,total:list.length}));
+    if(importBusy){showError(L().importBusy);return;}
+    importCancelRequested=false;
+    importRun={current:0,results:list.map(file=>({name:file.name,status:"importPending"}))};
+    $("importResults").querySelector("tbody").replaceChildren();
+    show($("importReport"));
+    importRows=[];
+    $("importResults").querySelector("tbody").replaceChildren();
+    setImportBusy(true);
+    let lastView=null;
+    try{
+      for(let i=0;i<list.length;i++){
+        if(importCancelRequested){
+          for(let j=i;j<list.length;j++) importRun.results[j].status="importSkipped";
+          break;
+        }
+        importRun.current=i;
+        importRun.results[i].status="importReading";
+        renderImportReport(i);
+        const result=await handleFile(list[i]);
+        importRun.results[i]=result;
+        if(result.parsed) lastView=captureInvoiceView();
+        renderImportReport(i);
+        // Let progress updates and cancellation reach the UI between files.
+        await new Promise(resolve=>setTimeout(resolve,0));
+      }
+      if(lastView) restoreImportedView(lastView);
+      const failed=importRun.results.filter(r=>["importFailed","importStorageFailed"].includes(r.status));
+      if(failed.length){
+        showError(failed.map(r=>`${r.name}: ${L()[r.reason || r.status]}${r.detail ? " " + r.detail : ""}`).join("\n"));
+      }else clearError();
+    }finally{
+      dom.fileInput.value=""; // Allow selecting the same files again.
+      try{await renderCollection();}finally{setImportBusy(false);}
+      renderImportReport();
+      focusInvoiceSection(list.length>1 || !lastView ? "importReport" : "invoiceOverview");
     }
   }
 
   // Dropzone events
-  dom.dropZone.addEventListener("click", ()=>dom.fileInput.click());
-  dom.dropZone.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); dom.fileInput.click(); } });
+  dom.dropZone.addEventListener("click", ()=>{if(!importBusy) dom.fileInput.click();});
+  dom.dropZone.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); if(!importBusy) dom.fileInput.click(); } });
   dom.dropZone.addEventListener("dragover",(e)=>{ e.preventDefault(); dom.dropZone.classList.add("dragover"); });
   dom.dropZone.addEventListener("dragleave",(e)=>{ e.preventDefault(); dom.dropZone.classList.remove("dragover"); });
   dom.dropZone.addEventListener("drop",(e)=>{
@@ -4461,17 +4856,22 @@ window.QRCode = (() => {
 
   // sample
   dom.loadSample.addEventListener("click", async ()=>{
+    if(importBusy) return;
+    let fetching=true;
     try{
-      resetView(); showLoading();
+      resetView(); setImportBusy(true);
+      importRun=null;hide($("importReport"));
       const resp=await fetch("https://simonwaldherr.github.io/InvoiceInspector/RE-2025-0815.pdf");
       if(!resp.ok) throw new Error("HTTP "+resp.status);
       const blob=await resp.blob();
-      await handleFile(new File([blob],"RE-2025-0815.pdf",{type:"application/pdf"}));
+      setImportBusy(false);
+      fetching=false;
+      await handleFiles([new File([blob],"RE-2025-0815.pdf",{type:"application/pdf"})]);
       dom.loadSample.classList.add("hidden");
     } catch(e){
       showError(L().processingError + (e?.message||String(e)));
     } finally {
-      hideLoading();
+      if(fetching) setImportBusy(false);
     }
   });
 
@@ -4500,8 +4900,16 @@ window.QRCode = (() => {
     saveCollectionUiSettings();
     renderCollection();
   };
-  dom.collectionEnabled.addEventListener("change",()=>{ setEnabled(dom.collectionEnabled.checked); renderCollection(); });
-  dom.collectionSearch.addEventListener("input",rerenderFromFilters);
+  const debounce=(callback,delay=160)=>{
+    let timeout;
+    return (...args)=>{
+      clearTimeout(timeout);
+      timeout=setTimeout(()=>callback(...args),delay);
+    };
+  };
+  const rerenderFromTyping=debounce(rerenderFromFilters);
+  dom.collectionEnabled.addEventListener("change",()=>{ setEnabled(dom.collectionEnabled.checked); renderCollection(); if(!$("invoiceOverview").classList.contains("hidden")) updateInvoiceOverview(invoiceData); });
+  dom.collectionSearch.addEventListener("input",rerenderFromTyping);
   dom.collectionStatusFilter.addEventListener("change",rerenderFromFilters);
   dom.collectionDueFilter.addEventListener("change",rerenderFromFilters);
   dom.collectionCurrency.addEventListener("change",rerenderFromFilters);
@@ -4516,8 +4924,8 @@ window.QRCode = (() => {
   dom.collectionDuplicatesOnly.addEventListener("change",rerenderFromFilters);
   dom.collectionDateFrom.addEventListener("change",rerenderFromFilters);
   dom.collectionDateTo.addEventListener("change",rerenderFromFilters);
-  dom.collectionGrossMin.addEventListener("input",rerenderFromFilters);
-  dom.collectionGrossMax.addEventListener("input",rerenderFromFilters);
+  dom.collectionGrossMin.addEventListener("input",rerenderFromTyping);
+  dom.collectionGrossMax.addEventListener("input",rerenderFromTyping);
   dom.collectionResetFilters.addEventListener("click",()=>{ clearCollectionFilters(); renderCollection(); });
   dom.collectionPageSize.addEventListener("change",()=>{ lsSet(LS.collectionPage, "1"); saveCollectionUiSettings(); renderCollection(); });
   dom.collectionPrevPage.addEventListener("click",()=>{
@@ -4592,7 +5000,7 @@ window.QRCode = (() => {
     if(testDoc.querySelector("parsererror")) return;
     e.preventDefault();
     const blob=new Blob([trimmed],{type:"text/xml"});
-    handleFile(new File([blob],"pasted-invoice.xml",{type:"text/xml"}));
+    handleFiles([new File([blob],"pasted-invoice.xml",{type:"text/xml"})]);
   });
 
   // init

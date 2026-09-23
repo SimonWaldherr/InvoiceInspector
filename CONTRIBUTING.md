@@ -74,6 +74,8 @@ optional test runner requires Node.js, Playwright, and installed Chrome and Edge
 node tests/regression.cjs
 node tests/business.cjs
 node tests/workspace.cjs
+node tests/invoice-view.cjs
+node tests/import.cjs
 # To run a single installed browser:
 BROWSER_CHANNELS=chrome node tests/regression.cjs
 ```
@@ -90,6 +92,16 @@ settings, sorting, all-pages exports, and actual CSV/JSON downloads.
 Workspace tests cover selection across pages, selected exports, bulk status updates,
 comment preservation, persistence, filter changes, storage failures, all five UI
 languages and responsive light/dark layouts. Set `SCREENSHOT_DIR` to save screenshots.
+
+Invoice-view tests cover summary values, source availability, XML downloads,
+keyboard navigation, close/restore, language changes, missing fields, malformed
+XML, responsive themes and print behavior.
+
+Import tests exercise mixed batches, format rejection, persistence before
+completion, duplicate identities, original-source preservation, repeated file
+selection, cancellation, concurrent import protection, all five languages,
+storage failures, older collection keys and PDF resource cleanup. Parsers remain
+synchronous; the import controller owns collection persistence.
 
 ## Optional sync-server tests
 
